@@ -14,7 +14,6 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 目前，go-ethereum项目的目录结构如下所示。
 
 	accounts        	实现了一个高等级的以太坊账户管理
-	bmt			二进制的默克尔树的实现
 	build			主要是编译和构建的一些脚本
 
 
