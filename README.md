@@ -13,10 +13,15 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 
 目前，go-ethereum项目的目录结构如下所示。
 
-	accounts/        	实现了一个高等级的以太坊账户管理
+	accounts/       	实现了一个高等级的以太坊账户管理
 	build/			主要是编译和构建的一些脚本
 	core/			以太坊核心模块，包括核心数据结构，状态树及其算法实现
-	├──types.go		包括Block在内的以太坊核心数据结构
+	 ├──types/		包括Block在内的以太坊核心数据结构
+	 	├──block.go		以太坊block
+		├──bloom9.go		一个Bloom Filter的实现
+		├──transaction.go	以太坊transaction的数据结构与实现
+		├──receipt.go		以太坊收据的实现，用于说明以太坊交易的结果
+
 
 
 ## Reference
