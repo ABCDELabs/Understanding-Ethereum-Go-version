@@ -25,5 +25,10 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 
 
 ## Reference
--  Go-ethereum code analysis https://github.com/ZtesoftCS/go-ethereum-code-analysis
-- Mastering Bitcoin(Second Edition)
+- [1] Etheruem Yellow Paper [(Paper Link)](https://ethereum.github.io/yellowpaper/paper.pdf)
+- [2] Ethereum/Go-Ethereum [(link)](https://github.com/ethereum/go-ethereum)
+- [3] Go-ethereum code analysis [(Link)](https://github.com/ZtesoftCS/go-ethereum-code-analysis) 
+- [4] Ethereum Improvement Proposals [(link)](https://github.com/ethereum/EIPs)
+- [5] Mastering Bitcoin(Second Edition)
+
+
