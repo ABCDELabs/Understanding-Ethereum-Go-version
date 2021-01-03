@@ -21,14 +21,17 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 		├──bloom9.go		一个Bloom Filter的实现
 		├──transaction.go	以太坊transaction的数据结构与实现
 		├──receipt.go		以太坊收据的实现，用于说明以太坊交易的结果
-	├──state/
-		├──statedb.go		StateDB结构用于存储所有的与Merkle trie相关的存储, 包括一些循环state结构
 	├──miner/
 		├──miner.go
 		├──worker.go
 		├──unconfirmed.go
 	├──consensus/
 		├──consensus.go		共识相关的参数设定，包括Block Reward的数量
+	├──state/
+		├──statedb.go		StateDB结构用于存储所有的与Merkle trie相关的存储, 包括一些循环state结构
+	├──trie/				package trie包含了Merkle Patricia Tries的实现
+		├──trie.go
+	├──rlp/					RLP的Encode与Decode的相关实现
 
 
 -----------------------------------------------------------
