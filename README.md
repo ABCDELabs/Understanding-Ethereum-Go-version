@@ -23,6 +23,11 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 		├──receipt.go		以太坊收据的实现，用于说明以太坊交易的结果
 	├──state/
 		├──statedb.go		StateDB结构用于存储所有的与Merkle trie相关的存储, 包括一些循环state结构
+	├──miner/
+		├──miner.go
+		├──worker.go
+		├──unconfirmed.go
+
 
 
 
