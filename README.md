@@ -27,6 +27,8 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 		├──miner.go
 		├──worker.go
 		├──unconfirmed.go
+	├──consensus/
+		├──consensus.go		共识相关的参数设定，包括Block Reward的大小
 
 
 
