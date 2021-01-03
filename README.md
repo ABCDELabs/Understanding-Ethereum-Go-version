@@ -21,10 +21,13 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 		├──bloom9.go		一个Bloom Filter的实现
 		├──transaction.go	以太坊transaction的数据结构与实现
 		├──receipt.go		以太坊收据的实现，用于说明以太坊交易的结果
+	├──state/
+		├──statedb.go		StateDB结构用于存储所有的与Merkle trie相关的存储, 包括一些循环state结构
 
 
 
-## Reference
+
+## Reference 
 - [1] Etheruem Yellow Paper [(Paper Link)](https://ethereum.github.io/yellowpaper/paper.pdf)
 - [2] Ethereum/Go-Ethereum [(link)](https://github.com/ethereum/go-ethereum)
 - [3] Go-ethereum code analysis [(Link)](https://github.com/ZtesoftCS/go-ethereum-code-analysis) 
