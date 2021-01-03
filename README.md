@@ -31,7 +31,10 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 		├──consensus.go		共识相关的参数设定，包括Block Reward的大小
 
 
+### Appendix
+#### Tips
 
+- 以太坊是基于State模型的区块链系统，miner在update new Block的时候，会直接修改自身的状态（添加区块奖励给自己）。所以与Bitcoin不同的是，Ethereum的区块中，并没有类似的Coinbase的transaction。
 
 
 ## Reference 
