@@ -32,6 +32,9 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 	├──trie/				package trie包含了Merkle Patricia Tries的实现
 		├──trie.go
 	├──rlp/					RLP的Encode与Decode的相关实现
+	├──ethdb/
+		├──leveldb/			Go-Ethereum使用的与Bitcoin Core version一样的Leveldb作为本机存储		
+
 
 
 -----------------------------------------------------------
