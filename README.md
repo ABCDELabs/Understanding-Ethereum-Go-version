@@ -36,7 +36,7 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 		├──leveldb/			Go-Ethereum使用的与Bitcoin Core version一样的Leveldb作为本机存储用的数据库
 	├──node/				
 	├──rpc/					Ethereum RPC客户端的实现
-	├──p2p/
+	├──p2p/					Ethereum 使用的P2P网络的实现,包括节点发现，节点链接等
 
 
 
