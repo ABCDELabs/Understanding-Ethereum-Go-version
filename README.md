@@ -33,7 +33,10 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 		├──trie.go
 	├──rlp/					RLP的Encode与Decode的相关实现
 	├──ethdb/				Ethereum 本地存储的相关实现, 包括leveldb的调用
-		├──leveldb/			Go-Ethereum使用的与Bitcoin Core version一样的Leveldb作为本机存储用的数据库		
+		├──leveldb/			Go-Ethereum使用的与Bitcoin Core version一样的Leveldb作为本机存储用的数据库
+	├──node/
+	├──rpc/
+	├──p2p/
 
 
 
