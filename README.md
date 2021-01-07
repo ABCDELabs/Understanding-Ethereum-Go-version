@@ -37,6 +37,8 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 	├──node/				
 	├──rpc/					Ethereum RPC客户端的实现
 	├──p2p/					Ethereum 使用的P2P网络的实现,包括节点发现，节点链接等
+	├──les/					Ethereum light client的实现。
+
 
 
 
