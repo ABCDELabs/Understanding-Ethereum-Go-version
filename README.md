@@ -23,7 +23,7 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 		|──transaction_signing.go	用于对transaction进行签名的函数的实现
 		├──receipt.go		以太坊收据的实现，用于说明以太坊交易的结果
 	├──miner/
-		├──miner.go
+		├──miner.go			矿工的基本的实现。
 		├──worker.go
 		├──unconfirmed.go
 	├──consensus/
@@ -42,6 +42,8 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 
 
 ### 进入以太坊的世界-从创建以太坊账号开始
+以太坊的账号是一个20字节, 160bits的哈希地址。
+
 
 ### 以太坊节点的初始化
 
