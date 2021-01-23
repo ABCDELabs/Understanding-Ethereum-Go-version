@@ -1,4 +1,4 @@
-# 什么是以太坊中的 receipt
+# 以太坊中的receipt
 
 receipt是Ethereum基础数据结构的一种，源代码位于core/types/receipt.go。
 
