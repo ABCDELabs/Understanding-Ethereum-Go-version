@@ -15,6 +15,7 @@ go-ethereum中使用leveldb作为本地存储的用的数据库。Leveldb是由J
         blockBodyKey = blockBodyPrefix + num (uint64 big endian) + hash -> block body
 
 其中，Key中高位都是特定的前缀标示。
+
     rawdb/scheme.go:
         headerPrefix       = []byte("h") // headerPrefix + num (uint64 big endian) + hash -> header
         headerTDSuffix     = []byte("t") // headerPrefix + num (uint64 big endian) + hash + headerTDSuffix -> td
