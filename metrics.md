@@ -4,6 +4,14 @@
 
 ## Compare with current relational database
 
+
+### Metrics in Blockchain
+
+- TPS
+- Delay time
+- Network I/O
+
+
 ### Metrics in relational database
 
 - TPS
