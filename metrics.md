@@ -3,6 +3,7 @@
 描述以太坊中性能的两个重要的metrics是TPS和transaction delay.
 
 ## Compare with current relational database
+Blockchain system 并不是传统意义上的Database management system.
 
 
 ### Metrics in Blockchain
@@ -14,6 +15,6 @@
 
 ### Metrics in relational database
 
-- TPS
-- QPS
-- I/O speed
+- TPS 每秒钟处理的transaction的数量
+- QPS 每秒钟查询的transaction的数量
+- IOPS 每秒钟IO的读取的的速率
