@@ -11,6 +11,7 @@ Blockchain system 并不是传统意义上的Database management system.
 - TPS
 - Delay time
 - Network I/O
+- 支持的用户数量：无限的
 
 
 ### Metrics in relational database
@@ -18,3 +19,5 @@ Blockchain system 并不是传统意义上的Database management system.
 - TPS 每秒钟处理的transaction的数量
 - QPS 每秒钟查询的transaction的数量
 - IOPS 每秒钟IO的读取的的速率
+- 支持的用户数量：有限的
+
