@@ -8,8 +8,9 @@ Bloom Filter是Ethereum的核心功能之一。具体的代码是实现是在“
 
 在文件的起始位置，定义了两个常量BloomByteLength 和 BloomBitLength，大小分别是256和8.
 
+在Ethereum中的Bloom Filter是一个长度为256的byte数组组成的。
+
 """
     Bloom represents a 2048 bit bloom filter
     type Bloom [BloomByteLength]byte
-
 """
