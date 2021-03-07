@@ -73,3 +73,10 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 - [3] Go-ethereum code analysis [(Link)](https://github.com/ZtesoftCS/go-ethereum-code-analysis) 
 - [4] Ethereum Improvement Proposals [(link)](https://github.com/ethereum/EIPs)
 - [5] Mastering Bitcoin(Second Edition)
+
+# Related Materials
+
+## Papers
+
+## Talks
+- Succinct Proofs in Ethereum - Barry Whitehat, Ethereum Foundation [(Youtube)](https://www.youtube.com/watch?v=TtsDNneTDDY)
