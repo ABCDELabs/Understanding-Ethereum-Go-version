@@ -24,7 +24,7 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 		├──receipt.go		以太坊收据的实现，用于说明以太坊交易的结果
 	├──miner/
 		├──miner.go			矿工的基本的实现。
-		├──worker.go
+		├──worker.go		矿工任务的模块，包括打包transaction
 		├──unconfirmed.go
 	├──consensus/
 		├──consensus.go		共识相关的参数设定，包括Block Reward的数量
