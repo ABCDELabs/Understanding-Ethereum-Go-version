@@ -21,6 +21,7 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 		├──bloom9.go		一个Bloom Filter的实现
 		├──transaction.go	以太坊transaction的数据结构与实现
 		|──transaction_signing.go	用于对transaction进行签名的函数的实现
+		|──tx_pool.go
 		├──receipt.go		以太坊收据的实现，用于说明以太坊交易的结果
 	├──miner/
 		├──miner.go			矿工的基本的实现。
