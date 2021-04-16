@@ -15,6 +15,9 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 
 	accounts/       	实现了一个高等级的以太坊账户管理
 	build/			主要是编译和构建的一些脚本
+	accounts/
+	 ├──abi			解析Contracts中的ABI的信息
+	 	├──abi.go	
 	core/			以太坊核心模块，包括核心数据结构，状态树及其算法实现
 	 ├──types/		包括Block在内的以太坊核心数据结构
 	 	├──block.go		以太坊block
