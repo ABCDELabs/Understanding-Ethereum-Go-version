@@ -18,6 +18,7 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 	 ├──abi			解析Contracts中的ABI的信息
 	 	├──abi.go	
 	core/			以太坊核心模块，包括核心数据结构，状态树及其算法实现
+	 ├──state/
 	 ├──types/		包括Block在内的以太坊核心数据结构
 	 	├──block.go		以太坊block
 		├──bloom9.go		一个Bloom Filter的实现
