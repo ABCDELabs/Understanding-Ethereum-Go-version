@@ -1,1 +1,3 @@
 # Ethereum Transaction Pool
+
+Transaction pool也称为Mempool是节点用于临时存储尚未被打包，处于待打包状态的transaction。
