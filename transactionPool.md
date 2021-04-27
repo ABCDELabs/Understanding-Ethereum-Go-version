@@ -7,3 +7,8 @@ Transaction pool也称为Mempool是节点用于临时存储尚未被打包，处
 
     func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error
 
+当Newly added transaction确定是合法交易之后，transaction 会被首先添加到一个non-executable queue中缓存。在之后的某一时刻会被pending promotion and execution。
+这里有两个地方要注意：
+    - 新添加且验证合法的交易并不会马上被节点添加到Pending list进入待打包状态。而是会被送到一个non-executable queue的队列中缓存。
+        func (pool *TxPool) enqueueTx(hash common.Hash, tx *types.Transaction, local bool, addAll bool) (bool, error)
+    - 新添加且验证合法的交易在被打包之前并不会此刻（在tx pool中等待的时刻）被执行。
