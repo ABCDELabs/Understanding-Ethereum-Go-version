@@ -3,16 +3,16 @@ Understanding Ethereum(Go version)｜理解以太坊(Go 版本源码剖析)
 
 Author: Siyuan Han 
 
-### 写在前面
-当我们提起Blockchain, Bitcoin, Ethereum的时候，通常的文档往往只是在high-level的层面来讲述Blockchain的架构。现在有非常多的文档来讲述，类似双花，梅克尔树等问题。但是某天，我忽然想到，究竟miner是怎么从transaction pool中选取transaction，他们又是按照怎么的order被打包进区块链中的呢？我尝试去搜索了一下，发现鲜有文章提到这一层面的细节。笔者坚信，在未来的是五到十年内，这个世界的云端服务一定是两极分化的。一极是以大云计算公司（ie： Google，MS，Oracle，Snowflake，Alibaba）为代表的中心化服务，另一极就是以Blockchain技术作为核心的去中心化的世界。在这个世界中，Ethereum是当之无愧的领头羊。所以研究好Ethereum的原理以及其设计思想是非常有必要。(持续更新中...)
+## Preface 
 
+当我们提起Blockchain, Bitcoin, Ethereum的时候，通常的文档往往只是在high-level的层面来讲述Blockchain的架构。现在有非常多的文档来讲述，类似双花，梅克尔树等问题。但是某天，我忽然想到，究竟miner是怎么从transaction pool中选取transaction，他们又是按照怎么的order被打包进区块链中的呢？我尝试去搜索了一下，发现鲜有文章提到这一层面的细节。笔者坚信，在未来的是五到十年内，这个世界的云端服务一定是两极分化的。一极是以大云计算公司（ie： Google，MS，Oracle，Snowflake，Alibaba）为代表的中心化服务，另一极就是以Blockchain技术作为核心的去中心化的世界。在这个世界中，Ethereum是当之无愧的领头羊。所以研究好Ethereum的原理以及其设计思想是非常有必要。(持续更新中...)
 
 本文档基于Go-Ethereum (Marljeh version-1.9.25)对以太坊的源码结构，以及以太坊系统设计背后的细节，原理进行剖析。
 
 go-ethereum是以太坊协议的Go语言实现版本，目前由以太坊基金会官方维护。除了本版本之外，Ethereum还有C++, Python，Java等其他语言版本。Go-ethereum在这些所有的社区版本中，版本更新最频繁，开发人员最多，问题相对较少。其他语言的Ethereum实现版本因为更新频率相对较低，隐藏问题未知，建议初学者首先从go-ethereum的视角来理解Ethereum网络与系统的设计实现。
 
 
-### go-ethereum目录解析
+### go-ethereum 目录
 go-ethereum项目进行过若干次的重构，本文基于最新的版本Marljeh (version-1.9.25 updated time 2020-12) 进行分析。
 
 目前，go-ethereum项目的目录结构如下所示。
@@ -42,23 +42,21 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 		├──miner.go			矿工的基本的实现。
 		├──worker.go		矿工任务的模块，包括打包transaction
 		├──unconfirmed.go
-	├──p2p/					Ethereum 使用的P2P网络的实现,包括节点发现，节点链接等
+	├──p2p/					Ethereum 的P2P模块
+	├──params				Ethereum 的一些参数的配置，例如: bootnode的enode地址
+		├──bootnodes.go		bootnode的enode地址 like: aws的一些节点，azure的一些节点，Ethereum Foundation的节点和						Rinkeby测试网的节点
 	├──state/
 		├──statedb.go		StateDB结构用于存储所有的与Merkle trie相关的存储, 包括一些循环state结构
 	├──rlp/					RLP的Encode与Decode的相关实现
 	├──rpc/					Ethereum RPC客户端的实现
 	├──les/					Ethereum light client的实现
 	
-
-### [00_万物的起点从geth出发](00_geth.md) 
-### [01_Account 与State 模型](01_account.md) 
-### [02_一个Transaction的生老病死](02_transaction.md) 
-
-
+## Contents
+- [00_万物的起点从geth出发](00_geth.md) 
+- [01_Account 与State 模型](01_account.md) 
+- [02_一个Transaction的生老病死](02_transaction.md) 
 
 -----------------------------------------------------------
-
-### Appendix
 
 #### Tips
 
@@ -75,9 +73,6 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 - [4] Ethereum Improvement Proposals [(link)](https://github.com/ethereum/EIPs)
 - [5] Mastering Bitcoin(Second Edition)
 
-# Related Materials
-
-## Papers
 
 ## Talks
 - Succinct Proofs in Ethereum - Barry Whitehat, Ethereum Foundation [(Youtube)](https://www.youtube.com/watch?v=TtsDNneTDDY)
