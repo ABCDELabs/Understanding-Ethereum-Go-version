@@ -37,6 +37,9 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 		├──unconfirmed.go
 	├──consensus/
 		├──consensus.go		共识相关的参数设定，包括Block Reward的数量
+	├──console/
+		├──bridge.go
+		├──console.go		Geth Web3 控制台的入口
 	├──state/
 		├──statedb.go		StateDB结构用于存储所有的与Merkle trie相关的存储, 包括一些循环state结构
 	├──trie/				package trie包含了Merkle Patricia Tries的实现
