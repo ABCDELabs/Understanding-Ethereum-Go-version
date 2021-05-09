@@ -22,6 +22,8 @@
 
 ## Signature & Verification
 - Hash（m,R）*X +R = S * P
+- P是椭圆曲线函数的基点(base point) 可以理解为一个P是一个在曲线C上的一个order 为n的加法循环群的生成元. n为质数。
+- R = r * P (r 是个随机数，并不告知verifier)
 - 以太坊签名校验的核心思想是基于上面得到的ecdsaKey对数据msg进行签名得到msgSig. 
     `sig, err := crypto.Sign(msg, ecdsaKey)`
 - 基于msg和msgSig可以反推出来签名的公钥（生成地址的那个）。
@@ -31,5 +33,10 @@
 - 这套体系的安全性保证在于，即使知道了公钥pk/ecdsaKey.PublicKey也难以推测出 ecdsaKey以及生成他的privateKey。
 
 ### ECDSA & spec256k1曲线
+- Elliptic curve point multiplication
+    + Point addition P + Q = R
+    + Point doubling P + P = 2P
+- y^2 = x^3 +7
 - Based Point
 - x次computation on Based Point得到X点，x为私钥，X为公钥。x由Account Private Key得出。
+- P + P = 2P
