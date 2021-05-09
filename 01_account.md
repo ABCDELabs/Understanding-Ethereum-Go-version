@@ -1,15 +1,15 @@
-## Account
+# Account
 
 这部分的示例代码在[example/account](example/account)中。
 
-### Account & Private Key & Public Kay & Address 
+## Account & Private Key & Public Kay & Address 
 
 - 首先我们通过随机得到一个长度64位account的私钥。
     + 64个16进制位，256bit，32字节
-
     `var AlicePrivateKey = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232032"`
 
-- 得到私钥后我们用私钥来计算公钥和account的地址。对基于私钥，我们使用ECDSA算法，选择spec256k1曲线，进行计算。以太坊和比特币使用了同样的spec256k1曲线，在实际的代码中，我们也可以看到在crypto中，go-Ethereum调用了比特币的代码。
+- 得到私钥后我们用私钥来计算公钥和account的地址。对基于私钥，我们使用ECDSA算法，选择spec256k1曲线，进行计算。通过将私钥带入到所选择的椭圆曲线中，计算出点的坐标即是公钥。
+以太坊和比特币使用了同样的spec256k1曲线，在实际的代码中，我们也可以看到在crypto中，go-Ethereum调用了比特币的代码。
 
     `ecdsaKey, err := crypto.ToECDSA(privateKey)`
 
@@ -20,8 +20,9 @@
     `addr := crypto.PubkeyToAddress(pk.PublicKey)`
 
 
-### Signature & Verification
-- 以太坊签名校验的核心思想是基于上面得到的ecdsaKey对数据msg进行签名得到msgSig.
+## Signature & Verification
+- Hash（m,R）*X +R = S * P
+- 以太坊签名校验的核心思想是基于上面得到的ecdsaKey对数据msg进行签名得到msgSig. 
     `sig, err := crypto.Sign(msg, ecdsaKey)`
 - 基于msg和msgSig可以反推出来签名的公钥（生成地址的那个）。
     `recoveredPub, err := crypto.Ecrecover(dataHash[:], sigTest)`
@@ -30,3 +31,5 @@
 - 这套体系的安全性保证在于，即使知道了公钥pk/ecdsaKey.PublicKey也难以推测出 ecdsaKey以及生成他的privateKey。
 
 ### ECDSA & spec256k1曲线
+- Based Point
+- x次computation on Based Point得到X点，x为私钥，X为公钥。x由Account Private Key得出。
