@@ -37,6 +37,6 @@
     + Point addition P + Q = R
     + Point doubling P + P = 2P
 - y^2 = x^3 +7
-- Based Point
+- Based Point P是在椭圆曲线上的群的生成元
 - x次computation on Based Point得到X点，x为私钥，X为公钥。x由Account Private Key得出。
-- P + P = 2P
+- 在ECC中的+号不是四则运算中的加法，而是定义椭圆曲线C上的新的二元运算(Point Multiplication)。他代表了过两点P和Q的直线与椭圆曲线C的交点R‘关于X轴对称的点R。因为C是关于X轴对称的所以关于X对称的点也都在椭圆曲线上。
