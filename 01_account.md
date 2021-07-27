@@ -15,6 +15,11 @@ type Account struct {
 }
 ```
 
+- Nonce 表示该账号发送的交易序号。
+- Balance 表示该账号的余额。
+- Root 是当前账号的Storage Tire的 Merkle Root
+- CodeHash是该账号的EVM代码的哈希值。
+
 ```go
 // stateObject represents an Ethereum account which is being modified.
 //
