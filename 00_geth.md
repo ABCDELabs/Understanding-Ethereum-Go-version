@@ -1,7 +1,6 @@
 # 00_万物的起点从geth出发
 
-### go-ethereum 源代码目录结构
-go-ethereum项目进行过若干次的重构，本文基于最新的版本Marljeh (version-1.9.25 updated time 2020-12) 进行分析。
+## go-ethereum 源代码目录结构
 
 目前，go-ethereum项目的目录结构如下所示。
 
@@ -39,6 +38,5 @@ go-ethereum项目进行过若干次的重构，本文基于最新的版本Marlje
 	├──rpc/					Ethereum RPC客户端的实现
 	├──les/					Ethereum light client的实现
 	
-
 
  `geth console 2`
