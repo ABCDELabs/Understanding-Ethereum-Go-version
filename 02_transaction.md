@@ -57,28 +57,140 @@ Worker会从TransactionPool中拿出若干的transaction, 赋值给*txs*, 然后
                 log.Trace("Not enough gas for further transactions", "have", w.current.gasPool, "want", params.TxGas)break
         }
         ....
+        tx := txs.Peek()
+        if tx == nil {
+            break
+        }
+        ....
         logs, err := w.commitTransaction(tx, coinbase)
         ....
         }
     }
 }
     ```
-对于每一个tx in *txs*，调用函数miner/worker.go的commitTransaction()
+commitTransactions()函数的主体是一个for循环，每次获取txs.Peek()的tx，并作为参数调用函数miner/worker.go的commitTransaction()
+
+    ```go
+    func (w *worker) commitTransaction(tx *types.Transaction, coinbase common.Address) ([]*types.Log, error){
+        // 在每次commitTransaction执行前都要记录当前StateDB的Snapshot,一旦交易执行失败则基于这个Snapshot进行回滚。
+        // TODO StateDB如何进行快照(Snapshot)和回滚的
+        snap := w.current.state.Snapshot()
+        // 调用执行Transaction的函数
+        receipt, err := core.ApplyTransaction(w.chainConfig, w.chain, &coinbase, w.current.gasPool, w.current.state, w.current.header, tx, &w.current.header.GasUsed, *w.chain.GetVMConfig())
+        ....
+    }
+
+    ```
+Blockchain系统中的Transaction和DBMS中的Transaction一样，要么完成要么失败。所以在调用执行Transaction的函数前，首先记录了一下当前world state的Snapshot，当交易失败时回滚Transaction。之后调用core/state_processor.go/ApplyTransaction()函数。
+
+    ```go
+    func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *common.Address, gp *GasPool, statedb *state.StateDB, header *types.Header, tx *types.Transaction, usedGas *uint64, cfg vm.Config) (*types.Receipt, error) {
+        // 将Transaction 转化为Message的形式
+        msg, err := tx.AsMessage(types.MakeSigner(config, header.Number), header.BaseFee)
+        if err != nil {
+            return nil, err
+        }
+        // Create a new context to be used in the EVM environment
+        blockContext := NewEVMBlockContext(header, bc, author)
+        vmenv := vm.NewEVM(blockContext, vm.TxContext{}, statedb, config, cfg)
+        // 调用执行Contract的函数
+        return applyTransaction(msg, config, bc, author, gp, statedb, header.Number, header.Hash(), tx, usedGas, vmenv)
+    }   
+    ```
+在 ApplyTransaction()函数中首先Transaction会被转换成Message的形式，方便调用。在执行每一个Transaction的时候，都会生成一个新的EVM来执行。之后调用core/state_processor.go/applyTransaction()函数来执行Message。
+
+
+    ```go
+    func applyTransaction(msg types.Message, config *params.ChainConfig, bc ChainContext, author *common.Address, gp *GasPool, statedb *state.StateDB, blockNumber *big.Int, blockHash common.Hash, tx *types.Transaction, usedGas *uint64, evm *vm.EVM) (*types.Receipt, error) {
+        ....
+        // Apply the transaction to the current state (included in the env).
+        result, err := ApplyMessage(evm, msg, gp)
+        ....
+    
+    }
+
+    ```
+    之后调用core/state_transition.go/ApplyMessage()函数。
+
+    ```go
+    func ApplyMessage(evm *vm.EVM, msg Message, gp *GasPool) (*ExecutionResult, error) {
+        return NewStateTransition(evm, msg, gp).TransitionDb()
+        }   
+    ```
+    之后调用core/state_transition.go/TransitionDb()函数。
+
+
 
     ```go
 
+    // TransitionDb will transition the state by applying the current message and
+    // returning the evm execution result with following fields.
+    //
+    // - used gas:
+    //      total gas used (including gas being refunded)
+    // - returndata:
+    //      the returned data from evm
+    // - concrete execution error:
+    //      various **EVM** error which aborts the execution,
+    //      e.g. ErrOutOfGas, ErrExecutionReverted
+    //
+    // However if any consensus issue encountered, return the error directly with
+    // nil evm execution result.
+    func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
+        ....
+        ret, st.gas, vmerr = st.evm.Call(sender, st.to(), st.data, st.gas, st.value)
+        ....
+    }
     ```
+    之后调用core/vm/evm.go/Call()函数。
 
 
     ```go
+    func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
+        ....
+        ret, err = evm.interpreter.Run(contract, input, false)
+        ....
+    }
+    ```
+    之后调用core/vm/interpreter.go/Run()函数。
 
+
+    ```go
+    // Run loops and evaluates the contract's code with the given input data and returns
+    // the return byte-slice and an error if one occurred.
+    func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (ret []byte, err error) {
+        ....
+        // execute the operation
+        res, err = operation.execute(&pc, in, callContext)
+        ....
+    }
+    ```
+    更细粒度的对每个opcode循环调用core/vm/jump_table.go中的execute函数。
+
+    每个OPCODE的具体实现在core/vm/instructor.go中,比如对Contract中持久化数据修改的OPSSTORE指令的实现位于opStore()函数中。
+
+    ```go
+    func opSstore(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
+        loc := scope.Stack.pop()
+        val := scope.Stack.pop()
+        //根据指令跟地址来修改StateDB中某一存储位置的值。
+        interpreter.evm.StateDB.SetState(scope.Contract.Address(),loc.Bytes32(), val.Bytes32())
+        return nil, nil
+    }
+
+    //core/state/stateDB
+    func (s *StateDB) SetState(addr common.Address, key, value common.Hash) {
+        stateObject := s.GetOrNewStateObject(addr)
+        if stateObject != nil {
+        stateObject.SetState(s.db, key, value)
+        }
+    }
     ```
 
-
-Worker get from transaction pool.
+    这样就完成了从transaction到从StateDB中获取Code，然后修改StateDB中的值的闭环。
 
 + commitTransactions
-  + commitTransaction ->> ApplyTransaction ->> ApplyMessage ->> TransactionDB
+  + commitTransaction ->> ApplyTransaction ->> applyTransaction ->>  ApplyMessage ->> TransactionDB ->> Call  ->> Run ->> opSstore
 
 ## Reference
 
