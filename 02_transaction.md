@@ -110,19 +110,18 @@ Blockchain系统中的Transaction和DBMS中的Transaction一样，要么完成�
     }
 
     ```
-    之后调用core/state_transition.go/ApplyMessage()函数。
+
+之后调用core/state_transition.go/ApplyMessage()函数。
 
     ```go
     func ApplyMessage(evm *vm.EVM, msg Message, gp *GasPool) (*ExecutionResult, error) {
         return NewStateTransition(evm, msg, gp).TransitionDb()
         }   
     ```
-    之后调用core/state_transition.go/TransitionDb()函数。
 
-
+之后调用core/state_transition.go/TransitionDb()函数。
 
     ```go
-
     // TransitionDb will transition the state by applying the current message and
     // returning the evm execution result with following fields.
     //
@@ -142,7 +141,8 @@ Blockchain系统中的Transaction和DBMS中的Transaction一样，要么完成�
         ....
     }
     ```
-    之后调用core/vm/evm.go/Call()函数。
+
+之后调用core/vm/evm.go/Call()函数。
 
 
     ```go
@@ -152,7 +152,8 @@ Blockchain系统中的Transaction和DBMS中的Transaction一样，要么完成�
         ....
     }
     ```
-    之后调用core/vm/interpreter.go/Run()函数。
+    
+之后调用core/vm/interpreter.go/Run()函数。
 
 
     ```go
@@ -165,9 +166,9 @@ Blockchain系统中的Transaction和DBMS中的Transaction一样，要么完成�
         ....
     }
     ```
-    更细粒度的对每个opcode循环调用core/vm/jump_table.go中的execute函数。
+更细粒度的对每个opcode循环调用core/vm/jump_table.go中的execute函数。
 
-    每个OPCODE的具体实现在core/vm/instructor.go中,比如对Contract中持久化数据修改的OPSSTORE指令的实现位于opStore()函数中。
+每个OPCODE的具体实现在core/vm/instructor.go中,比如对Contract中持久化数据修改的OPSSTORE指令的实现位于opStore()函数中。
 
     ```go
     func opSstore(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
@@ -187,10 +188,9 @@ Blockchain系统中的Transaction和DBMS中的Transaction一样，要么完成�
     }
     ```
 
-    这样就完成了从transaction到从StateDB中获取Code，然后修改StateDB中的值的闭环。
+ 这样就完成了从transaction到从StateDB中获取Code，然后修改StateDB中的值的闭环。
 
-+ commitTransactions
-  + commitTransaction ->> ApplyTransaction ->> applyTransaction ->>  ApplyMessage ->> TransactionDB ->> Call  ->> Run ->> opSstore
++ commitTransactions ->> commitTransaction ->> ApplyTransaction ->> applyTransaction ->>  ApplyMessage ->> TransactionDB ->> Call  ->> Run ->> opSstore
 
 ## Reference
 
