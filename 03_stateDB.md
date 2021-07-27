@@ -1,3 +1,3 @@
 # StateDB
 
-StateDB中的Storage用来存储数据
+StateDB是Blockchain数据的存储单元。
