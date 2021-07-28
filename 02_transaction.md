@@ -155,9 +155,18 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 // the return byte-slice and an error if one occurred.
 func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (ret []byte, err error) {
     ....
+    cost = operation.constantGas // For tracing
+    // UseGas 函数：当前剩余的gas quota减去input 参数。
+    // 剩余的gas 小于input直接返回false
+    // 否则当前的gas quota减去input并返回true
+    if !contract.UseGas(operation.constantGas) {
+        return nil, ErrOutOfGas
+        }
+    ....
     // execute the operation
     res, err = operation.execute(&pc, in, callContext)
     ....
+
 }
 ```
 更细粒度的对每个opcode循环调用core/vm/jump_table.go中的execute函数。
