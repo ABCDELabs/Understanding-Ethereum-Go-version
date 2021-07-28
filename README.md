@@ -13,6 +13,21 @@ Blockchain作为过去几年技术社区最热点话题之一, 每当我们提�
 
 go-ethereum是以太坊协议的Go语言实现版本，目前由以太坊基金会官方维护。除了本版本之外，Ethereum还有C++, Python，Java等其他语言版本。Go-ethereum在这些所有的社区版本中，版本更新最频繁，开发人员最多，问题相对较少。其他语言的Ethereum实现版本因为更新频率相对较低，隐藏问题未知，建议初学者首先从go-ethereum的视角来理解Ethereum网络与系统的设计实现。
 
+## 为什么要阅读区块链系统的源代码
+
+1. 文档资料相对较少，且**内容浅尝辄止**。比如，很多的科普文章都提到，miner负责把transactions从transaction pool中打包到新的block中。那么：
+    - miner是怎么从transaction pool中选取这些transaction的呢？
+    - 被选择的transaction又是以怎样的顺序(Order)被打包到区块中的呢？
+    - 在执行transaction的EVM是怎么计算gas used?
+    - 剩余的gas又是怎么返还给Transaction Proposer的呢？
+    - 在执行transaction中是哪个模块，又是怎样去修改Contract中的持久化变量呢？
+    - Contract中的持久化变量又是以什么样的形式存储的呢？
+
+2. 目前的Blockchain系统并没有像数据库系统(DBMS)那样统一实现的方法论，每个不同的系统中都集成了大量的细节。如果不从源码的角度入手，很多的细节容易被忽略掉。简单的说，一个完整的区块链系统至少包含以下的模块: 
+    - 网络模块: P2P节点通信
+    - 密码学模块: 加解密，签名，安全hash
+    - 数据存储模块: 数据库，数据存储，index
+    - EVM解释器模块: Solidity编译语言，EVM解释器
 
 ## Contents
 - [00_万物的起点从geth出发](00_geth.md) 
