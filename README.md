@@ -1,7 +1,7 @@
 # Understanding-Ethereum-Go-version
 Title: Understanding Ethereum(Go version)｜理解以太坊(Go 版本源码剖析)
 Author: Siyuan Han 
-Updated date: 2021-07
+Updated date: 2021-07-20
 
 ## Preface 
 
