@@ -34,11 +34,19 @@ go-ethereum是以太坊协议的Go语言实现版本，目前由以太坊基金�
 
 - [20_如何编写Solidity语言]()
 - [21_使用预言机(Oracle)构建随机化的DApp]()
+- [22_Query On Ethereum Data]()
 
 ### PART FOUR - Advanced Topics
 
-- [30_与BFT共识结合结局拜占庭将军问题]()
+- [30_结合BFT Consensus 解决拜占庭将军问题]()
 - [31_Plasma与 Zk Rollup]()
+- [32_ADS]()
+
+### PART FIVE - APPENDIX
+
+- [40_FQA](#tips)
+- [41_Ethereum System Tunning]()
+- [42_go-ethereum的开发思想](42_developer_view.md)
 
 ## 为什么要阅读区块链系统的源代码
 
@@ -60,12 +68,15 @@ go-ethereum是以太坊协议的Go语言实现版本，目前由以太坊基金�
 
 -----------------------------------------------------------
 
-## Tips
+## Tips 
+<a name="tips"></a>
 
 - 以太坊是基于State模型的区块链系统，miner在update new Block的时候，会直接修改自身的状态（添加区块奖励给自己）。所以与Bitcoin不同的是，Ethereum的区块中，并没有类似的Coinbase的transaction。
 - 在core/transaction.go 中, transaction的的数据结构是有time.Time的参数的。但是在下面的newTransaction的function中只是使用Local的time.now()对Transaction.time进行初始化。
 - 在core/transaction.go 的transaction 数据结构定义的时候, 在transaction.time 后面的注释写到（Time first seen locally (spam avoidance)）, Time 只是用于在本地首次看到的时间。
 - uncle block中的transaction 不会被包括到主链上。
+- go-ethereum有专用函数来控制每次transaction执行完，返还给用户的Gas的量。有根据EIP-3529，每次最多返还50%的gas.
+
 
 ## Reference 
 
@@ -74,7 +85,6 @@ go-ethereum是以太坊协议的Go语言实现版本，目前由以太坊基金�
 - [3] Go-ethereum code analysis [(Link)](https://github.com/ZtesoftCS/go-ethereum-code-analysis) 
 - [4] Ethereum Improvement Proposals [(link)](https://github.com/ethereum/EIPs)
 - [5] Mastering Bitcoin(Second Edition)
-
 
 ## Talks
 - Succinct Proofs in Ethereum - Barry Whitehat, Ethereum Foundation [(Youtube)](https://www.youtube.com/watch?v=TtsDNneTDDY)
