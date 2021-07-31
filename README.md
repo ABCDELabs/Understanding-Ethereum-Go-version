@@ -1,9 +1,9 @@
 # Understanding-Ethereum-Go-version
 
-Title: Understanding Ethereum(Go version)｜理解以太坊(Go 版本源码剖析)
-Subject: Ethereum Source Code Analysis | 以太坊源码分析
-Author: Siyuan Han
-Updated date: 2021-07
+- Title: Understanding Ethereum(Go version)｜理解以太坊(Go 版本源码剖析)
+- Subject: Ethereum Source Code Analysis | 以太坊源码分析
+- Author: Siyuan Han
+- Updated date: 2021-07
 
 ## Preface
 
@@ -11,12 +11,13 @@ Blockchain作为过去几年技术社区最热点话题之一, 每当我们提�
 
 笔者坚信，在未来的是五到十年内，这个世界的云端服务一定是两极分化的。一极是以大云计算公司（ie： Google，MS，Oracle，Snowflake，Alibaba）为代表的中心化服务，另一极就是以Blockchain技术作为核心的去中心化的世界。在这个世界中，Ethereum是当之无愧的领头羊。Ethereum 不光在Public Chain的层面取得了巨大的成功，而且Go-Ehtereum作为其优秀的开源实现，已经被广泛的订制，来适应不同的私有/联盟场景。所以，要想真正掌握好区块链系统的实现，研究好Ethereum的原理以及其设计思想是非常有必要。
 
-本文档基于Go-Ethereum (Marljeh version-1.9.25 updated time 2020-12)对以太坊的源码结构，以及以太坊系统设计背后的细节，原理进行剖析。
+本文档基于Go-Ethereum (Marljeh version-1.9.25 updated time 2020-12)，从区块链系统的数据结构和工作流的角度出发，对以太坊的源码结构，以及以太坊系统设计背后的细节，原理进行剖析。
 
 go-ethereum是以太坊协议的Go语言实现版本，目前由以太坊基金会官方维护。除了本版本之外，Ethereum还有C++, Python，Java等其他语言版本。Go-ethereum在这些所有的社区版本中，版本更新最频繁，开发人员最多，问题相对较少。其他语言的Ethereum实现版本因为更新频率相对较低，隐藏问题未知，建议初学者首先从go-ethereum的视角来理解Ethereum网络与系统的设计实现。
 
-
 ## Contents
+
+### PART ONE - General Source Code Analysis
 
 - [00_万物的起点从geth出发: Geth框架导引](00_geth.md) 
 - [01_State-based 模型 & Account](01_account.md) 
@@ -25,7 +26,19 @@ go-ethereum是以太坊协议的Go语言实现版本，目前由以太坊基金�
 - [04_一个新节点是怎么加入网络并同步区块的]() 
 - [05_一个网吧老板是怎么用闲置的电脑进行挖矿的]() 
 
+### PART TWO - How to use go-ethereum
 
+- [10_构建一个StateDB的实例]()
+
+### PART THREE - Ethereum in Practice
+
+- [20_如何编写Solidity语言]()
+- [21_使用预言机(Oracle)构建随机化的DApp]()
+
+### PART FOUR - Advanced Topics
+
+- [30_与BFT共识结合结局拜占庭将军问题]()
+- [31_Plasma与 Zk Rollup]()
 
 ## 为什么要阅读区块链系统的源代码
 
