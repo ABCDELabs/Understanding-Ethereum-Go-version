@@ -41,6 +41,10 @@ go-ethereum是以太坊协议的Go语言实现版本，目前由以太坊基金�
 - [30_结合BFT Consensus 解决拜占庭将军问题]()
 - [31_Plasma与 Zk Rollup]()
 - [32_ADS]()
+- [33_Bloom Filter]()
+- [34_图灵机和停机问题]()
+- [35_Log-structured merge-tree in Ethereum]()
+- [36_Ethereum Transaction Currency]()
 
 ### PART FIVE - APPENDIX
 
