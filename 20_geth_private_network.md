@@ -1,8 +1,11 @@
+# 使用geth构建一个私有区块链网络 (Private Ethereum Blockchain)
+
+首先创建一个包含创世state信息的genesis.json文件，如下所示。
 
 ```json
 {
     "config": {
-        "chainId": "int number",
+        "chainId": "Your Private Network id (Int number)",
         "homesteadBlock": 0,
         "eip150Block": 0,
         "eip155Block": 0,
@@ -27,4 +30,14 @@
     "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "timestamp": "0x00"
 }
+```
+
+使用初始化命令：
+```cmd
+geth init --datadir  <Datadir> genesis.json
+```
+
+运行节点：
+```cmd
+geth --datadir  <Datadir>  --networkid <networkid> --nodiscover --http --rpc --rpcport "8545" --rpcaddr "0.0.0.0" --rpccorsdomain "*" --rpcapi "eth,web3,net,personal,miner" console 2
 ```

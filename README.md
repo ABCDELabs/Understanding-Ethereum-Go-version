@@ -29,7 +29,7 @@ Blockchain作为过去几年技术社区最热点话题之一, 每当我们提�
 
 ### PART THREE - Ethereum in Practice
 
-- [20_使用geth构建一个私有网络]()
+- [20_使用geth构建一个私有网络](20_geth_private_network.md)
 - [21_如何编写Solidity语言]()
 - [22_使用预言机(Oracle)构建随机化的DApp]()
 - [23_Query On Ethereum Data]()
@@ -50,6 +50,7 @@ Blockchain作为过去几年技术社区最热点话题之一, 每当我们提�
 - [40_FQA](#tips)
 - [41_Ethereum System Tunning]()
 - [42_go-ethereum的开发思想](42_developer_view.md)
+- [43_Metrics in Ethereum](43_metrics.md)
 
 ## 为什么要阅读区块链系统的源代码
 
