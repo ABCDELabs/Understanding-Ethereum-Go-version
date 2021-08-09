@@ -26,6 +26,9 @@ Blockchain作为过去几年技术社区最热点话题之一, 每当我们提�
 ### PART TWO - How to use go-ethereum
 
 - [10_构建一个StateDB的实例]()
+- [11_如何使用RPC调用节点的函数](11_rpc.md)
+- [12_如何使用IPC调用节点的函数](12_ipc.md)
+
 
 ### PART THREE - Ethereum in Practice
 
@@ -33,7 +36,6 @@ Blockchain作为过去几年技术社区最热点话题之一, 每当我们提�
 - [21_如何编写Solidity语言]()
 - [22_使用预言机(Oracle)构建随机化的DApp]()
 - [23_Query On Ethereum Data]()
-
 
 ### PART FOUR - Advanced Topics
 

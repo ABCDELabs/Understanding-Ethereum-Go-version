@@ -1,5 +1,7 @@
 # 使用geth构建一个私有区块链网络 (Private Ethereum Blockchain)
 
+
+## 创建 Private 网络
 首先创建一个包含创世state信息的genesis.json文件，如下所示。
 
 ```json
@@ -41,3 +43,7 @@ geth init --datadir  <Datadir> genesis.json
 ```cmd
 geth --datadir  <Datadir>  --networkid <networkid> --nodiscover --http --rpc --rpcport "8545" --rpcaddr "0.0.0.0" --rpccorsdomain "*" --rpcapi "eth,web3,net,personal,miner" console 2
 ```
+
+## 使用区块链浏览器来查询链上数据
+
+区块链浏览器可以方便的查询链上数据。一般来说，它们通过go-ethereum实例的RPC接口来调用，实例的API，从而获取最新的链上信息。
