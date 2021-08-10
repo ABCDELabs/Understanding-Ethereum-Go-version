@@ -1,6 +1,7 @@
 # Account
 
 ## 基本数据结构
+
 ~~在之前的版本中Account的代码位于core/account.go~~
 在最新的Go-Ethereum 版本中Account 被抽象成了State_object,代码位于core/state/state_object.go
 

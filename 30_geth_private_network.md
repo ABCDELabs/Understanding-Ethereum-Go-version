@@ -1,7 +1,7 @@
 # 使用geth构建一个私有区块链网络 (Private Ethereum Blockchain)
 
-
 ## 创建 Private 网络
+
 首先创建一个包含创世state信息的genesis.json文件，如下所示。
 
 ```json

@@ -1,2 +1,6 @@
+# Local temporary file
 .DS_Store
 .vscode
+
+# Temp File
+_draft
