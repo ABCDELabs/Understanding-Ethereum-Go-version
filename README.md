@@ -29,7 +29,6 @@ Blockchain作为过去几年技术社区最热点话题之一, 每当我们提�
 - [11_如何使用RPC调用节点的函数](11_rpc.md)
 - [12_如何使用IPC调用节点的函数](12_ipc.md)
 
-
 ### PART THREE - Ethereum in Practice
 
 - [20_使用geth构建一个私有网络](20_geth_private_network.md)
@@ -40,9 +39,9 @@ Blockchain作为过去几年技术社区最热点话题之一, 每当我们提�
 ### PART FOUR - Advanced Topics
 
 - [30_结合BFT Consensus 解决拜占庭将军问题]()
-- [31_Plasma与 Zk Rollup]()
+- [31_Plasma与 Zk Rollup](31_zkp_Plasma.md)
 - [32_ADS]()
-- [33_Bloom Filter]()
+- [33_Bloom Filter](33_bloom_filter.md)
 - [34_图灵机和停机问题]()
 - [35_Log-structured merge-tree in Ethereum]()
 - [36_Ethereum Transaction Currency]()
@@ -100,7 +99,7 @@ Blockchain作为过去几年技术社区最热点话题之一, 每当我们提�
 
 ## Reference
 
-- [1] Etheruem Yellow Paper [(Paper Link)](https://ethereum.github.io/yellowpaper/paper.pdf)
+- [1] Ethereum Yellow Paper [(Paper Link)](https://ethereum.github.io/yellowpaper/paper.pdf)
 - [2] Ethereum/Go-Ethereum [(link)](https://github.com/ethereum/go-ethereum)
 - [3] Go-ethereum code analysis [(Link)](https://github.com/ZtesoftCS/go-ethereum-code-analysis) 
 - [4] Ethereum Improvement Proposals [(link)](https://github.com/ethereum/EIPs)
