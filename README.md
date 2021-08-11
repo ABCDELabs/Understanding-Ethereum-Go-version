@@ -14,42 +14,42 @@ Blockchain作为过去几年技术社区最热点话题之一, 每当我们提�
 
 ## Contents
 
-### PART ONE - General Source Code Analysis
+### PART ONE - General Source Code Analysis: Basic
 
-- [00_万物的起点从geth出发: Geth框架导引](00_geth.md) 
-- [01_State-based 模型 & Account](01_account.md) 
+- [00_万物的起点从geth出发: Geth框架导引](00_geth.md)
+- [01_State-based 模型 & Account](01_account.md)
 - [02_Transaction是怎么被打包的: 一个Transaction的生老病死](02_transaction.md)
-- [03_从Block到Blockchain: 区块链数据结构的构建]() 
-- [04_一个新节点是怎么加入网络并同步区块的]() 
-- [05_一个网吧老板是怎么用闲置的电脑进行挖矿的]() 
+- [03_从Block到Blockchain: 区块链数据结构的构建](03_block_blockchain.md)
+- [04_一个新节点是怎么加入网络并同步区块的](04_p2p_net_node_sync.md)
+- [05_一个网吧老板是怎么用闲置的电脑进行挖矿的](05_mining_hash_gpu.md)
 
-### PART TWO - How to use go-ethereum
+### PART TWO - General Source Code Analysis: Service
 
-- [10_构建一个StateDB的实例]()
+- [10_构建StateDB的实例](10_tire_statedb.md)
 - [11_如何使用RPC调用节点的函数](11_rpc.md)
 - [12_如何使用IPC调用节点的函数](12_ipc.md)
 
-### PART THREE - Ethereum in Practice
+### PART THREE - Advanced Topics
 
-- [20_使用geth构建一个私有网络](20_geth_private_network.md)
-- [21_如何编写Solidity语言]()
-- [22_使用预言机(Oracle)构建随机化的DApp]()
-- [23_Query On Ethereum Data]()
+- [20_结合BFT Consensus 解决拜占庭将军问题](20_bft_consensus.md)
+- [21_Plasma与 Zk Rollup](21_zkp_Plasma.md)
+- [22_ADS](22_ads_merkel.md)
+- [23_Bloom Filter](23_bloom_filter.md)
+- [24_图灵机和停机问题](24_turing_halting.md)
+- [25_Log-structured merge-tree in Ethereum](25_lsm_tree.md)
+- [26_Ethereum Transaction Concurrency](26_txn_concurrency.md)
 
-### PART FOUR - Advanced Topics
+### PART FOUR - Ethereum in Practice
 
-- [30_结合BFT Consensus 解决拜占庭将军问题]()
-- [31_Plasma与 Zk Rollup](31_zkp_Plasma.md)
-- [32_ADS]()
-- [33_Bloom Filter](33_bloom_filter.md)
-- [34_图灵机和停机问题]()
-- [35_Log-structured merge-tree in Ethereum]()
-- [36_Ethereum Transaction Currency]()
+- [30_使用geth构建一个私有网络](30_geth_private_network.md)
+- [31_如何编写Solidity语言](31_solidity_in_ practice)
+- [32_使用预言机(Oracle)构建随机化的DApp](32_oracle.md)
+- [33_Query On Ethereum Data](33_query.md)
 
 ### PART FIVE - APPENDIX
 
 - [40_FQA](#tips)
-- [41_Ethereum System Tunning]()
+- [41_Ethereum System Tunning](41_system_tunning.md)
 - [42_go-ethereum的开发思想](42_developer_view.md)
 - [43_Metrics in Ethereum](43_metrics.md)
 
