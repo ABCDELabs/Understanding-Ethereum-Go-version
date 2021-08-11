@@ -44,7 +44,7 @@ Blockchain作为过去几年技术社区最热点话题之一, 每当我们提�
 ### PART FOUR - Ethereum in Practice
 
 - [30_使用geth构建一个私有网络](30_geth_private_network.md)
-- [31_如何编写Solidity语言](31_solidity_in_ practice.md)
+- [31_如何编写Solidity语言](31_solidity_in_practice.md)
 - [32_使用预言机(Oracle)构建随机化的DApp](32_oracle.md)
 - [33_Query On Ethereum Data](33_query.md)
 
