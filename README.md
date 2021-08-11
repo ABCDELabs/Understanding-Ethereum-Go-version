@@ -14,7 +14,7 @@ Blockchain作为过去几年技术社区最热点话题之一, 每当我们提�
 
 ## Contents
 
-### PART ONE - General Source Code Analysis: Basic
+### PART ONE - General Source Code Analysis: Basic Components
 
 - [00_万物的起点从geth出发: Geth框架导引](00_geth.md)
 - [01_State-based 模型 & Account](01_account.md)
@@ -23,11 +23,13 @@ Blockchain作为过去几年技术社区最热点话题之一, 每当我们提�
 - [04_一个新节点是怎么加入网络并同步区块的](04_p2p_net_node_sync.md)
 - [05_一个网吧老板是怎么用闲置的电脑进行挖矿的](05_mining_hash_gpu.md)
 
-### PART TWO - General Source Code Analysis: Service
+### PART TWO - General Source Code Analysis: Services
 
 - [10_构建StateDB的实例](10_tire_statedb.md)
-- [11_如何使用RPC调用节点的函数](11_rpc.md)
-- [12_如何使用IPC调用节点的函数](12_ipc.md)
+- [11_Blockchain的数据是如何持久化的](11_leveldb_in_practice.md)
+- [12_Signer一个签名者的实现](12_signer.md)
+- [13_如何实现节点的RPC调用](13_rpc.md)
+- [14_如何实现节点的IPC调用](14_ipc.md)
 
 ### PART THREE - Advanced Topics
 
@@ -52,6 +54,7 @@ Blockchain作为过去几年技术社区最热点话题之一, 每当我们提�
 - [41_Ethereum System Tunning](41_system_tunning.md)
 - [42_go-ethereum的开发思想](42_developer_view.md)
 - [43_Metrics in Ethereum](43_metrics.md)
+- [44_Golang with Ethereum](44_golang_ethereum.md)
 
 ## 为什么要阅读区块链系统的源代码
 
