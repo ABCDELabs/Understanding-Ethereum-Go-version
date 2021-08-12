@@ -40,3 +40,29 @@
 	
 
  `geth console 2`
+
+
+## Geth 的原理
+
+Geth 内置了一个Javascript的解释器Goja (interpreter)，来构造consloe与用户交互。
+
+在console/console.go的代码中我们可以看到，geth中与用户交互的console，其实依赖于Geth代码中内置的Javascript的解释器，通过RPC请求来获取当前链上的信息，以及与链进行数据交互。
+
+整个geth程序中，数据对外交互的窗口只有RPC接口提供的服务。
+
+```go
+// Console is a JavaScript interpreted runtime environment. It is a fully fledged
+// JavaScript console attached to a running node via an external or in-process RPC
+// client.
+type Console struct {
+	client   *rpc.Client         // RPC client to execute Ethereum requests through
+	jsre     *jsre.JSRE          // JavaScript runtime environment running the interpreter
+	prompt   string              // Input prompt prefix string
+	prompter prompt.UserPrompter // Input prompter to allow interactive user feedback
+	histPath string              // Absolute path to the console scrollback history
+	history  []string            // Scroll history maintained by the console
+	printer  io.Writer           // Output writer to serialize any display strings to
+}
+```
+
+<!-- /*Goja is an implementation of ECMAScript 5.1 in Pure GO*/ -->
