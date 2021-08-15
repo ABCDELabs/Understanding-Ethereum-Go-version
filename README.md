@@ -41,45 +41,45 @@ Blockchain系统同样也包含一个Parser模块，Executor模块，解析Solid
 
 ### PART ONE - General Source Code Analysis: Basic Components
 
-- [00_万物的起点从geth出发: Geth框架导引](00_geth.md)
-- [01_State-based 模型 & Account](01_account.md)
-- [02_Transaction是怎么被打包的: 一个Transaction的生老病死](02_transaction.md)
-- [03_从Block到Blockchain: 区块链数据结构的构建](03_block_blockchain.md)
-- [04_一个新节点是怎么加入网络并同步区块的](04_p2p_net_node_sync.md)
-- [05_一个网吧老板是怎么用闲置的电脑进行挖矿的](05_mining_hash_gpu.md)
+- [00_万物的起点从geth出发: Geth框架导引](CN/00_geth.md)
+- [01_State-based 模型 & Account](CN/01_account.md)
+- [02_Transaction是怎么被打包的: 一个Transaction的生老病死](CN/02_transaction.md)
+- [03_从Block到Blockchain: 区块链数据结构的构建](CN/03_block_blockchain.md)
+- [04_一个新节点是怎么加入网络并同步区块的](CN/04_p2p_net_node_sync.md)
+- [05_一个网吧老板是怎么用闲置的电脑进行挖矿的](CN/05_mining_hash_gpu.md)
 
 ### PART TWO - General Source Code Analysis: Services
 
-- [10_构建StateDB的实例](10_tire_statedb.md)
-- [11_Blockchain的数据是如何持久化的](11_leveldb_in_practice.md)
-- [12_Signer一个签名者的实现](12_signer.md)
-- [13_如何实现节点的RPC调用](13_rpc.md)
-- [14_如何实现节点的IPC调用](14_ipc.md)
+- [10_构建StateDB的实例](CN/10_tire_statedb.md)
+- [11_Blockchain的数据是如何持久化的](CN/11_leveldb_in_practice.md)
+- [12_Signer一个签名者的实现](CN/12_signer.md)
+- [13_如何实现节点的RPC调用](CN/13_rpc.md)
+- [14_如何实现节点的IPC调用](CN/14_ipc.md)
 
 ### PART THREE - Advanced Topics
 
-- [20_结合BFT Consensus 解决拜占庭将军问题](20_bft_consensus.md)
-- [21_Plasma与 Zk Rollup](21_zkp_Plasma.md)
-- [22_ADS](22_ads_merkel.md)
-- [23_Bloom Filter](23_bloom_filter.md)
-- [24_图灵机和停机问题](24_turing_halting.md)
-- [25_Log-structured merge-tree in Ethereum](25_lsm_tree.md)
-- [26_Ethereum Transaction Concurrency](26_txn_concurrency.md)
+- [20_结合BFT Consensus 解决拜占庭将军问题](CN/20_bft_consensus.md)
+- [21_Plasma与 Zk Rollup](CN/21_zkp_Plasma.md)
+- [22_ADS](CN/22_ads_merkel.md)
+- [23_Bloom Filter](CN/23_bloom_filter.md)
+- [24_图灵机和停机问题](CN/24_turing_halting.md)
+- [25_Log-structured merge-tree in Ethereum](CN/25_lsm_tree.md)
+- [26_Ethereum Transaction Concurrency](CN/26_txn_concurrency.md)
 
 ### PART FOUR - Ethereum in Practice
 
-- [30_使用geth构建一个私有网络](30_geth_private_network.md)
-- [31_如何编写Solidity语言](31_solidity_in_practice.md)
-- [32_使用预言机(Oracle)构建随机化的DApp](32_oracle.md)
-- [33_Query On Ethereum Data](33_query.md)
+- [30_使用geth构建一个私有网络](CN/30_geth_private_network.md)
+- [31_如何编写Solidity语言](CN/31_solidity_in_practice.md)
+- [32_使用预言机(Oracle)构建随机化的DApp](CN/32_oracle.md)
+- [33_Query On Ethereum Data](CN/33_query.md)
 
 ### PART FIVE - APPENDIX
 
 - [40_FQA](#tips)
-- [41_Ethereum System Tunning](41_system_tunning.md)
-- [42_go-ethereum的开发思想](42_developer_view.md)
-- [43_Metrics in Ethereum](43_metrics.md)
-- [44_Golang with Ethereum](44_golang_ethereum.md)
+- [41_Ethereum System Tunning](CN/41_system_tunning.md)
+- [42_go-ethereum的开发思想](CN/42_developer_view.md)
+- [43_Metrics in Ethereum](CN/43_metrics.md)
+- [44_Golang with Ethereum](CN/44_golang_ethereum.md)
 
 -----------------------------------------------------------
 
