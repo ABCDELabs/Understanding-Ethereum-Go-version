@@ -7,10 +7,35 @@
 
 ## Preface
 
+### Background
+
 Blockchain作为过去几年技术社区最热点话题之一, 每当我们提到它的时候，首先就会讨论到成功运用这项技术的最火热的几个系统。但是不管是讨论到以加密货币导向（Crypto-based）的Bitcoin Network, 还是致力于实现通用框架（General-Purpose）的Ethereum的时候，通常的文档往往只是在high-level的层面来讲述他们的架构。现在的技术社区有非常多的文档来讲述，这些Blockchain System背后的数据结构，以及类似双花，梅克尔树等区块链系统的专有问题。但是某天，我忽然想到，究竟miner是怎么从transaction pool中选取transaction，他们又是按照怎么的order被打包进区块链中的呢？我尝试去搜索了一下，发现鲜有文章提到这一层面的细节。本文作为我学习的记录，将会从源码的角度来深度解析区块链系统中各个模块的实现的细节。
 
 笔者坚信，在未来的是五到十年内，这个世界的云端服务一定是两极分化的。一极是以大云计算公司（ie： Google，MS，Oracle，Snowflake，Alibaba）为代表的中心化服务，另一极就是以Blockchain技术作为核心的去中心化的世界。在这个世界中，Ethereum是当之无愧的领头羊。Ethereum 不光在Public Chain的层面取得了巨大的成功，而且Go-Ehtereum作为其优秀的开源实现，已经被广泛的订制，来适应不同的私有/联盟场景。所以，要想真正掌握好区块链系统的实现，研究好Ethereum的原理以及其设计思想是非常有必要。
  区版本中，版本更新最频繁，开发人员最多，问题相对较少。其他语言的Ethereum实现版本因为更新频率相对较低，隐藏问题未知，建议初学者首先从go-ethereum的视角来理解Ethereum网络与系统的设计实现。
+
+### 为什么要阅读区块链系统的源代码
+
+1. 文档资料相对较少，且**内容浅尝辄止**。比如，很多的科普文章都提到，miner负责把transactions从transaction pool中打包到新的block中。那么：
+    - miner是怎么从transaction pool中选取这些transaction的呢？
+    - 被选择的transaction又是以怎样的顺序(Order)被打包到区块中的呢？
+    - 在执行transaction的EVM是怎么计算gas used?
+    - 剩余的gas又是怎么返还给Transaction Proposer的呢？
+    - 在执行transaction中是哪个模块，又是怎样去修改Contract中的持久化变量呢？
+    - Contract中的持久化变量又是以什么样的形式存储的呢？
+
+2. 目前的Blockchain系统并没有像数据库系统(DBMS)那样统一实现的方法论，每个不同的系统中都集成了大量的细节。如果不从源码的角度入手，很多的细节容易被忽略掉。简单的说，一个完整的区块链系统至少包含以下的模块: 
+    - 密码学模块: 加解密，签名，安全hash，mining
+    - 网络模块: P2P节点通信
+    - 分布式共识模块: PoW, BFT
+    - 智能合约解释器模块: Solidity编译语言，EVM解释器
+    - 数据存储模块: 数据库，数据存储，index
+
+### Blockchain System (BCS) VS Database Management System (DBMS)
+
+Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑。
+
+Blockchain系统同样也包含一个Parser模块，Executor模块，解析Solidity语言并执行。
 
 ## Contents
 
@@ -55,23 +80,6 @@ Blockchain作为过去几年技术社区最热点话题之一, 每当我们提�
 - [42_go-ethereum的开发思想](42_developer_view.md)
 - [43_Metrics in Ethereum](43_metrics.md)
 - [44_Golang with Ethereum](44_golang_ethereum.md)
-
-## 为什么要阅读区块链系统的源代码
-
-1. 文档资料相对较少，且**内容浅尝辄止**。比如，很多的科普文章都提到，miner负责把transactions从transaction pool中打包到新的block中。那么：
-    - miner是怎么从transaction pool中选取这些transaction的呢？
-    - 被选择的transaction又是以怎样的顺序(Order)被打包到区块中的呢？
-    - 在执行transaction的EVM是怎么计算gas used?
-    - 剩余的gas又是怎么返还给Transaction Proposer的呢？
-    - 在执行transaction中是哪个模块，又是怎样去修改Contract中的持久化变量呢？
-    - Contract中的持久化变量又是以什么样的形式存储的呢？
-
-2. 目前的Blockchain系统并没有像数据库系统(DBMS)那样统一实现的方法论，每个不同的系统中都集成了大量的细节。如果不从源码的角度入手，很多的细节容易被忽略掉。简单的说，一个完整的区块链系统至少包含以下的模块: 
-    - 密码学模块: 加解密，签名，安全hash，mining
-    - 网络模块: P2P节点通信
-    - 分布式共识模块: PoW, BFT
-    - 智能合约解释器模块: Solidity编译语言，EVM解释器
-    - 数据存储模块: 数据库，数据存储，index
 
 -----------------------------------------------------------
 
