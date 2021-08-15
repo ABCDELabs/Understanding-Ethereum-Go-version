@@ -9,6 +9,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/state/snapshot"
 	"github.com/ethereum/go-ethereum/crypto"
+
+	solsha3 "github.com/miguelmota/go-solidity-sha3"
 )
 
 var toHash = common.BytesToHash
@@ -36,5 +38,20 @@ func main() {
 	stateDB.Commit(true)
 
 	fmt.Println(string(stateDB.Dump(true, true, true)))
+
+	fmt.Println("------Test Hash-------")
+
+	for i := 0; i <= 2; i++ {
+		hash := solsha3.SoliditySHA3(
+			solsha3.Uint256(big.NewInt(int64(i))),
+		)
+		fmt.Printf("The hash of %d:   %x\n", i, hash)
+	}
+
+	p := solsha3.SoliditySHA3([]byte("hsy"), solsha3.Uint256(big.NewInt(int64(3))))
+	fmt.Printf("Test the Solidity Map storage Key: %x\n", p)
+
+	o := solsha3.SoliditySHA3([]byte("lei"), solsha3.Uint256(big.NewInt(int64(3))))
+	fmt.Printf("Test the Solidity Map storage Key: %x\n", o)
 
 }

@@ -1,6 +1,12 @@
 # Metrics in Ethereum and related Blockchain systems
 
+在本文中，我们主要总结一下Ethereum中常用的Metrics。
+
+
+## Metrics in Ethereum
+
 描述以太坊中性能的两个重要的metrics是TPS和transaction delay.
+
 
 ## Compare with current relational database
 
