@@ -9,7 +9,9 @@
 
 ### Background
 
-Blockchain作为过去几年技术社区最热点话题之一, 每当我们提到它的时候，首先就会讨论到成功运用这项技术的最火热的几个系统。但是不管是讨论到以加密货币导向（Crypto-based）的Bitcoin Network, 还是致力于实现通用框架（General-Purpose）的Ethereum的时候，通常的文档往往只是在high-level的层面来讲述他们的架构。现在的技术社区有非常多的文档来讲述，这些Blockchain System背后的数据结构，以及类似双花，梅克尔树等区块链系统的专有问题。但是某天，我忽然想到，究竟miner是怎么从transaction pool中选取transaction，他们又是按照怎么的order被打包进区块链中的呢？我尝试去搜索了一下，发现鲜有文章提到这一层面的细节。本文作为我学习的记录，将会从源码的角度来深度解析区块链系统中各个模块的实现的细节。
+Blockchain是近年来技术社区最热点话题之一。它基于数据库，分布式系统，密码学等多个领域的知识，同时又蕴含了众包等思想。每当我们讨论到Blockchain的时候，首先就会联想到其中最火热，参与人数最多的几个Public Blockchain Network。不管是探究以加密货币导向（Crypto-based）的Bitcoin Network, 还是致力于实现通用框架（General-Purpose）的Ethereum的时候，通常的文档往往是从high-level的层面来讲述Blockchain的基础架构，或者这些系统设计的思想。比如现在的技术社区有非常多的文档来讲述，这些Blockchain System背后的数据结构, 比如梅克尔树，帕特里夏树，DAG，以及类似双花，DAO 等区块链系统的专有问题。某天，我忽然想到，究竟miner是怎么从transaction pool中选取transaction，他们又是按照怎么的order被打包进区块链中的呢？我尝试去搜索了一下，发现鲜有文章提到这一层面的细节，又或者是浅尝辄止没有全面的阐述整个的workflow。与数据库(Database)研究相似，Blockchain的研究同样需要从系统的实现细节出发，从宏观到围观的了解每个执行逻辑的工作流，才能彻底理解和掌握这门技术的秘密。
+
+本文作为我学习/研究的记录，将会从源码的层面，从数据库系统的角度出发，来深度解析区块链系统中各个模块的实现的细节，以及背后的蕴含的技术和设计思想。
 
 笔者坚信，在未来的是五到十年内，这个世界的云端服务一定是两极分化的。一极是以大云计算公司（ie： Google，MS，Oracle，Snowflake，Alibaba）为代表的中心化服务，另一极就是以Blockchain技术作为核心的去中心化的世界。在这个世界中，Ethereum是当之无愧的领头羊。Ethereum 不光在Public Chain的层面取得了巨大的成功，而且Go-Ehtereum作为其优秀的开源实现，已经被广泛的订制，来适应不同的私有/联盟场景。所以，要想真正掌握好区块链系统的实现，研究好Ethereum的原理以及其设计思想是非常有必要。
  区版本中，版本更新最频繁，开发人员最多，问题相对较少。其他语言的Ethereum实现版本因为更新频率相对较低，隐藏问题未知，建议初学者首先从go-ethereum的视角来理解Ethereum网络与系统的设计实现。
