@@ -9,24 +9,26 @@
 
 ### Background
 
-Blockchain是近年来技术社区最热点话题之一。它基于数据库，分布式系统，密码学等多个领域的知识，同时又蕴含了众包等思想。每当我们讨论到Blockchain的时候，首先就会联想到其中最火热，参与人数最多的几个Public Blockchain Network。不管是探究以加密货币导向（Crypto-based）的Bitcoin Network, 还是致力于实现通用框架（General-Purpose）的Ethereum的时候，通常的文档往往是从high-level的层面来讲述Blockchain的基础架构，或者这些系统设计的思想。比如现在的技术社区有非常多的文档来讲述，这些Blockchain System背后的数据结构, 比如梅克尔树，帕特里夏树，DAG，以及类似双花，DAO 等区块链系统的专有问题。某天，我忽然想到，究竟miner是怎么从transaction pool中选取transaction，他们又是按照怎么的order被打包进区块链中的呢？我尝试去搜索了一下，发现鲜有文章提到这一层面的细节，又或者是浅尝辄止没有全面的阐述整个的workflow。与数据库(Database)研究相似，Blockchain的研究同样需要从系统的实现细节出发，从宏观到围观的了解每个执行逻辑的工作流，才能彻底理解和掌握这门技术的秘密。
+Blockchain作为技术社区最热点话题之一，它融合了包括数据库，分布式系统，密码学在内的等多个领域的知识，同时又蕴含了众包，去中心化等思想。通常当我们想要深入理解Blockchain的时候，首先就会选择从参与人数最多的几个Public Blockchain Network中入手。不管是探究以加密货币导向（Crypto-based）的Bitcoin, 还是致力于实现通用框架（General-Purpose）的Ethereum的时候，通常的文档往往是从high-level的层面来讲述Blockchain的基础架构，或者这些系统设计的思想。比如现在的技术社区有非常多的文档来讲述，这些Blockchain System背后的数据结构和算法, 比如梅克尔树 (Merkle Hash Tree)，帕特里夏树 (Patricia Tree)，DAG (Directed acyclic Graph)，BFT (Byzantine Fault Tolerance)， PoW (Proof-Of-Work)，以及类似双花 (Double-Spending)，DAO (Decentralized autonomous organization) 等区块链系统的专有问题。某天，我忽然想到，究竟miner是怎么从网络中获取到transaction, 又是怎样从transaction pool中选取transaction，按照怎么的order把transaction打包进区块链中的呢？我尝试去搜索了一下，发现鲜有文章从系统工作流 (Workflow)的角度出发，对区块链系统中的具体的实现细节进行解析。数据库系统(Database Management System)相似，Blockchain 同样是一个包含网络等，逻辑层，存储层的数据处理以及管理系统，对它研究同样需要从系统的实现细节出发，从宏观到围观的了解每个执行逻辑的工作流，才能彻底理解和掌握这门技术的秘密。
 
-本文作为我学习/研究的记录，将会从源码的层面，从数据库系统的角度出发，来深度解析区块链系统中各个模块的实现的细节，以及背后的蕴含的技术和设计思想。
+本文作为我博士期间学习/研究的记录，将会从数据库系统的视角出发，从源码的层面，来深度解析以太坊系统中各个模块的实现的细节，以及背后的蕴含的技术和设计思想。
 
-笔者坚信，在未来的是五到十年内，这个世界的云端服务一定是两极分化的。一极是以大云计算公司（ie： Google，MS，Oracle，Snowflake，Alibaba）为代表的中心化服务，另一极就是以Blockchain技术作为核心的去中心化的世界。在这个世界中，Ethereum是当之无愧的领头羊。Ethereum 不光在Public Chain的层面取得了巨大的成功，而且Go-Ehtereum作为其优秀的开源实现，已经被广泛的订制，来适应不同的私有/联盟场景。所以，要想真正掌握好区块链系统的实现，研究好Ethereum的原理以及其设计思想是非常有必要。
- 区版本中，版本更新最频繁，开发人员最多，问题相对较少。其他语言的Ethereum实现版本因为更新频率相对较低，隐藏问题未知，建议初学者首先从go-ethereum的视角来理解Ethereum网络与系统的设计实现。
+笔者坚信，随着网络通信存储等基础架构的不断发展，在未来的是五到十年内，这个世界的云端服务一定还会有很大的提升。同时因为各种因素，Cloud-service未来也是两极分化的。一极是以大云计算公司（ie： Google，MS，Oracle，Snowflake，Alibaba）为代表的中心化服务，另一极就是以Blockchain技术作为核心的去中心化的世界。在这个世界中，Ethereum是当之无愧的领头羊。Ethereum 不光在Public Chain的层面取得了巨大的成功，而且Go-Ehtereum作为其优秀的开源实现，已经被广泛的订制，来适应不同的私有/联盟场景。所以，要想真正掌握好区块链系统的实现，研究好Ethereum的原理以及其设计思想是非常有必要。
+
+go-ethereum是以太坊协议的Go语言实现版本，目前由以太坊基金会维护。除了go-ethereum之外，Ethereum还有C++, Python，Java, Rust等基于其他语言实现的版本。相比于其他的社区版实现，go-ethereum的使用人数最多，开发人员最多，版本更新最频繁，issues的发现和处理都较快。运行也更更加的稳定。其他语言的Ethereum实现版本因为用户与开发人员的数量相对较少，更新频率相对较低，隐藏问题出现的可能性更高。因此我们选择从go-ethereum的代码出发，来理解Ethereum系统与网络的设计实现。
 
 ### 为什么要阅读区块链系统的源代码
 
-1. 文档资料相对较少，且**内容浅尝辄止**。比如，很多的科普文章都提到，miner负责把transactions从transaction pool中打包到新的block中。那么：
-    - miner是怎么从transaction pool中选取这些transaction的呢？
-    - 被选择的transaction又是以怎样的顺序(Order)被打包到区块中的呢？
-    - 在执行transaction的EVM是怎么计算gas used?
+1. 文档资料相对较少，且**内容浅尝辄止**。比如，*很多的科普文章都提到，在打包新的Block的时候，miner负责把a batch of transactions从transaction pool中打包到新的block中*。那么：
+    - Miner会从Transaction Pool中选择哪些Transaction呢？
+    - 被选择的Transaction又是以怎样的顺序(Order)被打包到区块中的呢？
+    - 在执行Transaction的EVM是怎么计算gas used，从而限定Block中Transaction的数量的呢?
     - 剩余的gas又是怎么返还给Transaction Proposer的呢？
-    - 在执行transaction中是哪个模块，又是怎样去修改Contract中的持久化变量呢？
+    - 在执行Transaction中是哪个模块，又是怎样去修改Contract中的持久化变量呢？
     - Contract中的持久化变量又是以什么样的形式存储的呢？
+    - 当新的Block加入到Blockchain中时，World State又是何时怎样更新的呢？
 
-2. 目前的Blockchain系统并没有像数据库系统(DBMS)那样统一实现的方法论，每个不同的系统中都集成了大量的细节。如果不从源码的角度入手，很多的细节容易被忽略掉。简单的说，一个完整的区块链系统至少包含以下的模块: 
+2. 目前的Blockchain系统并没有像数据库系统(DBMS)那样统一实现的方法论，每个不同的系统中都集成了大量的细节。从源码的角度出发可以了解到很多容易被忽视的细节。简单的说，一个完整的区块链系统至少包含以下的模块: 
     - 密码学模块: 加解密，签名，安全hash，mining
     - 网络模块: P2P节点通信
     - 分布式共识模块: PoW, BFT
@@ -37,7 +39,7 @@ Blockchain是近年来技术社区最热点话题之一。它基于数据库，�
 
 Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑。
 
-Blockchain系统同样也包含一个Parser模块，Executor模块，解析Solidity语言并执行。
+Blockchain系统同样也从Transaction作为基本的操作载核，包含一个Parser模块，Transaction Executor模块，和一个Storage 管理模块。
 
 ## Contents
 
