@@ -1,14 +1,14 @@
 # Account
 
-## 基本数据结构
+## General
 
 ~~在之前的版本中Account的代码位于core/account.go~~
-在最新的Go-Ethereum 版本中Account 被抽象成了State_object,代码位于core/state/state_object.go
+目前, Account Struct的数据结构的定义在core/types/state_account.go中。同时，State Account被封装在State_object中,代码位于core/state/state_object.go
 
-```go
+```Golang
 // Account is the Ethereum consensus representation of accounts.
 // These objects are stored in the main account trie.
-type Account struct {
+type StateAccount struct {
   Nonce    uint64
   Balance  *big.Int
   Root     common.Hash // merkle root of the storage trie
@@ -19,9 +19,9 @@ type Account struct {
 - Nonce 表示该账号发送的交易序号。
 - Balance 表示该账号的余额。
 - Root 是当前账号的Storage Tire的 Merkle Root
-- CodeHash是该账号的EVM代码的哈希值。
+- CodeHash是该账号的Contract代码的哈希值。
 
-```go
+```Golang
 // stateObject represents an Ethereum account which is being modified.
 //
 // The usage pattern is as follows:
@@ -44,6 +44,8 @@ type stateObject struct {
   ....
 }
 ```
+
+Storage 是一个map, key 是一个hash值，value 也是一个hash。这里的hash是Ethereum中的common.hash，他表示了一个32字节的Keccak256的hash值。
 
 ## Account & Private Key & Public Kay & Address
 
