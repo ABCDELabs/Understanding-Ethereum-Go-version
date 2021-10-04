@@ -1,9 +1,11 @@
-# Account
+# Account (账户)
 
-## General
+## General Background
 
 ~~在之前的版本中Account的代码位于core/account.go~~
-目前, Account Struct的数据结构的定义在core/types/state_account.go中。同时，State Account被封装在State_object中,代码位于core/state/state_object.go
+
+目前, Account的数据结构的定义在"core/types/state_account.go"文件中，具体如下所示。
+
 
 ```Golang
 // Account is the Ethereum consensus representation of accounts.
@@ -16,36 +18,49 @@ type StateAccount struct {
 }
 ```
 
-- Nonce 表示该账号发送的交易序号。
+- Nonce 表示该账户发送的交易序号。
 - Balance 表示该账号的余额。
-- Root 是当前账号的Storage Tire的 Merkle Root
+- Root 是当前账号的Storage Tire的 Merkle Root。
 - CodeHash是该账号的Contract代码的哈希值。
 
+同时，在以太坊程序运行中，State Account的信息被封装在State_object结构中,代码位于core/state/state_object.go文件。
+
 ```Golang
-// stateObject represents an Ethereum account which is being modified.
-//
-// The usage pattern is as follows:
-// First you need to obtain a state object.
-// Account values can be accessed and modified through the object.
-// Finally, call CommitTrie to write the modified storage trie into a database.
-type stateObject struct {
-  address  common.Address
-  addrHash common.Hash // hash of ethereum address of the account
-  data     Account
-  db       *StateDB
-  dbErr error
+  // stateObject represents an Ethereum account which is being modified.
+  //
+  // The usage pattern is as follows:
+  // First you need to obtain a state object.
+  // Account values can be accessed and modified through the object.
+  // Finally, call CommitTrie to write the modified storage trie into a database.
+  type stateObject struct {
+    address  common.Address
+    addrHash common.Hash // hash of ethereum address of the account
+    data     Account
+    db       *StateDB
+    dbErr error
 
-  // Write caches.
-  trie Trie // storage trie, which becomes non-nil on first access
-  code Code // contract bytecode, which gets set when code is loaded
+    // Write caches.
+    trie Trie // storage trie, which becomes non-nil on first access
+    code Code // contract bytecode, which gets set when code is loaded
 
-  originStorage  Storage // Storage cache of original entries to dedup rewrites, reset for every transaction
-  pendingStorage Storage // Storage entries that need to be flushed to disk, at the end of an entire block
-  ....
-}
+    originStorage  Storage // Storage cache of original entries to dedup rewrites, reset for every transaction
+    pendingStorage Storage // Storage entries that need to be flushed to disk, at the end of an entire block
+    dirtyStorage   Storage // Storage entries that have been modified in the current transaction execution
+    fakeStorage    Storage // Fake storage which constructed by caller for debugging purpose.
+
+    // Cache flags.
+    // When an object is marked suicided it will be delete from the trie
+    // during the "update" phase of the state transition.
+    dirtyCode bool // true if the code was updated
+    suicided  bool
+    deleted   bool
+  }
 ```
 
-Storage 是一个map, key 是一个hash值，value 也是一个hash。这里的hash是Ethereum中的common.hash，他表示了一个32字节的Keccak256的hash值。
+Storage 是一个map, key 是一个hash值，value 也是一个hash。这里的hash是Ethereum中的common.Hash，他表示了一个32(HashLength) 节的byte数组 [HashLength]byte, 通常用于Keccak256的hash值和其他长度为32字节的值。
+
+![Account Storage](../figs/01/account_storage.png)
+
 
 ## Account & Private Key & Public Kay & Address
 
@@ -53,14 +68,14 @@ Storage 是一个map, key 是一个hash值，value 也是一个hash。这里的h
   - 64个16进制位，256bit，32字节
     `var AlicePrivateKey = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232032"`
 
-- 得到私钥后我们用私钥来计算公钥和account的地址。对基于私钥，我们使用ECDSA算法，选择spec256k1曲线，进行计算。通过将私钥带入到所选择的椭圆曲线中，计算出点的坐标即是公钥。
+- 在得到私钥后，我们使用用私钥来计算公钥和account的地址。基于私钥，我们使用ECDSA算法，选择spec256k1曲线，进行计算。通过将私钥带入到所选择的椭圆曲线中，计算出点的坐标即是公钥。
 以太坊和比特币使用了同样的spec256k1曲线，在实际的代码中，我们也可以看到在crypto中，go-Ethereum调用了比特币的代码。
 
     `ecdsaKey, err := crypto.ToECDSA(privateKey)`
 
 - 对私钥进行椭圆加密之后，我们可以得到64字节的数，是由两个32字节的数构成，这两个数代表了spec256k1曲线上某个点的XY值。
     `pk := ecdsaKey.PublicKey`
-- 以太坊的地址，是基于上述公钥的Keccak-256算法之后的后20个字节，并且用0x开头。
+- 以太坊的地址，是基于上述公钥的 [Keccak-256算法] 之后的后20个字节，并且用0x开头。
   - Keccak-256是SHA-3（Secure Hash Algorithm 3）标准下的一种哈希算法
     `addr := crypto.PubkeyToAddress(pk.PublicKey)`
 
@@ -89,4 +104,8 @@ Storage 是一个map, key 是一个hash值，value 也是一个hash。这里的h
 
 ## Code Example
 
-这部分的示例代码在[example/account](example/account)中。
+- 这部分的示例代码位于:[[example/signature](example/signature)]中。
+
+
+## Reference
+- https://www.freecodecamp.org/news/how-to-generate-your-very-own-bitcoin-private-key-7ad0f4936e6c/

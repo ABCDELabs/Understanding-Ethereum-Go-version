@@ -10,7 +10,7 @@
 
 ## Transaction是如何被打包并修改Blockchain中的值的
 
-Transaction是用于修改Account的State的。若干个Transaction对修改的结果整合成一个新的World State
+Transaction是用于修改Account的State的。若干个Transaction对修改的结果整合成一个新的World State.
 
 当miner开始构造新的区块的时候。首先调用 miner/worker.go的 mainLoop() 函数。
 
@@ -193,7 +193,9 @@ func (s *StateDB) SetState(addr common.Address, key, value common.Hash) {
 
  这样就完成了从transaction到从StateDB中获取Code，然后修改StateDB中的值的闭环。
 
-- commitTransactions ->> commitTransaction ->> ApplyTransaction ->> applyTransaction ->>  ApplyMessage ->> TransactionDB ->> Call  ->> Run ->> opSstore
+- commitTransactions ->> commitTransaction ->> ApplyTransaction ->> applyTransaction ->>  ApplyMessage ->> TransactionDB ->> Call  ->> Run ->> opSstore ->> StateDB ->> StateObject ->> Key-Value-Trie
+
+![Transaction Execution Flow](../figs/02/tx_execu_flow.png)
 
 ## Reference
 
