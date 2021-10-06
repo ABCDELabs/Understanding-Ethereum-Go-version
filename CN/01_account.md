@@ -6,7 +6,6 @@
 
 目前, Account的数据结构的定义在"core/types/state_account.go"文件中，具体如下所示。
 
-
 ```Golang
 // Account is the Ethereum consensus representation of accounts.
 // These objects are stored in the main account trie.
@@ -60,7 +59,6 @@ type StateAccount struct {
 Storage 是一个map, key 是一个hash值，value 也是一个hash。这里的hash是Ethereum中的common.Hash，他表示了一个32(HashLength) 节的byte数组 [HashLength]byte, 通常用于Keccak256的hash值和其他长度为32字节的值。
 
 ![Account Storage](../figs/01/account_storage.png)
-
 
 ## Account & Private Key & Public Kay & Address
 
