@@ -7,6 +7,7 @@ EVM类似汇编器，负责把合约汇编成更底层的指令(instruction)。�
 值得注意的是，这些指令仍然会调用go-ethereum中其他package所提供的API，而不是直接对更底层的数据进行操作。比如，opSstore与opSload指令用于从Storage层存储和读取数据。这两个指令直接调用了StateDB(core/state/statedb.go)与StateObject(core/state/state_object.go)提供的API。关于这些指令的详细介绍可以参考Ethereum Yellow Paper。
 
 ### opSload
+
 opSload的代码如下所示。
 
 ```Golang
@@ -19,6 +20,7 @@ func opSload(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]by
     return nil, nil
 }
 ```
+
 
 ### opSstore
 
@@ -75,4 +77,4 @@ func (s *stateObject) setState(key, value common.Hash) {
 }
 ```
 
-这里的dirtStorage起到了一个cache的作用。之后在updated storage root的时候会基于当前dirtyStorage中的信息统一更新root的值。
+这里的dirtStorage起到了一个cache的作用。之后在updated storage root的时候会基于当前dirtyStorage中的信息，在commit函数中统一更新root的值。

@@ -22,7 +22,7 @@ type StateAccount struct {
 - Root 是当前账号的Storage Tire的 Merkle Root。
 - CodeHash是该账号的Contract代码的哈希值。
 
-同时，在以太坊程序运行中，State Account的信息被封装在State_object结构中,代码位于core/state/state_object.go文件。
+在以太坊程序运行中，State Account的信息被封装在stateObject结构中, 代码位于core/state/state_object.go文件。
 
 ```Golang
   // stateObject represents an Ethereum account which is being modified.
@@ -42,6 +42,7 @@ type StateAccount struct {
     trie Trie // storage trie, which becomes non-nil on first access
     code Code // contract bytecode, which gets set when code is loaded
 
+    // 这里的Storage 是一个 map[common.Hash]common.Hash
     originStorage  Storage // Storage cache of original entries to dedup rewrites, reset for every transaction
     pendingStorage Storage // Storage entries that need to be flushed to disk, at the end of an entire block
     dirtyStorage   Storage // Storage entries that have been modified in the current transaction execution
@@ -56,38 +57,34 @@ type StateAccount struct {
   }
 ```
 
-Storage 是一个map, key 是一个hash值，value 也是一个hash。这里的hash是Ethereum中的common.Hash，他表示了一个32(HashLength) 节的byte数组 [HashLength]byte, 通常用于Keccak256的hash值和其他长度为32字节的值。
-
-<!-- ![Account Storage](../figs/01/account_storage.png) -->
-
 ## Account & Private Key & Public Kay & Address
 
 - 首先我们通过随机得到一个长度64位account的私钥。
   - 64个16进制位，256bit，32字节
     `var AlicePrivateKey = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232032"`
 
-- 在得到私钥后，我们使用用私钥来计算公钥和account的地址。基于私钥，我们使用ECDSA算法，选择spec256k1曲线，进行计算。通过将私钥带入到所选择的椭圆曲线中，计算出点的坐标即是公钥。
-以太坊和比特币使用了同样的spec256k1曲线，在实际的代码中，我们也可以看到在crypto中，go-Ethereum调用了比特币的代码。
+- 在得到私钥后，我们使用用私钥来计算公钥和account的地址。基于私钥，我们使用ECDSA算法，选择spec256k1曲线进行计算。通过将私钥带入到所选择的椭圆曲线中，计算出点的坐标即是公钥。以太坊和比特币使用了同样的spec256k1曲线，在实际的代码中，我们也可以看到在crypto中，go-Ethereum直接调用了比特币的代码。
+    `ecdsaSK, err := crypto.ToECDSA(privateKey)`
 
-    `ecdsaKey, err := crypto.ToECDSA(privateKey)`
-
-- 对私钥进行椭圆加密之后，我们可以得到64字节的数，是由两个32字节的数构成，这两个数代表了spec256k1曲线上某个点的XY值。
-    `pk := ecdsaKey.PublicKey`
-- 以太坊的地址，是基于上述公钥的 [Keccak-256算法] 之后的后20个字节，并且用0x开头。
+- 对私钥进行椭圆加密之后，我们可以得到64bytes的数，它是由两个32bytes的数构成，这两个数代表了spec256k1曲线上某个点的XY值。
+    `ecdsaPK := ecdsaSK.PublicKey`
+- 以太坊的地址，是基于上述公钥(ecdsaSK.PublicKey)的 [Keccak-256算法] 之后的后20个字节，并且用0x开头。
   - Keccak-256是SHA-3（Secure Hash Algorithm 3）标准下的一种哈希算法
-    `addr := crypto.PubkeyToAddress(pk.PublicKey)`
+    `addr := crypto.PubkeyToAddress(ecdsaSK.PublicKey)`
 
 ## Signature & Verification
 
 - Hash（m,R）*X +R = S * P
 - P是椭圆曲线函数的基点(base point) 可以理解为一个P是一个在曲线C上的一个order 为n的加法循环群的生成元. n为质数。
 - R = r * P (r 是个随机数，并不告知verifier)
-- 以太坊签名校验的核心思想是基于上面得到的ecdsaKey对数据msg进行签名得到msgSig. 
-    `sig, err := crypto.Sign(msg, ecdsaKey)`
-- 基于msg和msgSig可以反推出来签名的公钥（生成地址的那个）。
-    `recoveredPub, err := crypto.Ecrecover(dataHash[:], sigTest)`
-- 通过反推出来的公钥得到发送者的地址，并与当前txn的发送者进行对比。
-    `crypto.VerifySignature(testPk, msg, msgSig)`
+- 以太坊签名校验的核心思想是:首先基于上面得到的ECDSA下的私钥ecdsaSK对数据msg进行签名(sign)得到msgSig. 
+    `sig, err := crypto.Sign(msg[:], ecdsaSK)`
+    `msgSig := decodeHex(hex.EncodeToString(sig))`
+
+- 然后基于msg和msgSig可以反推出来签名的公钥（用于生成账户地址的公钥ecdsaPK）。
+    `recoveredPub, err := crypto.Ecrecover(msg[:],msgSig)`
+- 通过反推出来的公钥得到发送者的地址，并与当前txn的发送者在ECDSA下的pk进行对比。
+    `crypto.VerifySignature(testPk, msg[:], msgSig[:len(msgSig)-1])`
 - 这套体系的安全性保证在于，即使知道了公钥pk/ecdsaKey.PublicKey也难以推测出 ecdsaKey以及生成他的privateKey。
 
 ## ECDSA & spec256k1曲线
@@ -104,6 +101,133 @@ Storage 是一个map, key 是一个hash值，value 也是一个hash。这里的h
 
 - 这部分的示例代码位于:[[example/signature](example/signature)]中。
 
+## Account Storage (账户存储)
+
+相比与外部账户，合约额外保存了一个存储层用于存储合约中部的数据。与管理Account的方式相同，在以太坊中每个合约同样使用Tire结构作为可验证的索引结构来管理存储数据。
+
+Storage层的基本组成单元称为槽(Slot)，每个Slot的大小是32 bytes (256 bits)。同时，因为Slot的索引key的长度同样是32 bytes(256 bits)。因此每个Contract最多可以保存$2^{256} - 1$个Slot.
+
+我们使用一个简单的合约来展示Contract Storage层的逻辑，合约代码如下所示。在本例中，Storage合约保存了三个持久化uint256 变量(number, number1, and number2)，并通过stores函数给它们进行赋值。
+
+```solidity
+// SPDX-License-Identifier: GPL-3.0
+
+pragma solidity >=0.7.0 <0.9.0;
+
+/**
+ * @title Storage
+ * @dev Store & retrieve value in a variable
+ */
+contract Storage {
+
+    uint256 number;
+    uint256 number1;
+    uint256 number2;
+
+    function stores(uint256 num) public {
+        number = num;
+        number1 = num + 1;
+        number2 = num + 2;
+    }
+    
+    function get_number() public view returns (uint256){
+        return number;
+    }
+    
+    function get_number1() public view returns (uint256){
+        return number1;
+    }
+    
+    function get_number2() public view returns (uint256){
+        return number2;
+    }
+}
+```
+
+我们使用remix来在本地部署这个合约，并使用remix debugger构造transaction调用stores(1)。在Transaction生效之后，合约中三个变量的值将被分别赋给1，2，3。我们观察Storage层会发现，现在的存储层增加了三个Storage Object。每个Object包含一个256 bits的key和256 bits的value字段（本例中表现为64位的16进制数）。其中Key的值是从0开始的递增整数，它代表了Slot的索引值。它们的value则存储了合约中三个变量值(1,2,3)。此外，每个object外层index则是key值的sha3的，"0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563" 对应 0，"0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6" 对应 1。我们在示例代码中展示了这一结果。
+
+```json
+{
+	"0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563": {
+		"key": "0x0000000000000000000000000000000000000000000000000000000000000000",
+		"value": "0x0000000000000000000000000000000000000000000000000000000000000001"
+	},
+	"0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6": {
+		"key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+		"value": "0x0000000000000000000000000000000000000000000000000000000000000002"
+	},
+	"0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace": {
+		"key": "0x0000000000000000000000000000000000000000000000000000000000000002",
+		"value": "0x0000000000000000000000000000000000000000000000000000000000000003"
+	}
+}
+```
+
+值得注意的是，如果我们调整一下合约中变量的定义顺序，从number，number1，number2 到number 2， number 1， number，则会得到不一样的结果。
+
+```solidity
+// SPDX-License-Identifier: GPL-3.0
+
+pragma solidity >=0.7.0 <0.9.0;
+
+/**
+ * @title Storage
+ * @dev Store & retrieve value in a variable
+ */
+contract Storage {
+
+    uint256 number;
+    uint256 number1;
+    uint256 number2;
+
+    function stores(uint256 num) public {
+        number = num;
+        number1 = num + 1;
+        number2 = num + 2;
+    }
+    
+    function get_number() public view returns (uint256){
+        return number;
+    }
+    
+    function get_number1() public view returns (uint256){
+        return number1;
+    }
+    
+    function get_number2() public view returns (uint256){
+        return number2;
+    }
+}
+```
+
+我们可以发现number2的结果被存储在了第一个Slot中（Key:"0x0000000000000000000000000000000000000000000000000000000000000000"），而number的值北存储在了第三个Slot中 (Key:"0x0000000000000000000000000000000000000000000000000000000000000002")。
+
+```json
+{
+  	"0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563": {
+		"key": "0x0000000000000000000000000000000000000000000000000000000000000000",
+		"value": "0x0000000000000000000000000000000000000000000000000000000000000003"
+	},
+	"0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6": {
+		"key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+		"value": "0x0000000000000000000000000000000000000000000000000000000000000002"
+	},	"0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace": {
+		"key": "0x0000000000000000000000000000000000000000000000000000000000000002",
+		"value": "0x0000000000000000000000000000000000000000000000000000000000000001"
+	}
+
+}
+```
+
+这个实验可以证明，在Ethereum中，定长变量(例如 unit256)按照其在在合约中的定义顺序，从第一个Slot（Key：0）开始存储。变长数组，map结构的存储构造则更为复杂，具体可以参考solidity官方文档。
+
+<!-- Todo: 变长数据结构的存储情况。 -->
+
+<!-- Storage 是一个map, key 是一个hash值，value 也是一个hash。这里的hash是Ethereum中的common.Hash，他表示了一个32(HashLength) 节的byte数组 [HashLength]byte, 通常用于Keccak256的hash值和其他长度为32字节的值。 -->
+
+<!-- ![Account Storage](../figs/01/account_storage.png) -->
+
 
 ## Reference
+
 - https://www.freecodecamp.org/news/how-to-generate-your-very-own-bitcoin-private-key-7ad0f4936e6c/
