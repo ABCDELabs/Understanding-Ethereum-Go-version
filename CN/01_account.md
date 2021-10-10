@@ -74,10 +74,10 @@ type StateAccount struct {
 
 ## Signature & Verification
 
-- Hash（m,R）*X +R = S * P
+- Hash（m,R）*X +R = S* P
 - P是椭圆曲线函数的基点(base point) 可以理解为一个P是一个在曲线C上的一个order 为n的加法循环群的生成元. n为质数。
 - R = r * P (r 是个随机数，并不告知verifier)
-- 以太坊签名校验的核心思想是:首先基于上面得到的ECDSA下的私钥ecdsaSK对数据msg进行签名(sign)得到msgSig. 
+- 以太坊签名校验的核心思想是:首先基于上面得到的ECDSA下的私钥ecdsaSK对数据msg进行签名(sign)得到msgSig.
     `sig, err := crypto.Sign(msg[:], ecdsaSK)`
     `msgSig := decodeHex(hex.EncodeToString(sig))`
 
@@ -148,22 +148,22 @@ contract Storage {
 
 ```json
 {
-	"0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563": {
-		"key": "0x0000000000000000000000000000000000000000000000000000000000000000",
-		"value": "0x0000000000000000000000000000000000000000000000000000000000000001"
-	},
-	"0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6": {
-		"key": "0x0000000000000000000000000000000000000000000000000000000000000001",
-		"value": "0x0000000000000000000000000000000000000000000000000000000000000002"
-	},
-	"0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace": {
-		"key": "0x0000000000000000000000000000000000000000000000000000000000000002",
-		"value": "0x0000000000000000000000000000000000000000000000000000000000000003"
-	}
+ "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563": {
+  "key": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "value": "0x0000000000000000000000000000000000000000000000000000000000000001"
+ },
+ "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6": {
+  "key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+  "value": "0x0000000000000000000000000000000000000000000000000000000000000002"
+ },
+ "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace": {
+  "key": "0x0000000000000000000000000000000000000000000000000000000000000002",
+  "value": "0x0000000000000000000000000000000000000000000000000000000000000003"
+ }
 }
 ```
 
-值得注意的是，如果我们调整一下合约中变量的定义顺序，从number，number1，number2 到number 2， number 1， number，则会得到不一样的结果。
+值得注意的是，如果我们调整一下合约中变量的定义顺序，从number，number1，number2 调整为number 2， number 1， number，则会在Storage 层观察到不一样的结果。
 
 ```solidity
 // SPDX-License-Identifier: GPL-3.0
@@ -204,22 +204,83 @@ contract Storage {
 
 ```json
 {
-  	"0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563": {
-		"key": "0x0000000000000000000000000000000000000000000000000000000000000000",
-		"value": "0x0000000000000000000000000000000000000000000000000000000000000003"
-	},
-	"0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6": {
-		"key": "0x0000000000000000000000000000000000000000000000000000000000000001",
-		"value": "0x0000000000000000000000000000000000000000000000000000000000000002"
-	},	"0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace": {
-		"key": "0x0000000000000000000000000000000000000000000000000000000000000002",
-		"value": "0x0000000000000000000000000000000000000000000000000000000000000001"
-	}
-
+  "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563": {
+    "key": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "value": "0x0000000000000000000000000000000000000000000000000000000000000003"
+    },
+  "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6": {
+    "key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+    "value": "0x0000000000000000000000000000000000000000000000000000000000000002"
+  },
+  "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace": {
+    "key": "0x0000000000000000000000000000000000000000000000000000000000000002",
+    "value": "0x0000000000000000000000000000000000000000000000000000000000000001"
+  }
 }
 ```
 
-这个实验可以证明，在Ethereum中，定长变量(例如 unit256)按照其在在合约中的定义顺序，从第一个Slot（Key：0）开始存储。变长数组，map结构的存储构造则更为复杂，具体可以参考solidity官方文档。
+这个实验可以证明，在Ethereum中，定长变量(例如 unit256)按照其在在合约中的定义顺序，从第一个Slot（Key：0）开始存储。
+
+我们再考虑另一种情况，只对声明的三个变量中其中的两个进行赋值。具体的来说，我们按照number，number1，和number2的顺序声明三个uint256变量。在函数stores中只对number1和number2进行赋值操作。合约代码如下所示。
+
+```solidity
+// SPDX-License-Identifier: GPL-3.0
+
+pragma solidity >=0.7.0 <0.9.0;
+
+/**
+ * @title Storage
+ * @dev Store & retrieve value in a variable
+ */
+contract Storage {
+
+
+    uint256 number;
+    uint256 number1;
+    uint256 number2;
+
+
+    function stores(uint256 num) public {
+        number1 = num + 1;
+        number2 = num + 2;
+    }
+    
+    function get_number() public view returns (uint256){
+        return number;
+    }
+    
+    function get_number1() public view returns (uint256){
+        return number1;
+    }
+    
+    function get_number2() public view returns (uint256){
+        return number2;
+    }
+}
+```
+
+基于上述合约，我们构造transaction 并调用stores函数，输入参数1，将number1和number2的值修改为2，和3。Transaction执行完成后，Storage 层的结果如下所示。
+
+```json
+{
+	"0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6": {
+		"key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+		"value": "0x0000000000000000000000000000000000000000000000000000000000000002"
+	},
+	"0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace": {
+		"key": "0x0000000000000000000000000000000000000000000000000000000000000002",
+		"value": "0x0000000000000000000000000000000000000000000000000000000000000003"
+	}
+}
+```
+
+我们可以观察到在Storage层面，Transaction的执行，只对位置在1和2位置的两个Slot进行了赋值。值得注意的是，针对Slot的赋值是从1号Slot的开始，而不是0号Slot。这说明，对于固定长度的变量，其对应的Slot的位置，从Contract初始化开始的时候就已经给定了，而不是在第一次被赋值的时候。
+
+
+![Remix Debugger](../figs/01/remix.png)
+
+
+对于变长数组，map结构的存储构造则更为复杂。虽然Map本身就是key-value的结构，但是在Storage 层并不直接使用map中key的值或者key的值的hash值来作为Storage的索引值。目前，使用map的key的值和当前数组所在变量声明位置的拼接的kecc256的哈希值作为索引。
 
 <!-- Todo: 变长数据结构的存储情况。 -->
 
@@ -233,7 +294,6 @@ contract Storage {
 - Private Key
 - 助记词
 
-
 ## Reference
 
-- https://www.freecodecamp.org/news/how-to-generate-your-very-own-bitcoin-private-key-7ad0f4936e6c/
+- <https://www.freecodecamp.org/news/how-to-generate-your-very-own-bitcoin-private-key-7ad0f4936e6c/>

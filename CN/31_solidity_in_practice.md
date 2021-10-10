@@ -21,7 +21,6 @@ func opSload(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]by
 }
 ```
 
-
 ### opSstore
 
 opSstore的代码如下所示。
