@@ -59,7 +59,7 @@ type StateAccount struct {
 
 ## Account & Private Key & Public Kay & Address
 
-- 首先我们通过随机得到一个长度64位account的私钥。
+- 首先我们通过随机得到一个长度64位account的私钥。这个私钥就是平时需要用户激活钱包时需要的记录，一旦这个私钥暴露了，钱包也将不再安全。
   - 64个16进制位，256bit，32字节
     `var AlicePrivateKey = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232032"`
 
@@ -85,7 +85,7 @@ type StateAccount struct {
     `recoveredPub, err := crypto.Ecrecover(msg[:],msgSig)`
 - 通过反推出来的公钥得到发送者的地址，并与当前txn的发送者在ECDSA下的pk进行对比。
     `crypto.VerifySignature(testPk, msg[:], msgSig[:len(msgSig)-1])`
-- 这套体系的安全性保证在于，即使知道了公钥pk/ecdsaKey.PublicKey也难以推测出 ecdsaKey以及生成他的privateKey。
+- 这套体系的安全性保证在于，即使知道了公钥ecdsaPk/ecdsaSK.PublicKey也难以推测出 ecdsaSK以及生成他的privateKey。
 
 ## ECDSA & spec256k1曲线
 
@@ -226,6 +226,12 @@ contract Storage {
 <!-- Storage 是一个map, key 是一个hash值，value 也是一个hash。这里的hash是Ethereum中的common.Hash，他表示了一个32(HashLength) 节的byte数组 [HashLength]byte, 通常用于Keccak256的hash值和其他长度为32字节的值。 -->
 
 <!-- ![Account Storage](../figs/01/account_storage.png) -->
+
+## Wallet
+
+- KeyStore
+- Private Key
+- 助记词
 
 
 ## Reference
