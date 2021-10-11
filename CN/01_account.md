@@ -2,9 +2,7 @@
 
 ## General Background
 
-~~在之前的版本中Account的代码位于core/account.go~~
-
-目前, Account的数据结构的定义在"core/types/state_account.go"文件中，具体如下所示。
+在当前版本的以太坊采用了Account-based的数据管理架构。在这种架构下，Account (账户)是参与链上交易的基本角色，它承担了链上交易的发起者以及接收者的角色。目前, Account的数据结构的定义在"core/types/state_account.go"文件中(~~在之前的版本中Account的代码位于core/account.go~~)，具体的定义如下所示。
 
 ```Golang
 // Account is the Ethereum consensus representation of accounts.
@@ -17,12 +15,16 @@ type StateAccount struct {
 }
 ```
 
-- Nonce 表示该账户发送的交易序号。
-- Balance 表示该账号的余额。
-- Root 是当前账号的Storage Tire的 Merkle Root。
-- CodeHash是该账号的Contract代码的哈希值。
+具体的来说:
 
-在以太坊程序运行中，State Account的信息被封装在stateObject结构中, 代码位于core/state/state_object.go文件。
+- Nonce 表示该账户发送的交易序号。
+- Balance 表示该账户的余额。这里的余额指的是链上的Global Token Ether。
+- Root 表示当前账户的下Storage层的 Merkle Patricia Tire的Root。
+- CodeHash是该账户的Contract代码的哈希值。
+
+目前，在以太坊中，有两种Account的角色，EOA以及Contract。EOA由用户之间控制，负责构造并发起Transaction。 Contract 由用户构造，用于实现一些链上的逻辑。在实际代码中，这两种角色都是用StateAccount进行定义，并在运行时被封装在stateObject结构中。stateObject的相关代码位于core/state/state_object.go文件。我们注意到这里的stateObject是小写字母开头，说明这个结构主要用于package内部数据操作，并不对外暴露。
+
+在具体的数据中，EOA 与Contract不同的点在于，EOA并没有维护自己的Storage 层以及没有codeHash。
 
 ```Golang
   // stateObject represents an Ethereum account which is being modified.
@@ -99,7 +101,7 @@ type StateAccount struct {
 
 ## Code Example
 
-- 这部分的示例代码位于:[[example/signature](example/signature)]中。
+- 这部分的示例代码位于: [[example/signature](example/signature)]中。
 
 ## Account Storage (账户存储)
 
@@ -233,12 +235,9 @@ pragma solidity >=0.7.0 <0.9.0;
  * @dev Store & retrieve value in a variable
  */
 contract Storage {
-
-
     uint256 number;
     uint256 number1;
     uint256 number2;
-
 
     function stores(uint256 num) public {
         number1 = num + 1;
@@ -263,30 +262,82 @@ contract Storage {
 
 ```json
 {
-	"0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6": {
-		"key": "0x0000000000000000000000000000000000000000000000000000000000000001",
-		"value": "0x0000000000000000000000000000000000000000000000000000000000000002"
-	},
-	"0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace": {
-		"key": "0x0000000000000000000000000000000000000000000000000000000000000002",
-		"value": "0x0000000000000000000000000000000000000000000000000000000000000003"
-	}
+ "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6": {
+  "key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+  "value": "0x0000000000000000000000000000000000000000000000000000000000000002"
+ },
+ "0x405787fa12a823e0f2b7631cc41b3ba8828b3321ca811111fa75cd3aa3bb5ace": {
+  "key": "0x0000000000000000000000000000000000000000000000000000000000000002",
+  "value": "0x0000000000000000000000000000000000000000000000000000000000000003"
+ }
 }
 ```
 
 我们可以观察到在Storage层面，Transaction的执行，只对位置在1和2位置的两个Slot进行了赋值。值得注意的是，针对Slot的赋值是从1号Slot的开始，而不是0号Slot。这说明，对于固定长度的变量，其对应的Slot的位置，从Contract初始化开始的时候就已经给定了，而不是在第一次被赋值的时候。
 
-
 ![Remix Debugger](../figs/01/remix.png)
 
-
-对于变长数组，map结构的存储构造则更为复杂。虽然Map本身就是key-value的结构，但是在Storage 层并不直接使用map中key的值或者key的值的hash值来作为Storage的索引值。目前，使用map的key的值和当前数组所在变量声明位置的拼接的kecc256的哈希值作为索引。
+对于变长数组，map结构的存储构造则更为复杂。虽然Map本身就是key-value的结构，但是在Storage 层并不直接使用map中key的值或者key的值的hash值来作为Storage的索引值。目前，使用map的key的值和当前数组所在变量声明位置对应的slot的拼接值，再进行keccak256哈希值作为索引。
 
 <!-- Todo: 变长数据结构的存储情况。 -->
 
 <!-- Storage 是一个map, key 是一个hash值，value 也是一个hash。这里的hash是Ethereum中的common.Hash，他表示了一个32(HashLength) 节的byte数组 [HashLength]byte, 通常用于Keccak256的hash值和其他长度为32字节的值。 -->
 
 <!-- ![Account Storage](../figs/01/account_storage.png) -->
+
+我们知道Solidity中，有一类特殊的类型Address用于表示链上账户的地址信息。例如在ERC-20合约中，所有用户拥有的token信息是被存储在一个(address->uint)的map结构中。这个map的key就是address 类型的，它表示了用户实际的address。当address作为value单独存储在的时候，它并不会会单独的占用一个slot的位置。我们使用下面的例子来说明。
+
+在下面的示例中，我们声明了三个变量，分别是number(uint256)，addr(address)，以及isTrue(bool)。我们知道，在以太坊中Address是一个长度为20 bytes的字符串，所以一个Address类型是没办法填满整个的Slot的。布尔类型在以太坊中只需要一个bit(0 or 1)就可以表示. 我们构造transaction调用函数storeaddr。函数的input为1 “0xb6186d3a3D32232BB21E87A33a4E176853a49d12”。
+
+```Solidity
+// SPDX-License-Identifier: GPL-3.0
+
+pragma solidity >=0.7.0 <0.9.0;
+
+/**
+ * @title Storage
+ * @dev Store & retrieve value in a variable
+ */
+contract Storage {
+
+
+    uint256 number;
+    address addr;
+    bool isTrue;
+
+
+    function stores(uint256 num) public {
+        // number1 = num + 1;
+        // number2 = num + 2;
+    }
+    
+    function storeaddr(uint256 num, address a) public {
+        number = num;
+        addr = a;
+        isTure = true;
+    }
+    
+    function get_number() public view returns (uint256){
+        return number;
+    }
+    
+}
+```
+
+Transaction的运行后的结果如下面的Json所示。我们可以观察到，在Storage层只占用了两个Slot。同时我们可以看到，addr的值和isTrue被混合的存储到了第二个Slot中。
+
+```json
+{
+ "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563": {
+  "key": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "value": "0x0000000000000000000000000000000000000000000000000000000000000001"
+ },
+ "0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6": {
+  "key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+  "value": "0x000000000000000000000001b6186d3a3d32232bb21e87a33a4e176853a49d12"
+ }
+}
+```
 
 ## Wallet
 
