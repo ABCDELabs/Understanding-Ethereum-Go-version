@@ -48,4 +48,10 @@ func main() {
 		fmt.Printf("The hash of %d:   %x\n", i, hash)
 	}
 
+	p := solsha3.SoliditySHA3([]byte("hsy"), solsha3.Uint256(big.NewInt(int64(3))))
+	fmt.Printf("Test the Solidity Map storage Key: %x\n", p)
+
+	o := solsha3.SoliditySHA3([]byte("lei"), solsha3.Uint256(big.NewInt(int64(3))))
+	fmt.Printf("Test the Solidity Map storage Key: %x\n", o)
+
 }
