@@ -373,7 +373,7 @@ contract Storage {
 }
 ```
 
-我们发现，对于定长变量number被存储在了第一个Slot(key:0x0000000000000000000000000000000000000000000000000000000000000000)中。但是对于mapping变量balances，它包括的两个数据并没有按照slot的顺序来存储，而且，这两个值对应的key应并不是mapping中key的直接hash。Slot会使用mapping中key的值与当前mapping对应的slot的位置进行拼接之后再进行keccak256的hash来决定map中元素最终的存储位置。
+我们发现，对于定长变量number被存储在了第一个Slot(key:0x0000000000000000000000000000000000000000000000000000000000000000)中。但是对于mapping变量balances，它包括的两个数据并没有按照slot的顺序来存储。除此之外，存储这两个值的Slot的key，也并不是这两个字在mapping中key的直接hash。Solidity会使用mapping中元素的key值与，当前mapping本身对应的slot的位置进行拼接，之后再进行其使用keccak256的hash来得到map中元素最终的存储位置。
 
 ```json
 {
