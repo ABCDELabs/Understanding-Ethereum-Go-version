@@ -48,7 +48,7 @@ Geth 内置了一个Javascript的解释器Goja (interpreter)，来构造CLI Cons
 
 整个geth程序中，数据对外交互的窗口只有RPC接口提供的服务。
 
-```go
+```Golang
 // Console is a JavaScript interpreted runtime environment. It is a fully fledged
 // JavaScript console attached to a running node via an external or in-process RPC
 // client.
