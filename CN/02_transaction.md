@@ -1,6 +1,6 @@
 # 一个Transaction的生老病死/Transaction CRUD
 
-## State-based Blockchain
+## Background of State-based Blockchain
 
 - State-based Blockchain System 由两部分的数据管理模块组成：World State 和 Blockchain。
 - State Object是系统中基于K-V结构的基础数据元素。在Ethereum中，State Object是Account。
@@ -9,7 +9,7 @@
 - Transaction是Blockchain System中与承载数据更新的载体。通过Transaction，State Object从当前状态切换到另一个状态。
 - World State的更新是以Block为单位的。
 
-## Transaction是如何被打包并修改Blockchain中的值的
+## [Mining] Transaction是如何被打包并修改Blockchain中的值的
 
 Transaction用于更新一个或多个Account的State的。Miner负责将一个或多个Transaction被打包到一个block中，并按照顺序执行他们。顺序执行的结构会被finalise成一个新的World State。这个过程成为World State的状态转移。
 
@@ -210,13 +210,61 @@ func (s *StateDB) SetState(addr common.Address, key, value common.Hash) {
 }
 ```
 
- 这样就完成了，自顶向下的Transaction修改StateDB的Workflow。。
+ 这样就完成了，一个新区块的形成过程中，Transaction如何修改StateDB的Workflow。
 
 - commitTransactions ->> commitTransaction ->> ApplyTransaction ->> applyTransaction ->>  ApplyMessage ->> TransactionDB ->> Call  ->> Run ->> opSstore ->> StateDB ->> StateObject ->> Key-Value-Trie
 
 ![Transaction Execution Flow](../figs/02/tx_execu_flow.png)
 
-## Reference
+## [Validator] 验证节点是如何执行Transaction来更新World State
+
+而对于非Miner的网络节点，也称为网络中的验证节点(Validator)。他们执行Block中Transaction的入口是在core/blockchain.go中的InsertChain()函数。InsertChain函数通过调用内部函数insertChain，对调用中的core/state_processor.go中的Process()函数。Process函数的核心在于循环遍历Block中的Transaction，调用上述的applyTransaction函数。从这里开始更底层的调用关系就与Mining Workflow中的调用关系相同。
+
+```Golang
+// Process processes the state changes according to the Ethereum rules by running
+// the transaction messages using the statedb and applying any rewards to both
+// the processor (coinbase) and any included uncles.
+//
+// Process returns the receipts and logs accumulated during the process and
+// returns the amount of gas that was used in the process. If any of the
+// transactions failed to execute due to insufficient gas it will return an error.
+func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg vm.Config) (types.Receipts, []*types.Log, uint64, error) {
+ var (
+  receipts    types.Receipts
+  usedGas     = new(uint64)
+  header      = block.Header()
+  blockHash   = block.Hash()
+  blockNumber = block.Number()
+  allLogs     []*types.Log
+  gp          = new(GasPool).AddGas(block.GasLimit())
+ )
+ // Mutate the block and state according to any hard-fork specs
+ if p.config.DAOForkSupport && p.config.DAOForkBlock != nil && p.config.DAOForkBlock.Cmp(block.Number()) == 0 {
+  misc.ApplyDAOHardFork(statedb)
+ }
+ blockContext := NewEVMBlockContext(header, p.bc, nil)
+ vmenv := vm.NewEVM(blockContext, vm.TxContext{}, statedb, p.config, cfg)
+ // Iterate over and process the individual transactions
+ for i, tx := range block.Transactions() {
+  msg, err := tx.AsMessage(types.MakeSigner(p.config, header.Number), header.BaseFee)
+  if err != nil {
+   return nil, nil, 0, fmt.Errorf("could not apply tx %d [%v]: %w", i, tx.Hash().Hex(), err)
+  }
+  statedb.Prepare(tx.Hash(), i)
+  //核心: 与Mining中Commit Transaction不同，Process在外部循环Block中的Transaction并单条执行。
+  receipt, err := applyTransaction(msg, p.config, p.bc, nil, gp, statedb, blockNumber, blockHash, tx, usedGas, vmenv)
+  if err != nil {
+   return nil, nil, 0, fmt.Errorf("could not apply tx %d [%v]: %w", i, tx.Hash().Hex(), err)
+  }
+  receipts = append(receipts, receipt)
+  allLogs = append(allLogs, receipt.Logs...)
+ }
+ // Finalize the block, applying any consensus engine specific extras (e.g. block rewards)
+ p.engine.Finalize(p.bc, header, statedb, block.Transactions(), block.Uncles())
+
+ return receipts, allLogs, *usedGas, nil
+}
+```
 
 1. <https://www.codenong.com/cs105936343/>
 2. <https://yangzhe.me/2019/08/12/ethereum-evm/>
