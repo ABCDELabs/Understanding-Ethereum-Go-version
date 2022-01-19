@@ -40,7 +40,9 @@
 
  <!-- `geth console 2` -->
 
-## Geth 的原理
+## Geth 是什么？
+
+Geth是以太坊的客户端。
 
 Geth 内置了一个Javascript的解释器Goja (interpreter)，来构造CLI Console与用户交互。
 
