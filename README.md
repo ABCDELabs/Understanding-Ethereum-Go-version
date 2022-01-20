@@ -122,6 +122,13 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 - go-ethereum有专用函数来控制每次transaction执行完，返还给用户的Gas的量。有根据EIP-3529，每次最多返还50%的gas.
 - 不同的Contracts的数据会混合的保存在底层的一个LevelDB instance中。
 
+## 关键函数
+
+```
+- func (s *StateDB) Commit(deleteEmptyObjects bool) (common.Hash, error)
+- func WritePreimages(db ethdb.KeyValueWriter, preimages map[common.Hash][]byte)
+```
+
 ## Reference
 
 - [1] Ethereum Yellow Paper [(Paper Link)](https://ethereum.github.io/yellowpaper/paper.pdf)

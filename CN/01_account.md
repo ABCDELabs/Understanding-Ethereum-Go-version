@@ -2,9 +2,9 @@
 
 ## General Background
 
-在当前版本的以太坊采用了Account-based的数据管理架构。在这种架构下，Account (账户)是参与链上交易的基本角色，它承担了链上交易的发起者以及接收者的角色。目前, Account的数据结构的定义在"core/types/state_account.go"文件中(~~在之前的版本中Account的代码位于core/account.go~~)，具体的定义如下所示。
+在Ethereum中，Account (账户)是参与链上交易的基本角色。它承担了链上交易的发起者以及接收者的角色。目前, Account的数据结构的定义在"core/types/state_account.go"文件中(~~在之前的版本中Account的代码位于core/account.go~~)，具体的定义如下所示。
 
-```Golang
+```go
 // Account is the Ethereum consensus representation of accounts.
 // These objects are stored in the main account trie.
 type StateAccount struct {
@@ -15,7 +15,7 @@ type StateAccount struct {
 }
 ```
 
-具体的来说:
+其中的包含四个变量为:
 
 - Nonce 表示该账户发送的交易序号。
 - Balance 表示该账户的余额。这里的余额指的是链上的Global Token Ether。
@@ -26,7 +26,7 @@ type StateAccount struct {
 
 在实际代码中，这两种角色都是用StateAccount进行定义，并在运行时被封装在stateObject结构中。stateObject的相关代码位于core/state/state_object.go文件。我们注意到这里的stateObject是小写字母开头，说明这个结构主要用于package内部数据操作，并不对外暴露。 以太坊通过account address来管理account state。在某一时刻下的所有的account state构成了world state。以太坊通过Merkle Patricia Tree来管理这些Account state。
 
-```Golang
+```go
   // stateObject represents an Ethereum account which is being modified.
   //
   // The usage pattern is as follows:
@@ -289,7 +289,7 @@ contract Storage {
 
 在下面的示例中，我们声明了三个变量，分别是number(uint256)，addr(address)，以及isTrue(bool)。我们知道，在以太坊中Address是一个长度为20 bytes的字符串，所以一个Address类型是没办法填满整个的Slot的。布尔类型在以太坊中只需要一个bit(0 or 1)就可以表示. 我们构造transaction调用函数storeaddr。函数的input为1 “0xb6186d3a3D32232BB21E87A33a4E176853a49d12”。
 
-```Solidity
+```solidity
 // SPDX-License-Identifier: GPL-3.0
 
 pragma solidity >=0.7.0 <0.9.0;
