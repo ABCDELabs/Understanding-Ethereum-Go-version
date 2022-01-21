@@ -2,29 +2,13 @@
 
 ## General Background
 
-在Ethereum中，Account (账户)是参与链上交易的基本角色。它承担了链上交易的发起者以及接收者的角色。目前, Account的数据结构的定义在"core/types/state_account.go"文件中(~~在之前的版本中Account的代码位于core/account.go~~)，具体的定义如下所示。
+在Ethereum中，State Account (账户)是参与链上交易的基本角色。Account是Ethereum状态机模型中的基本单位，承担了链上交易的发起者以及交易接收者的角色。
 
-```go
-// Account is the Ethereum consensus representation of accounts.
-// These objects are stored in the main account trie.
-type StateAccount struct {
-  Nonce    uint64
-  Balance  *big.Int
-  Root     common.Hash // merkle root of the storage trie
-  CodeHash []byte
-}
-```
+目前，在以太坊中，有两种类型的Account，分别是外部账户(EOA)以及合约(Contract)。
 
-其中的包含四个变量为:
+外部账户(EOA)由用户直接控制，负责构造签名并发起交易(transaction)。Contract由用户创建，用于不可篡改的保存图灵完备的代码段，以及一些持久化的数据。我们知道，在以太坊状态机模型中，账户的状态是以Transaction为单位进行更新的，这种架构被称为transaction-based state machine。在系统执行Transaction前后的数据，称为系统的Snapshot。账户在Snapshot下中所有信息(information/data)，称为账户的状态(State)。总结的说，在以太坊中transaction可以账户从一个状态转移到另一个状态。
 
-- Nonce 表示该账户发送的交易序号。
-- Balance 表示该账户的余额。这里的余额指的是链上的Global Token Ether。
-- Root 表示当前账户的下Storage层的 Merkle Patricia Tire的Root。
-- CodeHash是该账户的Contract代码的哈希值。
-
-目前，在以太坊中，有两种Account的角色，外部账户(EOA)以及合约(Contract)。EOA由用户之间控制，负责构造签名并发起交易(transaction)。 Contract由用户构造，用于实现一些链上的逻辑。每个账户在某个时刻所有信息(information or data)，称为账户的状态(State)。在以太坊中，transaction是更新账户的信息的基本元。换句话说，在以太坊中transaction可以账户从一个状态转移到另一个状态。这种架构也称为transaction-based state machine。
-
-在实际代码中，这两种角色都是用StateAccount进行定义，并在运行时被封装在stateObject结构中。stateObject的相关代码位于core/state/state_object.go文件。我们注意到这里的stateObject是小写字母开头，说明这个结构主要用于package内部数据操作，并不对外暴露。 以太坊通过account address来管理account state。在某一时刻下的所有的account state构成了world state。以太坊通过Merkle Patricia Tree来管理这些Account state。
+在实际代码中，这两种Account，都被封装在stateObject结构中。stateObject的相关代码位于core/state/state_object.go文件中，隶属于package state。我们注意到这里的stateObject是小写字母开头，说明这个结构主要用于package内部数据操作，并不对外暴露。以太坊通过account address来管理account state。在某一时刻下的所有的account state构成了world state。以太坊通过Merkle Patricia Tree来管理这些Account state。
 
 ```go
   // stateObject represents an Ethereum account which is being modified.
@@ -58,6 +42,26 @@ type StateAccount struct {
     deleted   bool
   }
 ```
+
+同时Package State提供了，供外部Package使用的的数据结构"State Account"。State Account对应了State Object中"data Account"成员变量。具体的，State Account的数据结构的定义在"core/types/state_account.go"文件中(~~在之前的版本中Account的代码位于core/account.go~~)，其定义如下所示。
+
+```go
+// Account is the Ethereum consensus representation of accounts.
+// These objects are stored in the main account trie.
+type StateAccount struct {
+  Nonce    uint64
+  Balance  *big.Int
+  Root     common.Hash // merkle root of the storage trie
+  CodeHash []byte
+}
+```
+
+其中的包含四个变量为:
+
+- Nonce 表示该账户发送的交易序号。
+- Balance 表示该账户的余额。这里的余额指的是链上的Global Token Ether。
+- Root 表示当前账户的下Storage层的 Merkle Patricia Tire的Root。
+- CodeHash是该账户的Contract代码的哈希值。
 
 ## Account & Private Key & Public Kay & Address
 
