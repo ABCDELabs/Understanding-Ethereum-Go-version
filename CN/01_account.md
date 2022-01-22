@@ -119,18 +119,18 @@ type StateAccount struct {
 
 在"state_object.go"文件的开头部分(41行左右)，我们可以找到Storage类型的定义。具体如下所示。
 
-‘’‘go
+```go
 type Storage map[common.Hash]common.Hash
-‘’‘
+```
 
 我们可以看到，Storage类型是一个key和value都是common.Hash类型的map结构。而common.Hash类型，是一个32bytes长的byte类型的数组。这个类型在go-ethereum中被大量使用，通常用于表示32字节长度的数据，比如Keccak256的哈希值。在之后的旅程中，我们也会经常看到它的身影，它的定义在common.type.go文件中。
 
-‘’‘go
+```go
 // HashLength is the expected length of the hash
 HashLength = 32
 // Hash represents the 32 byte Keccak256 hash of arbitrary data.
 type Hash [HashLength]byte
-’‘’
+```
 
 从类型的定义和使用的方面，EOA与Contract不同的点在于，EOA并没有维护自己的Storage层以及代码(codeHash)。而相比与外部账户，Contract账户额外保存了一个存储层(Storage)用于存储合约代码中持久化的变量的数据。而上面的我们提到的stateObject中的四个Storage类型的变量，就是用于为一部分的Contract Storage层的数据提供内存缓存。
 
