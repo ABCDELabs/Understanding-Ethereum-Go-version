@@ -112,8 +112,7 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
     - 了解系统设计的目标，了解系统的应用场景
     - 可以使用系统的部分的API
 
-## Tips
-<a name="tips"></a>
+## [Tips](#tips)
 
 - 以太坊是基于State模型的区块链系统，miner在update new Block的时候，会直接修改自身的状态（添加区块奖励给自己）。所以与Bitcoin不同的是，Ethereum的区块中，并没有类似的Coinbase的transaction。
 - 在core/transaction.go 中, transaction的的数据结构是有time.Time的参数的。但是在下面的newTransaction的function中只是使用Local的time.now()对Transaction.time进行初始化。
