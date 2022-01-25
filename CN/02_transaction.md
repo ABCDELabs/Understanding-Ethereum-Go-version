@@ -174,7 +174,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 
 更细粒度的对每个opcode循环调用core/vm/jump_table.go中的execute函数。这里值得一提的是，获取Contract中每条Operate的方式，是从Contact中的code数组中按照第n个拿取。
 
-```golang
+```go
 // GetOp returns the n'th element in the contract's byte array
 func (c *Contract) GetOp(n uint64) OpCode {
  return OpCode(c.GetByte(n))
@@ -190,7 +190,7 @@ func (c *Contract) GetByte(n uint64) byte {
 }
 ```
 
-每个OPCODE的具体实现在core/vm/instructor.go中。比如对Contract中持久化数据修改的OPSSTORE指令的实现位于opStore()函数中。
+OPCODE的具体实现代码位于core/vm/instructor.go文件中。比如，对Contract中持久化数据修改的OPSSTORE指令的实现位于opStore()函数中。
 
 ```go
 func opSstore(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
