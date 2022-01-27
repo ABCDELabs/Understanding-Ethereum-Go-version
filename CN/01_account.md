@@ -2,13 +2,18 @@
 
 ## General Background
 
-在本文中我们来探索一下以太坊中的基本元之一的Account。State Account (账户)是参与链上交易的基本角色，是Ethereum状态机模型中的基本单位，承担了链上交易的发起者以及交易接收者的角色。
+在本文中我们来探索一下以太坊中的基本元(Metadata)之一的Account。
 
-目前，在以太坊中，有两种类型的Account，分别是外部账户(EOA)以及合约(Contract)。
+我们知道，Ethereum是基于交易的状态机模型(Transaction-based State Machine)来运行的。其中，State基于Transaction的执行(数据更新/删除/创建)，而转移到另一个State。具体的说，在个模型中，Transaction的执行会让系统的元对象(Meta Object)的值发生改变。这个元对象就是Account。State表现(represent)出来的是Account在某个时刻的包含/对应的数据的值。
 
-外部账户(EOA)由用户直接控制，负责构造签名并发起交易(transaction)。Contract由用户创建，用于不可篡改的保存图灵完备的代码段，以及一些持久化的数据。我们知道，在以太坊状态机模型中，账户的状态是以Transaction为单位进行更新的，这种架构被称为transaction-based state machine。在系统执行Transaction前后的数据，称为系统的Snapshot。账户在Snapshot下中所有信息(information/data)，称为账户的状态(State)。总结的说，在以太坊中transaction可以账户从一个状态转移到另一个状态。
+- Account --> Object
+- State   --> The value of the Object
 
-在实际代码中，这两种Account，都被封装在stateObject结构中。stateObject的相关代码位于core/state/state_object.go文件中，隶属于package state。我们注意到这里的stateObject是小写字母开头，说明这个结构主要用于package内部数据操作，并不对外暴露。
+Account (账户)是参与链上交易的基本角色，是Ethereum状态机模型中的基本单位，承担了链上交易的发起者以及交易接收者的角色。
+
+目前，在以太坊中，有两种类型的Account，分别是外部账户(EOA)以及合约(Contract)。外部账户(EOA)由用户直接控制的账户，负责签名并发起交易(transaction)。Contract由外部账户通过通过Transaction，用于在链上保存不可篡改的保存图灵完备的代码段，以及保存一些持久化的数据。这些代码段通常使用专用语言书写(Currently Solidity)，并且提供一些对外部访问的API。Transaction可以调用这些API来读取和修改代码段中的持久化数据。对于如何编写合约，以及Ethereum如何解析和执行Transaction调用的API的，我们会在后面的文章中详细的进行解读。
+
+在实际代码中，这两种Account是由stateObject这一结构定义的。stateObject的相关代码位于core/state/state_object.go文件中，隶属于package state。通过下面的代码，我们可以观察到，stateObject是由小写字母开头。根据go语言的特性，我们可以知道这个结构主要用于package内部数据操作，并不对外暴露。
 
 ```go
   // stateObject represents an Ethereum account which is being modified.
@@ -20,7 +25,7 @@
   type stateObject struct {
     address  common.Address
     addrHash common.Hash // hash of ethereum address of the account
-    data     Account
+    data     types.StateAccount
     db       *StateDB
     dbErr error
 
@@ -43,11 +48,25 @@
   }
 ```
 
-以太坊通过account address来管理account state。在某一时刻下的所有的account state构成了world state。以太坊通过Merkle Patricia Tree来管理这些Account state。
+在stateObject这一结构体中，开头的两个成员变量为address以及address的哈希值addrHash。address是common.Address类型，address是common.Hash类型，它们分别对应了一个20字节长度的byte数组和一个32字节长度的byte数组。
 
-对于外部账户，由于没有代码字段，所以外部账号对应的code字段，以及四个Storage类型的字段对应的变量的值都为空(originStorage, pendingStorage, dirtyStorage, fakeStorage)。
+```go
+// Lengths of hashes and addresses in bytes.
+const (
+ // HashLength is the expected length of the hash
+ HashLength = 32
+ // AddressLength is the expected length of the address
+ AddressLength = 20
+)
+// Address represents the 20 byte address of an Ethereum account.
+type Address [AddressLength]byte
+// Hash represents the 32 byte Keccak256 hash of arbitrary data.
+type Hash [HashLength]byte
+```
 
-上面我们提到，stateObject这种类型只对Package State这个内部使用。同样的，Package State也为外部Package提供了，与Account相关的数据结构"State Account"。在上面的代码中我们可以看到，"State Account"对应了State Object中"data Account"成员变量。具体的，State Account的数据结构的定义在"core/types/state_account.go"文件中(~~在之前的版本中Account的代码位于core/account.go~~)，其定义如下所示。
+Address在这里作为每个Account的身份信息，类似于身份证。在Ethereum中，每个Account都拥有独一无二的address，用于检索。Ethereum通过Account Address来构建Merkle Patricia Trie来管理所有的Account state。这个MPT结构，也被称为World State Trie(or World State).关于MPT结构以及World State的细节我们会在之后的文章中详细说明。
+
+接下来的的成员变量是data，它是一个types.StateAccount类型的变量。在上面我们提到，stateObject这种类型只对Package State这个内部使用。所以相应的，Package State也为外部Package提供了，与Account相关的数据结构"State Account"。于是，在上面的代码中我们可以看到，"State Account"对应了State Object中"data Account"成员变量。State Account的具体数据结构的被定义在"core/types/state_account.go"文件中(~~在之前的版本中Account的代码位于core/account.go~~)，其定义如下所示。
 
 ```go
 // Account is the Ethereum consensus representation of accounts.
@@ -66,6 +85,9 @@ type StateAccount struct {
 - Balance 表示该账户的余额。这里的余额指的是链上的Global Token Ether。
 - Root 表示当前账户的下Storage层的 Merkle Patricia Tire的Root。
 - CodeHash是该账户的Contract代码的哈希值。
+
+
+对于外部账户，由于没有代码字段，所以外部账号对应的code字段，以及四个Storage类型的字段对应的变量的值都为空(originStorage, pendingStorage, dirtyStorage, fakeStorage)。
 
 ## Account & Private Key & Public Kay & Address
 
@@ -132,7 +154,7 @@ HashLength = 32
 type Hash [HashLength]byte
 ```
 
-从类型的定义和使用的方面，EOA与Contract不同的点在于，EOA并没有维护自己的Storage层以及代码(codeHash)。而相比与外部账户，Contract账户额外保存了一个存储层(Storage)用于存储合约代码中持久化的变量的数据。而上面的我们提到的stateObject中的四个Storage类型的变量，就是用于为一部分的Contract Storage层的数据提供内存缓存。
+从实例化的对象的数据类，EOA与Contract不同的点在于，EOA并没有维护自己的Storage层以及代码(codeHash)。而相比与外部账户，Contract账户额外保存了一个存储层(Storage)用于存储合约代码中持久化的变量的数据。而上面的我们提到的stateObject中的四个Storage类型的变量，就是用于为一部分的Contract Storage层的数据提供内存缓存。
 
 Storage层的基本组成单元称为槽(Slot)。每个Slot的大小是256bits，最多保存32 bytes的数据。作为基本的存储单元，Slot类似于内存的page以及HDD中的Block，可以通过索引的方式被上层函数访问。目前，Slot的索引key的长度同样是32 bytes(256 bits)，寻址空间从0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个Contract的Storage层最多可以保存$2^{256} - 1$个Slot。合约帐户同样使用MPT，作为可验证的索引结构来管理Slot。Storage Tire的根数据被保存在StateAccount结构体中的Root变量中，它是一个32bytes长的byte数组。
 
