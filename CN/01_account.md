@@ -4,20 +4,24 @@
 
 ### Background
 
-在本文中我们来探索一下以太坊中的基本元(Metadata)之一的Account。
+在本文中我们来探索一下以太坊中的基本数据元(Metadata)之一的Account。
 
-我们知道，Ethereum是基于交易的状态机模型(Transaction-based State Machine)来运行的。其中，State基于Transaction的执行(数据更新/删除/创建)，而转移到另一个State。具体的说，在个模型中，Transaction的执行会让系统的元对象(Meta Object)的值发生改变。这个元对象就是Account。State表现(represent)出来的是Account在某个时刻的包含/对应的数据的值。
+我们知道，Ethereum是基于交易的状态机模型(Transaction-based State Machine)来运行的。在这种模型中，State基于Transaction的执行(数据更新/删除/创建)，而转移到另一个State。具体的说，Transaction的执行会让系统元对象(Meta Object)的数据值发生改变，表现为系统元对象从一个状态转换到另一个状态。在Ethereum中，这个元对象就是Account。State表现(represent)出来的是Account在某个时刻的包含/对应的数据的值。
 
 - Account --> Object
 - State   --> The value of the Object
 
-Account (账户)是参与链上交易的基本角色，是Ethereum状态机模型中的基本单位，承担了链上交易的发起者以及交易接收者的角色。
+In general, Account (账户)是参与链上交易的基本角色，是Ethereum状态机模型中的基本单位，承担了链上交易的发起者以及交易接收者的角色。
 
-目前，在以太坊中，有两种类型的Account，分别是外部账户(EOA)以及合约(Contract)。外部账户(EOA)由用户直接控制的账户，负责签名并发起交易(transaction)。合约(Contract)由外部账户通过Transaction创建，用于在链上保存**不可篡改的**保存**图灵完备的代码段**，以及保存一些**持久化的数据**。这些代码段使用专用语言书写(Like: Solidity)，并且通常提供一些对外部访问API函数。这些函数通常用于计算以及查询或修改合约中的持久化数据。通常我们经常看到这样的描述"**一旦被记录到区块链上数据不可被修改**，或者**不可篡改的智能合约**"。现在我们知道这种描述是不准确。针对一个链上的智能合约，不可修改/篡改的地方是合约中的代码段，或说是合约中的*函数逻辑*，*代码逻辑是*不可以被修改/篡改的。而链上合约中的持久化的数据部分还是可以通过调用代码段中的函数进行数据操作的(CURD)。更详细的说法是，针对每一个交易用户只能调用一个合约中的API函数。如何一个用户只希望查询某些合约中的持久化数据，而不进行写操作的话，他不需要通过构造一个Transaction来查询数据。他可以通过直接调用本地数据中的对应的仅包含查询操作的函数代码或者请求其他节点存储的代码来操作。如果用户需要对合约中的数据进行更新，那么他就要构造一个Transaction来请求合约中相对应的函数。对于如何编写合约，以及Ethereum如何解析和执行Transaction调用的API的，Transaction的构造我们会在后面的文章中详细的进行解读。
+目前，在以太坊中，有两种类型的Account，分别是外部账户(EOA)以及合约(Contract)。
+
+外部账户(EOA)由用户直接控制的账户，负责签名并发起交易(transaction)。
+
+合约(Contract)由外部账户通过Transaction创建，用于在链上保存**不可篡改的**保存**图灵完备的代码段**，以及保存一些**持久化的数据**。这些代码段使用专用语言书写(Like: Solidity)，并且通常提供一些对外部访问API函数。这些函数通常用于计算以及查询或修改合约中的持久化数据。通常我们经常看到这样的描述"**一旦被记录到区块链上数据不可被修改**，或者**不可篡改的智能合约**"。现在我们知道这种描述是不准确。针对一个链上的智能合约，不可修改/篡改的部分是合约中的代码段，或说是合约中的*函数逻辑*/*代码逻辑是*不可以被修改/篡改的。而链上合约中的持久化的数据部分是可以通过调用代码段中的函数进行数据操作的(CURD)。用户在构造Transaction时只能调用一个合约中的API函数。如果一个用户只希望查询某些合约中的持久化数据，而不进行写操作的话，那么他不需要通过构造一个Transaction来查询数据。他可以通过直接调用本地数据中的对应的仅包含查询操作的函数代码或者请求其他节点存储的代码来操作。如果用户需要对合约中的数据进行更新，那么他就要构造一个Transaction来请求合约中相对应的函数。对于如何编写合约，以及Ethereum如何解析和执行Transaction调用的API的，Transaction的构造我们会在后面的文章中详细的进行解读。
 
 ### Account and stateObject
 
-在实际代码中，这两种Account是由stateObject这一结构定义的。stateObject的相关代码位于core/state/state_object.go文件中，隶属于package state。通过下面的代码，我们可以观察到，stateObject是由小写字母开头。根据go语言的特性，我们可以知道这个结构主要用于package内部数据操作，并不对外暴露。
+在实际代码中，这两种Account都是由stateObject这一结构定义的。stateObject的相关代码位于core/state/state_object.go文件中，隶属于package state。我们摘录了stateObject的结构代码，如下所示。通过下面的代码，我们可以观察到，stateObject是由小写字母开头。根据go语言的特性，我们可以知道这个结构主要用于package内部数据操作，并不对外暴露。
 
 ```go
   // stateObject represents an Ethereum account which is being modified.
@@ -70,11 +74,11 @@ type Address [AddressLength]byte
 type Hash [HashLength]byte
 ```
 
-在Ethereum中，每个Account都拥有独一无二的address，用于检索。Address作为每个Account的身份信息，类似于现实生活中的身份证，它与用户信息时刻绑定而且不能被修改。Ethereum通过Account Address来构建Merkle Patricia Trie来管理所有的Account state。这个MPT结构，也被称为World State Trie(or World State).关于MPT结构以及World State的细节我们会在之后的文章中详细说明。
+在Ethereum中，每个Account都拥有独一无二的address，用于检索。Address作为每个Account的身份信息，类似于现实生活中的身份证，它与用户信息时刻绑定而且不能被修改。Ethereum通过Account Address来构建Merkle Patricia Trie来管理所有的Account state。MPT结构，也被称为World State Trie(or World State)。关于MPT结构以及World State的细节我们会在之后的文章中详细说明。
 
 ### data and StateAccount
 
-继续向下探索我们会遇到成员变量data，它是一个types.StateAccount类型的变量。在上面我们提到，stateObject这种类型只对Package State这个内部使用。所以相应的，Package State也为外部Package API提供了与Account相关的数据类型"State Account"。于是，在上面的代码中我们就可以看到，"State Account"对应了State Object中"data Account"成员变量。State Account的具体数据结构的被定义在"core/types/state_account.go"文件中(~~在之前的版本中Account的代码位于core/account.go~~)，其定义如下所示。
+继续向下探索，我们会遇到成员变量data，它是一个types.StateAccount类型的变量。在上面的分析中我们提到，stateObject这种类型只对Package State这个内部使用。所以相应的，Package State也为外部Package API提供了与Account相关的数据类型"State Account"。在上面的代码中我们就可以看到，"State Account"对应了State Object中"data Account"成员变量。State Account的具体数据结构的被定义在"core/types/state_account.go"文件中(~~在之前的版本中Account的代码位于core/account.go~~)，其定义如下所示。
 
 ```go
 // Account is the Ethereum consensus representation of accounts.
@@ -96,17 +100,19 @@ type StateAccount struct {
 
 ### db
 
-上述的几个成员变量基本上以及覆盖了Account本身数据相关的类型。继续向下看，我们会遇到db和dbErr这两个成员变量。db这个变量保存了一个StateDB类型的指针(或者称为句柄handle)。这是为了方便调用StateDB相关的API对Account所对应的stateObject进行操作。StateDB本质上是用于管理stateObject信息的内存数据库，所有的Account数据的更新，检索都会使用StateDB提供的API。StateDB是Ethereum用于管理Account数据的内存抽象层。关于StateDB的具体实现，功能，以及如何与更底层(leveldb)进行结合的，我们会在之后的文章中进行详细描述。
+上述的几个成员变量基本覆盖了Account自身定义有关的全部成员变量。那么继续向下看，我们会遇到db和dbErr这两个成员变量。db这个变量保存了一个StateDB类型的指针(或者称为句柄handle)。这是为了方便调用StateDB相关的API对Account所对应的stateObject进行操作。StateDB本质上是Ethereum用于管理stateObject信息的而抽象出来的内存数据库，所有的Account数据的更新，检索都会使用StateDB提供的API。关于StateDB的具体实现，功能，以及如何与更底层(leveldb)进行结合的，我们会在之后的文章中进行详细描述。
 
 ### Cache
 
-//TODO
-对于剩下的成员变量，它们的主要作用是内存Cache。
-对于外部账户，由于没有代码字段，所以外部账号对应的code字段，以及四个Storage类型的字段对应的变量的值都为空(originStorage, pendingStorage, dirtyStorage, fakeStorage)。
+对于剩下的成员变量，它们的主要用于内存Cache。tire用于保存Contract中的持久化存储的数据，code用于缓存contract中的代码段到内存中，它是一个byte数组。剩下的四个Storage字段主要在执行Transaction的时候缓存Contract合约修改的持久化数据。对于外部账户，由于没有代码字段，所以对应stateObject对象中的code字段，以及四个Storage类型的字段对应的变量的值都为空(originStorage, pendingStorage, dirtyStorage, fakeStorage)。关于Contract的Storage层的详细信息，我们会在后面部分进行详细的描述。
 
 ## 深入Account
 
 ### Private Key & Public Kay & Address
+
+我们经常会在各种科技网站，自媒体上听到这样的说法，"在区块链上保存的Cryptocurrency/Token除了你自己，不存在一个中心化的第三方可以不经过你的允许转走你的财富"。这个说法基本是正确的。对于链级别定义Crypto，比如Ether，Bitcoin，BNB(Only in BSC)，用户账户里的Crypto是没办法被第三方偷走的。这是因为，对链级别上的所有数据的修改都要经过用户私钥(Private Key)签名的Transaction。只要用户保管好自己账户的私钥(Private Key)就没有人可以转走你链上的财富。
+
+我们说上述说法是基本正确，而不是完全正确的原因有两个。首先，用户的链上数据安全是基于当前Ethereum使用的密码学工具足够保证：不存在第三方可以在**有限的时间**内在**不知道用户私钥的前提**下获取到用户的私钥信息来伪造签名交易。当然这个安全保证前提是当今Ethereum使用的密码学工具的强度足够大，没有计算机可以在有限的时间内hack出用户的私钥信息。在量子计算机出现之前，目前Ethereum和其他Blockchain使用的密码学工具的强度都是足够安全的。这也是为什么很多新的区块链项目在研究抗量子计算机密码体系的原因。第二点是，当今很多的所谓的Crypto/Token并不是链级别的数据，而是在链上合约中存储的数据，比如ERC-20 Token和NFT对应的ERC-721的Token。由于这部分的Token都是基于合约代码生成和维护的，所以这部分Token的安全同样的也依赖于合约本身的安全，比如有没有后门漏洞。如果合约本身的代码是有问题的，比如因为代码编写问题合约隐藏了给第三方任意提取其他账户下Token的漏洞，那么即使用户的私钥信息没有泄漏，合约中的Token仍然可以被第三方获取到。由于合约的代码段在链上是不可修改的。所以，有很多研究人员，技术团队在进行合约审计方面的工作，来保证上传的合约代码是安全的。
 
 下面我们简单讲述，一个账户的私钥和地址是如何产生的。
 
