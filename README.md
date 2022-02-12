@@ -3,8 +3,8 @@
 - Title: Understanding Ethereum: Starting with go-ethereum source code｜理解以太坊: Go 版本源码剖析
 - Subject: Ethereum Source Code Analysis | 以太坊源码分析
 - Author: Siyuan Han
-- Go-Ethereum Version: v1.10.9
-- Updated date: 2021-07
+- Go-Ethereum Version: v1.10.15
+- Updated date: 2022-02
 
 ## Preface
 
@@ -123,9 +123,49 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 
 ## 关键函数
 
-```
-- func (s *StateDB) Commit(deleteEmptyObjects bool) (common.Hash, error)
-- func WritePreimages(db ethdb.KeyValueWriter, preimages map[common.Hash][]byte)
+```go
+ //
+ func (s *StateDB) Commit(deleteEmptyObjects bool) (common.Hash, error)
+
+ // 向leveldb中更新Storage 数据
+ func WritePreimages(db ethdb.KeyValueWriter, preimages map[common.Hash][]byte)
+
+ // 向Blockchain中添加新的Block，会涉及到StateDB(Memory)/Tire(Memory)/EthDB(Disk)的更新
+ func (bc *BlockChain) InsertChain(chain types.Blocks) (int, error)
+ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals, setHead bool) (int, error)
+
+ // insertChain中调用来执行Block中的所有的交易
+ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg vm.Config) (types.Receipts, []*types.Log, uint64, error)
+
+ //执行单条Transaction的调用
+ func applyTransaction(msg types.Message, config *params.ChainConfig, bc ChainContext, author *common.Address, gp *GasPool, statedb *state.StateDB, blockNumber *big.Int, blockHash common.Hash, tx *types.Transaction, usedGas *uint64, evm *vm.EVM) (*types.Receipt, error)
+
+ // 状态转移函数
+ func (st *StateTransition) TransitionDb() (*ExecutionResult, error)
+
+ // 执行合约内function
+ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (ret []byte, err error)
+
+ // opSstore的调用
+ func (s *StateDB) SetState(addr common.Address, key, value common.Hash)
+ // 被修改的state的值会首先被放在StateObject的dirtyStorage中，而不是直接添加到Tire或者Disk Database中。
+ func (s *stateObject) setState(key, value common.Hash)
+
+ // 在Finalize的时候，计算State Tire的Root
+ func (s *StateDB) IntermediateRoot(deleteEmptyObjects bool) common.Hash
+
+ //
+ func (s *StateDB) Finalise(deleteEmptyObjects bool) 
+
+ // 将StateObject中所有的dirtyStorage转存到PendingStorage中，并清空dirtyStorage，并给prefetcher赋值
+ func (s *stateObject) finalise(prefetch bool)
+
+ // 更新StorageObject对应的Trie, from Pending Storage
+ func (s *stateObject) updateTrie(db Database) Trie
+
+ // 最终获取到新的StateObject的Storage Root
+ func (t *Trie) hashRoot() (node, node, error)
+
 ```
 
 ## Reference
