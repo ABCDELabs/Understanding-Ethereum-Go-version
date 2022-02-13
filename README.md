@@ -124,8 +124,6 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 ## 关键函数
 
 ```go
- //
- func (s *StateDB) Commit(deleteEmptyObjects bool) (common.Hash, error)
 
  // 向leveldb中更新Storage 数据
  func WritePreimages(db ethdb.KeyValueWriter, preimages map[common.Hash][]byte)
@@ -151,11 +149,14 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
  // 被修改的state的值会首先被放在StateObject的dirtyStorage中，而不是直接添加到Tire或者Disk Database中。
  func (s *stateObject) setState(key, value common.Hash)
 
- // 在Finalize的时候，计算State Tire的Root
+ // 在Finalizes所有的pending的Storage时候，并且更新到Trie，计算State Tire的Root
  func (s *StateDB) IntermediateRoot(deleteEmptyObjects bool) common.Hash
 
- //
+ // Finalise 当前内存中的Cache.
  func (s *StateDB) Finalise(deleteEmptyObjects bool) 
+
+ // Commit StateDB中的Cache到内存数据库中
+ func (s *StateDB) Commit(deleteEmptyObjects bool) (common.Hash, error)
 
  // 将StateObject中所有的dirtyStorage转存到PendingStorage中，并清空dirtyStorage，并给prefetcher赋值
  func (s *stateObject) finalise(prefetch bool)
@@ -165,6 +166,12 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 
  // 最终获取到新的StateObject的Storage Root
  func (t *Trie) hashRoot() (node, node, error)
+
+ // 用于在内存数据库中保存MPT节点
+ func (c *committer) store(n node, db *Database) node
+
+ // 向rawdb对应的数据库写数据(leveldb)
+ func (db *Database) Commit(node common.Hash, report bool, callback func(common.Hash)) error
 
 ```
 
