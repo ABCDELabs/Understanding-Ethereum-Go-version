@@ -108,8 +108,6 @@ type StateAccount struct {
 
 ## Cache flags
 
-
-
 ## 深入Account
 
 ### Private Key & Public Kay & Address
@@ -124,7 +122,7 @@ type StateAccount struct {
   - 64个16进制位，256bit，32字节
     `var AlicePrivateKey = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232032"`
 
-- 在得到私钥后，我们使用用私钥来计算公钥和account的地址。基于私钥，我们使用ECDSA算法，选择spec256k1曲线进行计算。通过将私钥带入到所选择的椭圆曲线中，计算出点的坐标即是公钥。以太坊和比特币使用了同样的spec256k1曲线，在实际的代码中，我们也可以看到在crypto中，go-Ethereum直接调用了比特币的代码。
+- 在得到私钥后，我们使用私钥来计算公钥和account的地址。基于上述私钥，我们使用ECDSA算法，选择spec256k1曲线进行计算。通过将私钥带入到所选择的椭圆曲线中，计算出点的坐标即是公钥。以太坊和比特币使用了同样的spec256k1曲线，在实际的代码中，我们也可以看到在crypto中，go-Ethereum直接调用了比特币的代码。
     `ecdsaSK, err := crypto.ToECDSA(privateKey)`
 
 - 对私钥进行椭圆加密之后，我们可以得到64bytes的数，它是由两个32bytes的数构成，这两个数代表了spec256k1曲线上某个点的XY值。
@@ -172,7 +170,7 @@ type StateAccount struct {
 type Storage map[common.Hash]common.Hash
 ```
 
-我们可以看到，Storage类型是一个key和value都是common.Hash类型的map结构。而common.Hash类型，是一个32bytes长的byte类型的数组。这个类型在go-ethereum中被大量使用，通常用于表示32字节长度的数据，比如Keccak256的哈希值。在之后的旅程中，我们也会经常看到它的身影，它的定义在common.type.go文件中。
+我们可以看到，*Storage*是一个key和value都是common.Hash类型的map结构。common.Hash类型，则对应了一个长度为32bytes的byte类型数组。这个类型在go-ethereum中被大量使用，通常用于表示32字节长度的数据，比如Keccak256的哈希值。在之后的旅程中，我们也会经常看到它的身影，它的定义在common.type.go文件中。
 
 ```go
 // HashLength is the expected length of the hash
@@ -181,9 +179,9 @@ HashLength = 32
 type Hash [HashLength]byte
 ```
 
-从实例化的对象的数据类，EOA与Contract不同的点在于，EOA并没有维护自己的Storage层以及代码(codeHash)。而相比与外部账户，Contract账户额外保存了一个存储层(Storage)用于存储合约代码中持久化的变量的数据。而上面的我们提到的stateObject中的四个Storage类型的变量，就是用于为一部分的Contract Storage层的数据提供内存缓存。
+EOA与Contract不同的点在于，EOA并没有维护自己的Storage层以及代码(codeHash)。而相比与外部账户，Contract账户额外保存了一个存储层(Storage)用于存储合约代码中持久化的变量的数据。而上面的我们提到的stateObject中的四个Storage类型的变量，就是用于为一部分的Contract Storage层的数据提供内存缓存。
 
-Storage层的基本组成单元称为槽(Slot)。每个Slot的大小是256bits，最多保存32 bytes的数据。作为基本的存储单元，Slot类似于内存的page以及HDD中的Block，可以通过索引的方式被上层函数访问。目前，Slot的索引key的长度同样是32 bytes(256 bits)，寻址空间从0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个Contract的Storage层最多可以保存$2^{256} - 1$个Slot。合约帐户同样使用MPT，作为可验证的索引结构来管理Slot。Storage Tire的根数据被保存在StateAccount结构体中的Root变量中，它是一个32bytes长的byte数组。
+Storage层的基本组成单元称为槽 (Slot)。每个Slot的大小是256bits，最多保存32 bytes的数据。作为基本的存储单元，Slot类似于内存的page以及HDD中的Block，可以通过索引的方式被上层函数访问。Slot的索引key的长度同样是32 bytes(256 bits)，寻址空间从0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个Contract的Storage层最多可以保存$2^{256} - 1$个Slot。合约帐户同样使用MPT，作为可验证的索引结构来管理Slot。Storage Tire的根数据被保存在StateAccount结构体中的Root变量中，它是一个32bytes长的byte数组。
 
 ### Contract Storage Example One
 
