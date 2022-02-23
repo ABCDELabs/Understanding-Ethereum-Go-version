@@ -2,7 +2,7 @@
 
 ## Background of State-based Blockchain
 
-- State-based Blockchain System 由两部分的数据管理模块组成：World State 和 Blockchain。
+- State-based Blockchain 的数据主要由两部分的数据管理模块组成：World State 和 Blockchain。
 - State Object是系统中基于K-V结构的基础数据元素。在Ethereum中，State Object是Account。
 - World State表示了System中所有State Object的最新值的一个Snapshot，。
 - Blockchain是以块为单位的数据结构，每个块中包含了若干Transaction。Blockchain 可以被视为历史交易数据的组合。
