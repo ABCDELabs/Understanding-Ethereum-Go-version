@@ -1,0 +1,39 @@
+# StateDB & Tire & Secure Trie
+
+## General
+
+在本文中，我们讲剖析一下Ethereum State 管理模块中最重要的几个数据结构，StateDB, Tire 以及Secure Tire。我们讲通过分析workflow的方式来深入理解这三个数据结构之间的调用关系。
+
+Trie这个概念在Ethereum中被大量使用，广义上的Trie的指的是Merkel Patricia Trie(MPT)，它被广泛的运用在Ethereum里的多个模块中，有管理全局的World State Trie，也有每个Block中Transaction Trie 和 Receipt Trie, 以及管理Contract中持久化存储Key-Value 对的Storage Trie。这些Trie在具体实现上的不同点在于，Transaction Trie本质上并没有使用Trie来管理Transaction的数据，而是依赖于MPT的根来快速验证，具体可以参考core/types/hashing.go/DeriveSha()函数来了解Transaction Trie 的root是如何产生的，这里的Trie使用的是StackTrie。在本文中，我们主要研究的对象是与全局World State Trie有关的结构。
+
+首先，StateDB是这三个数据结构中最高层的封装，它是直接提供了与StateObject (Account，Contract)相关的CURD的接口给其他的模块，比如：
+
+- Mining 模块，执行新Blockchain中的交易形成新的world state。
+- Block同步模块，执行新Blockchain中的交易形成新的world state，与header中的state root进行比较验证。
+- EVM中的两个与Contract中的持久化存储相关的两个opcode, sStore, sSload.
+
+从调用关系上看Tire是这三个数据结构中最底层的结构，它用于之间负责StateObject数据的保存，以及提供相应的CURD函数。它的定义在trie/trie.go文件中。
+
+Secure Trie本质上是对Trie的一层封装，关于他CURD的具体实现都是通过Tire中定义的函数来执行的。它的定义在trie/secure_trie.go文件中。目前StateDB中的直接对应的Trie是Secure Trie。这个Tire也就是我们常说的World State Tire，它是唯一的一个全局Tire。
+
+```go
+type SecureTrie struct {
+	trie             Trie
+	hashKeyBuf       [common.HashLength]byte
+	secKeyCache      map[string][]byte
+	secKeyCacheOwner *SecureTrie // Pointer to self, replace the key cache on mismatch
+}
+```
+
+不管是Secure Trie还是Trie，他们的创建的前提是更下层的db的实例以及创建成功了，否则就会报错。
+
+值得注意的是一个关键函数Prove的实现并不在这两个Trie的定义文件中，而是位于trie/proof.go文件中。
+
+## 其他
+
+StackTrie.
+
+
+## Reference
+
+- [1] http://yangzhe.me/2019/01/18/ethereum-trie-part-2/
