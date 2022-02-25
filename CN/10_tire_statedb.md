@@ -14,7 +14,7 @@ Trie这个概念在Ethereum中被大量使用，广义上的Trie的指的是Merk
 
 从调用关系上看Tire是这三个数据结构中最底层的结构，它用于之间负责StateObject数据的保存，以及提供相应的CURD函数。它的定义在trie/trie.go文件中。
 
-Secure Trie本质上是对Trie的一层封装，关于他CURD的具体实现都是通过Tire中定义的函数来执行的。它的定义在trie/secure_trie.go文件中。目前StateDB中的直接对应的Trie是Secure Trie。这个Tire也就是我们常说的World State Tire，它是唯一的一个全局Tire。
+Secure Trie结构本质上是对Trie的一层封装，与Trie不同的是。CURD的具体实现都是通过Tire中定义的函数来执行的。它的定义在trie/secure_trie.go文件中。目前StateDB中的直接对应的Trie是Secure Trie。这个Tire也就是我们常说的World State Tire，它是唯一的一个全局Tire。
 
 ```go
 type SecureTrie struct {
@@ -29,10 +29,20 @@ type SecureTrie struct {
 
 值得注意的是一个关键函数Prove的实现并不在这两个Trie的定义文件中，而是位于trie/proof.go文件中。
 
-## 其他
+## Finalize And Commit and Commit to Disk
 
-StackTrie.
 
+
+## StackTrie
+
+我们可以在genesis block创建的相关代码中，找到最近的例子。
+
+```go
+	statedb.Commit(false)
+	statedb.Database().TrieDB().Commit(root, true, nil)
+```
+
+具体的顺序是statedb --> Memory Database (Memory State Trie) --> Disk (Leveldb Batch)
 
 ## Reference
 
