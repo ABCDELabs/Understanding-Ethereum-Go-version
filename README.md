@@ -54,7 +54,7 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 
 ### PART ONE - General Source Code Analysis: Basic Components
 
-- [00_万物的起点从geth出发: Geth框架导引](CN/00_geth.md)
+- [00_万物的起点从geth出发: Basic Geth](CN/00_geth.md)
 - [01_State-based 模型 & Account](CN/01_account.md)
 - [02_Transaction是怎么被打包的: 一个Transaction的生老病死](CN/02_transaction.md)
 - [03_从Block到Blockchain: 区块链数据结构的构建](CN/03_block_blockchain.md)
@@ -63,7 +63,7 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 
 ### PART TWO - General Source Code Analysis: Services
 
-- [10_构建StateDB的实例](CN/10_tire_statedb.md)
+- [10_构建StateDB的实例](CN/10_trie_statedb.md)
 - [11_Blockchain的数据是如何持久化的](CN/11_leveldb_in_practice.md)
 - [12_Signer一个签名者的实现](CN/12_signer.md)
 - [13_如何实现节点的RPC调用](CN/13_rpc.md)
@@ -128,7 +128,7 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
  // 向leveldb中更新Storage 数据
  func WritePreimages(db ethdb.KeyValueWriter, preimages map[common.Hash][]byte)
 
- // 向Blockchain中添加新的Block，会涉及到StateDB(Memory)/Tire(Memory)/EthDB(Disk)的更新
+ // 向Blockchain中添加新的Block，会涉及到StateDB(Memory)/Trie(Memory)/EthDB(Disk)的更新
  func (bc *BlockChain) InsertChain(chain types.Blocks) (int, error)
  func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals, setHead bool) (int, error)
 
@@ -146,10 +146,10 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 
  // opSstore的调用
  func (s *StateDB) SetState(addr common.Address, key, value common.Hash)
- // 被修改的state的值会首先被放在StateObject的dirtyStorage中，而不是直接添加到Tire或者Disk Database中。
+ // 被修改的state的值会首先被放在StateObject的dirtyStorage中，而不是直接添加到Trie或者Disk Database中。
  func (s *stateObject) setState(key, value common.Hash)
 
- // 在Finalizes所有的pending的Storage时候，并且更新到Trie，计算State Tire的Root
+ // 在Finalizes所有的pending的Storage时候，并且更新到Trie，计算State Trie的Root
  func (s *StateDB) IntermediateRoot(deleteEmptyObjects bool) common.Hash
 
  // Finalise 当前内存中的Cache.

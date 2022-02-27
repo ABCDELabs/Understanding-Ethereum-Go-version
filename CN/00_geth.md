@@ -82,7 +82,7 @@ p2p/     Ethereum 的P2P模块
 rlp/     RLP的Encode与Decode的相关
 rpc/     Ethereum RPC客户端的实现
 les/     Ethereum light client的实现
-trie/    Ethereum 中至关重要的数据结构 Merkle Patrica Tire(MPT)的实现
+trie/    Ethereum 中至关重要的数据结构 Merkle Patrica Trie(MPT)的实现
    |── trie.go MPT相关功能的实现
-   |── secure_trie.go 与tire中的函数功能相同，不过secure_tire中的key是经过hashKey()函数hash过的，无法通过路径获得原始的key值
+   |── secure_trie.go 与trie中的函数功能相同，不过secure_trie中的key是经过hashKey()函数hash过的，无法通过路径获得原始的key值
  ```
