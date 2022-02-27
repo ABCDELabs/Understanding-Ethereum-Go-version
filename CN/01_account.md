@@ -95,7 +95,7 @@ type StateAccount struct {
 
 - Nonce 表示该账户发送的交易序号，随着账户发送的交易数量的增加而单调增加。
 - Balance 表示该账户的余额。这里的余额指的是链上的Global Token Ether。
-- Root 表示当前账户的下Storage层的 Merkle Patricia Tire的Root。EOA账户这个部分为空值。
+- Root 表示当前账户的下Storage层的 Merkle Patricia Trie的Root。EOA账户这个部分为空值。
 - CodeHash是该账户的Contract代码的哈希值。EOA账户这个部分为空值。
 
 ### db
@@ -104,7 +104,7 @@ type StateAccount struct {
 
 ### Cache
 
-对于剩下的成员变量，它们的主要用于内存Cache。tire用于保存Contract中的持久化存储的数据，code用于缓存contract中的代码段到内存中，它是一个byte数组。剩下的四个Storage字段主要在执行Transaction的时候缓存Contract合约修改的持久化数据，比如dirtyStorage就用于缓存在Block被Finalize之前，Transaction所修改的合约中的持久化存储数据。对于外部账户，由于没有代码字段，所以对应stateObject对象中的code字段，以及四个Storage类型的字段对应的变量的值都为空(originStorage, pendingStorage, dirtyStorage, fakeStorage)。关于Contract的Storage层的详细信息，我们会在后面部分进行详细的描述。
+对于剩下的成员变量，它们的主要用于内存Cache。trie用于保存Contract中的持久化存储的数据，code用于缓存contract中的代码段到内存中，它是一个byte数组。剩下的四个Storage字段主要在执行Transaction的时候缓存Contract合约修改的持久化数据，比如dirtyStorage就用于缓存在Block被Finalize之前，Transaction所修改的合约中的持久化存储数据。对于外部账户，由于没有代码字段，所以对应stateObject对象中的code字段，以及四个Storage类型的字段对应的变量的值都为空(originStorage, pendingStorage, dirtyStorage, fakeStorage)。关于Contract的Storage层的详细信息，我们会在后面部分进行详细的描述。
 
 ## Cache flags
 
@@ -181,7 +181,7 @@ type Hash [HashLength]byte
 
 EOA与Contract不同的点在于，EOA并没有维护自己的Storage层以及代码(codeHash)。而相比与外部账户，Contract账户额外保存了一个存储层(Storage)用于存储合约代码中持久化的变量的数据。而上面的我们提到的stateObject中的四个Storage类型的变量，就是用于为一部分的Contract Storage层的数据提供内存缓存。
 
-Storage层的基本组成单元称为槽 (Slot)。每个Slot的大小是256bits，最多保存32 bytes的数据。作为基本的存储单元，Slot类似于内存的page以及HDD中的Block，可以通过索引的方式被上层函数访问。Slot的索引key的长度同样是32 bytes(256 bits)，寻址空间从0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个Contract的Storage层最多可以保存$2^{256} - 1$个Slot。合约帐户同样使用MPT，作为可验证的索引结构来管理Slot。Storage Tire的根数据被保存在StateAccount结构体中的Root变量中，它是一个32bytes长的byte数组。
+Storage层的基本组成单元称为槽 (Slot)。每个Slot的大小是256bits，最多保存32 bytes的数据。作为基本的存储单元，Slot类似于内存的page以及HDD中的Block，可以通过索引的方式被上层函数访问。Slot的索引key的长度同样是32 bytes(256 bits)，寻址空间从0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个Contract的Storage层最多可以保存$2^{256} - 1$个Slot。合约帐户同样使用MPT，作为可验证的索引结构来管理Slot。Storage Trie的根数据被保存在StateAccount结构体中的Root变量中，它是一个32bytes长的byte数组。
 
 ### Contract Storage Example One
 
