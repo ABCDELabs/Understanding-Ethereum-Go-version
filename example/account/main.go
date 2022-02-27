@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/big"
 
@@ -37,21 +38,37 @@ func main() {
 
 	stateDB.Commit(true)
 
-	fmt.Println(string(stateDB.Dump(true, true, true)))
+	// TODO Geth changed this API.
+	// fmt.Println(string(stateDB.Dump(true, true, true)))
 
 	fmt.Println("------Test Hash-------")
-
 	for i := 0; i <= 2; i++ {
 		hash := solsha3.SoliditySHA3(
 			solsha3.Uint256(big.NewInt(int64(i))),
 		)
-		fmt.Printf("The hash of %d:   %x\n", i, hash)
+		fmt.Printf("The hash of slot pos %d:   0x%x\n", i, hash)
 	}
 
-	p := solsha3.SoliditySHA3([]byte("hsy"), solsha3.Uint256(big.NewInt(int64(3))))
-	fmt.Printf("Test the Solidity Map storage Key: %x\n", p)
+	// Test the map-type in contract storage
+	// Map key/ Slot postion
+	k1 := solsha3.SoliditySHA3([]byte("hsy"), solsha3.Uint256(big.NewInt(int64(1))))
+	fmt.Printf("Test the Solidity Map storage Key1:         0x%x\n", k1)
 
-	o := solsha3.SoliditySHA3([]byte("lei"), solsha3.Uint256(big.NewInt(int64(3))))
-	fmt.Printf("Test the Solidity Map storage Key: %x\n", o)
+	// Corresponding Object slot index
+	i1 := solsha3.SoliditySHA3(solsha3.Uint256(hexToBigInt(hex.EncodeToString(k1))))
+	fmt.Printf("Test the Solidity Map storage Key1's index: 0x%x\n", i1)
 
+	k2 := solsha3.SoliditySHA3([]byte("lei"), solsha3.Uint256(big.NewInt(int64(1))))
+	fmt.Printf("Test the Solidity Map storage Key2:         0x%x\n", k2)
+
+	i2 := solsha3.SoliditySHA3(solsha3.Uint256(hexToBigInt(hex.EncodeToString(k2))))
+	fmt.Printf("Test the Solidity Map storage Key2's index: 0x%x\n", i2)
+
+}
+
+func hexToBigInt(hex string) *big.Int {
+	n := new(big.Int)
+	n, _ = n.SetString(hex[:], 16)
+
+	return n
 }

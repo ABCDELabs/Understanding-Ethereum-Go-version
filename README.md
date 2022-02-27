@@ -33,6 +33,7 @@
     - 在执行Transaction中是哪个模块，又是怎样去修改Contract中的持久化变量呢？
     - Smart Contract中的持久化变量又是以什么样的形式存储的呢？
     - 当新的Block加入到Blockchain中时，World State又是何时怎样更新的呢？
+    - 哪些数据常驻内存，哪些数据又需要保存在Disk中呢？
 
 2. 目前的Blockchain系统并没有像数据库系统(DBMS)那样统一实现的方法论，每个不同的系统中都集成了大量的细节。从源码的角度出发可以了解到很多容易被忽视的细节。简单的说，一个完整的区块链系统至少包含以下的模块:
     - 密码学模块: 加解密，签名，安全hash，Mining
@@ -41,8 +42,9 @@
     - 智能合约解释器模块: Solidity编译语言，EVM解释器
     - 数据存储模块: 数据库，数据存储，Index，LevelDB
     - Log日志模块
+    - etc.
 
-在具体实现中，由于设计理念，以及go语言的特性(没有继承派生关系)，go-ethereum中的模块之间相互调用关系相对复杂。因此，只有通过阅读源码的方式才能更好理解不同模块之间的调用关系，以及业务的workflow的执行流程/细节。
+而在具体实现中，由于设计理念，以及go语言的特性(没有继承派生关系)，go-ethereum中的模块之间相互调用关系相对复杂。因此，只有通过阅读源码的方式才能更好理解不同模块之间的调用关系，以及业务的workflow的执行流程/细节。
 
 ### Blockchain System (BCS) VS Database Management System (DBMS)
 
@@ -96,35 +98,38 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 
 -----------------------------------------------------------
 
-## Conclusion
+## How to measure the level of understanding of a system？
 
 如何衡量对一个系统的理解程度?
 
-1. 掌握（Mastering）
-    - 可以编写一个新的系统
-2. 完全理解（Complete Understanding）
-    - 完全理解系统的各项实现的细节，并能做出优化
-    - 可以对现有的系统定制化到不同的应用场景
-3. 理解（Understanding）
-    - 熟练使用系统提供的API
-    - 能对系统的部分模块进行重构
-4. 简单了解（Brief understanding）
-    - 了解系统设计的目标，了解系统的应用场景
-    - 可以使用系统的部分的API
+- Level 4: 掌握（Mastering）
+  - 在完全理解的基础上，可以设计并编写一个新的系统
+- Level 3: 完全理解（Complete Understanding）
+  - 在理解的基础上，完全掌握系统的各项实现的细节，并能做出优化
+  - 可以对现有的系统定制化到不同的应用场景
+- Level 2: 理解（Understanding）
+  - 熟练使用系统提供的API
+  - 了解系统模块的调用关系
+  - 能对系统的部分模块进行简单修改/重构
+- Level 1:了解（Brief understanding）
+  - 了解系统设计的目标，了解系统的应用场景
+  - 可以使用系统的部分的API
 
-## Tips
+ 我们希望读者在阅读完本作之后，对Ethereum的理解能够达到 Level 2 - Level 3的水平。
 
-- 以太坊是基于State模型的区块链系统，miner在update new Block的时候，会直接修改自身的状态（添加区块奖励给自己）。所以与Bitcoin不同的是，Ethereum的区块中，并没有类似的Coinbase的transaction。
+## Some Details
+
+- 以太坊是基于State状态机模型的区块链系统，miner在update new Block的时候，会直接修改自身的状态（添加区块奖励给自己）。所以与Bitcoin不同的是，Ethereum的区块中，并没有类似的Coinbase的transaction。
 - 在core/transaction.go 中, transaction的的数据结构是有time.Time的参数的。但是在下面的newTransaction的function中只是使用Local的time.now()对Transaction.time进行初始化。
-- 在core/transaction.go 的transaction 数据结构定义的时候, 在transaction.time 后面的注释写到（Time first seen locally (spam avoidance)）, Time 只是用于在本地首次看到的时间。
+- 在core/transaction.go 的transaction 数据结构定义的时候, 在transaction.time 后面的注释写到（Time first seen locally (spam avoidance), Time 只是用于在本地首次看到的时间。
 - uncle block中的transaction 不会被包括到主链上。
 - go-ethereum有专用函数来控制每次transaction执行完，返还给用户的Gas的量。有根据EIP-3529，每次最多返还50%的gas.
 - 不同的Contracts的数据会混合的保存在底层的一个LevelDB instance中。
+- 在以太坊中，通常先执行Finalise函数 -> 然后执行Commit函数。
 
 ## 关键函数
 
 ```go
-
  // 向leveldb中更新Storage 数据
  func WritePreimages(db ethdb.KeyValueWriter, preimages map[common.Hash][]byte)
 

@@ -1,5 +1,10 @@
 # 一个Transaction的生老病死/Transaction CRUD
 
+
+## General
+
+Transaction是Ethereum
+
 ## Background of State-based Blockchain
 
 - State-based Blockchain 的数据主要由两部分的数据管理模块组成：World State 和 Blockchain。

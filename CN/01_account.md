@@ -1,12 +1,10 @@
 # Account and Contract
 
-## Account数据结构分析
-
-### Background
+## Background
 
 在本文中我们来探索一下以太坊中的基本数据元(Metadata)之一的Account。
 
-我们知道，Ethereum是基于交易的状态机模型(Transaction-based State Machine)来运行的。在这种模型中，State基于Transaction的执行(数据更新/删除/创建)，而转移到另一个State。具体的说，Transaction的执行会让系统元对象(Meta Object)的数据值发生改变，表现为系统元对象从一个状态转换到另一个状态。在Ethereum中，这个元对象就是Account。State表现(represent)出来的是Account在某个时刻的包含/对应的数据的值。
+我们知道，Ethereum是基于交易的状态机模型(Transaction-based State Machine)来运行的。在这种模型中，State基于Transaction的执行引发的数据更新/删除/创建，而转移到另一个State。具体的说，Transaction的执行会让系统元对象(Meta Object)的数据值发生改变，表现为系统元对象从一个状态转换到另一个状态。在Ethereum中，这个元对象就是Account。State表现(represent)出来的是Account在某个时刻的包含/对应的数据的值。
 
 - Account --> Object
 - State   --> The value of the Object
@@ -19,7 +17,7 @@ In general, Account (账户)是参与链上交易的基本角色，是Ethereum�
 
 合约(Contract)由外部账户通过Transaction创建，用于在链上保存**不可篡改的**保存**图灵完备的代码段**，以及保存一些**持久化的数据**。这些代码段使用专用语言书写(Like: Solidity)，并且通常提供一些对外部访问API函数。这些函数通常用于计算以及查询或修改合约中的持久化数据。通常我们经常看到这样的描述"**一旦被记录到区块链上数据不可被修改**，或者**不可篡改的智能合约**"。现在我们知道这种描述是不准确。针对一个链上的智能合约，不可修改/篡改的部分是合约中的代码段，或说是合约中的*函数逻辑*/*代码逻辑是*不可以被修改/篡改的。而链上合约中的持久化的数据部分是可以通过调用代码段中的函数进行数据操作的(CURD)。用户在构造Transaction时只能调用一个合约中的API函数。如果一个用户只希望查询某些合约中的持久化数据，而不进行写操作的话，那么他不需要通过构造一个Transaction来查询数据。他可以通过直接调用本地数据中的对应的仅包含查询操作的函数代码或者请求其他节点存储的代码来操作。如果用户需要对合约中的数据进行更新，那么他就要构造一个Transaction来请求合约中相对应的函数。对于如何编写合约，以及Ethereum如何解析和执行Transaction调用的API的，Transaction的构造我们会在后面的文章中详细的进行解读。
 
-### Account and stateObject
+## StateObject, Account, Contract
 
 在实际代码中，这两种Account都是由stateObject这一结构定义的。stateObject的相关代码位于core/state/state_object.go文件中，隶属于package state。我们摘录了stateObject的结构代码，如下所示。通过下面的代码，我们可以观察到，stateObject是由小写字母开头。根据go语言的特性，我们可以知道这个结构主要用于package内部数据操作，并不对外暴露。
 
@@ -106,17 +104,20 @@ type StateAccount struct {
 
 对于剩下的成员变量，它们的主要用于内存Cache。trie用于保存Contract中的持久化存储的数据，code用于缓存contract中的代码段到内存中，它是一个byte数组。剩下的四个Storage字段主要在执行Transaction的时候缓存Contract合约修改的持久化数据，比如dirtyStorage就用于缓存在Block被Finalize之前，Transaction所修改的合约中的持久化存储数据。对于外部账户，由于没有代码字段，所以对应stateObject对象中的code字段，以及四个Storage类型的字段对应的变量的值都为空(originStorage, pendingStorage, dirtyStorage, fakeStorage)。关于Contract的Storage层的详细信息，我们会在后面部分进行详细的描述。
 
-## Cache flags
 
 ## 深入Account
 
 ### Private Key & Public Kay & Address
 
-我们经常会在各种科技网站，自媒体上听到这样的说法，"在区块链上保存的Cryptocurrency/Token除了你自己，不存在一个中心化的第三方可以不经过你的允许转走你的财富"。这个说法基本是正确的。对于链级别定义Crypto，比如Ether，Bitcoin，BNB(Only in BSC)，用户账户里的Crypto是没办法被第三方偷走的。这是因为，对链级别上的所有数据的修改都要经过用户私钥(Private Key)签名的Transaction。只要用户保管好自己账户的私钥(Private Key)就没有人可以转走你链上的财富。
+#### 账户安全的问题
 
-我们说上述说法是基本正确，而不是完全正确的原因有两个。首先，用户的链上数据安全是基于当前Ethereum使用的密码学工具足够保证：不存在第三方可以在**有限的时间**内在**不知道用户私钥的前提**下获取到用户的私钥信息来伪造签名交易。当然这个安全保证前提是当今Ethereum使用的密码学工具的强度足够大，没有计算机可以在有限的时间内hack出用户的私钥信息。在量子计算机出现之前，目前Ethereum和其他Blockchain使用的密码学工具的强度都是足够安全的。这也是为什么很多新的区块链项目在研究抗量子计算机密码体系的原因。第二点是，当今很多的所谓的Crypto/Token并不是链级别的数据，而是在链上合约中存储的数据，比如ERC-20 Token和NFT对应的ERC-721的Token。由于这部分的Token都是基于合约代码生成和维护的，所以这部分Token的安全同样的也依赖于合约本身的安全，比如有没有后门漏洞。如果合约本身的代码是有问题的，比如因为代码编写问题合约隐藏了给第三方任意提取其他账户下Token的漏洞，那么即使用户的私钥信息没有泄漏，合约中的Token仍然可以被第三方获取到。由于合约的代码段在链上是不可修改的。所以，有很多研究人员，技术团队在进行合约审计方面的工作，来保证上传的合约代码是安全的。
+我们经常会在各种科技网站，自媒体上听到这样的说法，"用户在区块链系统中保存的Cryptocurrency/Token，除了用户自己，不存在一个中心化的第三方可以不经过用户的允许转走你的财富"。这个说法基本是正确的。目前，用户账户里的由链级别定义Crypto，或者称为原生货币(Native Token)，比如Ether，Bitcoin，BNB(Only in BSC)，是没办法被第三方在不被批准的情况下转走的。这是因为链级别上的所有数据的修改都要经过用户私钥(Private Key)签名的Transaction。只要用户保管好自己账户的私钥(Private Key)，保证其没有被第三方知晓，就没有人可以转走你链上的财富。
 
-下面我们简单讲述，一个账户的私钥和地址是如何产生的。
+我们说上述说法是基本正确，而不是完全正确的原因有两个。首先，用户的链上数据安全是基于当前Ethereum使用的密码学工具足够保证：不存在第三方可以在**有限的时间**内在**不知道用户私钥的前提**下获取到用户的私钥信息来伪造签名交易。当然这个安全保证前提是当今Ethereum使用的密码学工具的强度足够大，没有计算机可以在有限的时间内hack出用户的私钥信息。在量子计算机出现之前，目前Ethereum和其他Blockchain使用的密码学工具的强度都是足够安全的。这也是为什么很多新的区块链项目在研究抗量子计算机密码体系的原因。第二点原因是，当今很多的所谓的Crypto/Token并不是链级别的数据，而是在链上合约中存储的数据，比如ERC-20 Token和NFT对应的ERC-721的Token。由于这部分的Token都是基于合约代码生成和维护的，所以这部分Token的安全依赖于合约本身的安全。如果合约本身的代码是有问题的，存在后门或者漏洞，比如存在给第三方任意提取其他账户下Token的漏洞，那么即使用户的私钥信息没有泄漏，合约中的Token仍然可以被第三方获取到。由于合约的代码段在链上是不可修改的，合约代码的安全性是极其重要的。所以，有很多研究人员，技术团队在进行合约审计方面的工作，来保证上传的合约代码是安全的。此外随着Layer-2技术和一些跨链技术的发展，用户持有的“Token”，在很多情况下不是我们上面提到的安全的Naive Token，而是ERC-20甚至只是其他合约中的简单数值记录。这种类型的资产的安全性是低于layer-1上的Native Token的。用户在持有这类资产的时候需要小心。这里我们推荐阅读Jay Freeman所分析的关于一个热门Layer-2系统Optimism上的由于非Naive Token造成的[任意提取漏洞](https://www.saurik.com/optimism.html)。
+
+#### Account Generation
+
+下面我们简单讲述，在Ethereum中一个账户的私钥和地址是如何产生的。
 
 - 首先我们通过随机得到一个长度64位account的私钥。这个私钥就是平时需要用户激活钱包时需要的记录，一旦这个私钥暴露了，钱包也将不再安全。
   - 64个16进制位，256bit，32字节
@@ -131,7 +132,7 @@ type StateAccount struct {
   - Keccak-256是SHA-3（Secure Hash Algorithm 3）标准下的一种哈希算法
     `addr := crypto.PubkeyToAddress(ecdsaSK.PublicKey)`
 
-### Signature & Verification
+#### Signature & Verification
 
 - Hash（m,R）*X +R = S* P
 - P是椭圆曲线函数的基点(base point) 可以理解为一个P是一个在曲线C上的一个order 为n的加法循环群的生成元. n为质数。
@@ -146,7 +147,7 @@ type StateAccount struct {
     `crypto.VerifySignature(testPk, msg[:], msgSig[:len(msgSig)-1])`
 - 这套体系的安全性保证在于，即使知道了公钥ecdsaPk/ecdsaSK.PublicKey也难以推测出 ecdsaSK以及生成他的privateKey。
 
-### ECDSA & spec256k1曲线
+#### ECDSA & spec256k1曲线
 
 - Elliptic curve point multiplication
   - Point addition P + Q = R
@@ -170,7 +171,7 @@ type StateAccount struct {
 type Storage map[common.Hash]common.Hash
 ```
 
-我们可以看到，*Storage*是一个key和value都是common.Hash类型的map结构。common.Hash类型，则对应了一个长度为32bytes的byte类型数组。这个类型在go-ethereum中被大量使用，通常用于表示32字节长度的数据，比如Keccak256的哈希值。在之后的旅程中，我们也会经常看到它的身影，它的定义在common.type.go文件中。
+我们可以看到，*Storage*是一个key和value都是common.Hash类型的map结构。common.Hash类型，则对应了一个长度为32bytes的byte类型数组。这个类型在go-ethereum中被大量使用，通常用于表示32字节长度的数据，比如Keccak256函数的哈希值。在之后的旅程中，我们也会经常看到它的身影，它的定义在common.type.go文件中。
 
 ```go
 // HashLength is the expected length of the hash
@@ -179,13 +180,22 @@ HashLength = 32
 type Hash [HashLength]byte
 ```
 
-EOA与Contract不同的点在于，EOA并没有维护自己的Storage层以及代码(codeHash)。而相比与外部账户，Contract账户额外保存了一个存储层(Storage)用于存储合约代码中持久化的变量的数据。而上面的我们提到的stateObject中的四个Storage类型的变量，就是用于为一部分的Contract Storage层的数据提供内存缓存。
+从功能层面讲，外部账户(EOA)与合约账户(Contract)不同的点在于，外部账户并没有维护自己的代码(codeHash)以及额外的Storage层。相比与外部账户，合约账户额外保存了一个存储层(Storage)用于存储合约代码中持久化的变量的数据。在上文中我们提到，StateObject中的声明的四个Storage类型的变量，就是作为Contract Storage层的内存缓存。
 
-Storage层的基本组成单元称为槽 (Slot)。每个Slot的大小是256bits，最多保存32 bytes的数据。作为基本的存储单元，Slot类似于内存的page以及HDD中的Block，可以通过索引的方式被上层函数访问。Slot的索引key的长度同样是32 bytes(256 bits)，寻址空间从0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个Contract的Storage层最多可以保存$2^{256} - 1$个Slot。合约帐户同样使用MPT，作为可验证的索引结构来管理Slot。Storage Trie的根数据被保存在StateAccount结构体中的Root变量中，它是一个32bytes长的byte数组。
+在Ethereum中，每个合约都维护了自己的*独立*的Storage空间，我们称为Storage层。Storage层的基本组成单元称为槽 (Slot)，若干个Slot按照*Stack*的方式集合在一起构造成了Storage 层。每个Slot的大小是256bits，也就是最多保存32 bytes的数据。作为基本的存储单元，Slot管理的方式与内存或者HDD中的基本单元的管理方式类似，通过地址索引的方式被上层函数访问。Slot的地址索引的长度同样是32 bytes(256 bits)，寻址空间从 0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个Contract的Storage层最多可以保存$2^{256} - 1$个Slot。也就说在理论状态下，一个Contract可以最多保存$(2^{256} - 1)$ bytes的数据，这是个相当大的数字。Contract同样使用MPT来管理Storage 层的Slot。值得注意的是，Storage层的数据并不会被打包进入Block中。唯一与Chain内数据相关的是，Storage Trie的根数据被保存在StateAccount结构体中的Root变量中(它是一个32bytes长的byte数组)。当某个Contract的Storage层的数据发生变化时，根据骨牌效应，向上传导到World State Root的值发生变化，从而影响到Chain数据。目前，Storage层的数据读取和修改是在执行相关Transaction的时候，通过EVM调用两个专用的指令*OpSload*和*OpSstore*触发。
+
+我们知道目前Ethereum中的大部分合约都通过Solidity语言编写。Solidity做为强类型的图灵完备的语言，支持多种类型的变量。总的来说，根据变量的长度性质，Ethereum中的持久化的变量可以分为定长的变量和不定长度的变量两种。定长的变量有常见的单变量类型，比如 uint256。不定长的变量包括了由若干单变量组成的Array，以及KV形式的Map类型。
+
+根据上面的介绍，我们了解到对Contract Storage层的访问是通过Slot的地址来进行的。请读者先思考下面的几个问题:
+
+- **如何给定一个包含若干持久化存储变量的Solidity的合约，EVM是怎么给其包含的变量分配存储空间的呢？**
+- 怎么保证Contract Storage的一致性读写的？(怎么保证每个合约的验证者和执行者都能获取到相同的数据？)
+
+我们将通过下面的一些实例来展示，在Ethereum中，Contract是如何保存持久化变量的，以及保证所有的参与者都能一致性读写的Contract中的数据的。
 
 ### Contract Storage Example One
 
-我们使用一个简单的合约来展示Contract Storage层的逻辑，合约代码如下所示。在本例中，Storage合约保存了三个持久化uint256 变量(number, number1, and number2)，并通过stores函数给它们进行赋值。
+我们使用一个简单的合约来展示Contract Storage层的逻辑，合约代码如下所示。在本例中，我们使用了一个叫做"Storage"合约，其中定义了了三个持久化uint256类型的变量分别是number, number1, 以及number2。同时，我们定义一个stores函数给这个三个变量进行赋值。
 
 ```solidity
 // SPDX-License-Identifier: GPL-3.0
@@ -222,7 +232,9 @@ contract Storage {
 }
 ```
 
-我们使用remix来在本地部署这个合约，并使用remix debugger构造transaction调用stores(1)。在Transaction生效之后，合约中三个变量的值将被分别赋给1，2，3。我们观察Storage层会发现，现在的存储层增加了三个Storage Object。每个Object包含一个256 bits的key和256 bits的value字段（本例中表现为64位的16进制数）。其中Key的值是从0开始的递增整数，它代表了Slot的索引值。它们的value则存储了合约中三个变量值(1,2,3)。此外，每个object外层index则是key值的sha3的，"0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563" 对应 0，"0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6" 对应 1。我们在示例代码中展示了这一结果。
+我们使用[Remix](https://remix.ethereum.org/)来在本地部署这个合约，并构造一个调用stores(1)函数的Transaction，同时使用Remix debugger来Storage层的变化。在Transaction生效之后，合约中三个变量的值将被分别赋给1，2，3。此时，我们观察Storage层会发现，存储层增加了三个Storage Object。这三个Storage Object对应了三个Slot。所以在本例中，合约增加了三个Slots来存储数据。我们可以发现每个Storage Object由三个字段组成，分别是一个32 bytes的key字段和32 bytess的value字段，以及外层的一个32 bytes 的字段。这三个字段在下面的例子中都表现为64位的16进制数(32 Bytes)。
+
+下面我们来逐个解释一下这个三个值的实际意义。首先我们观察内部的Key-Value对，可以发现下面三个Storage Object中key的值其实是从0开始的递增整数，分别是0，1，2。它代表了当前Slot的地址索引值，或者说该Slot在Storage层对应的绝对位置(Position)。比如，key的值为0时，它代表整个Storage层中的第1个Slot，或者说在1号位置的Slot，当key等于1时代表Storage层中的第2个Slot，以此类推。每个Storage Object中的value变量，存储了合约中三个变量的值(1,2,3)。而Storage Object外层的值由等于Storage Object的key的值的sha3的哈希值。比如，下面例子中的第一个Storage Object的外层索引值"0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563" 是通过keccak256(0)计算出的值，代表了第一个Slot position的Sha3的哈希，而"0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6" 对应了是keccak(1)的值。我们在[示例代码](../example/account/main.go)中展示了如何计算的过程。
 
 ```json
 {
@@ -241,9 +253,20 @@ contract Storage {
 }
 ```
 
+读者可能以及发现了，在这个Storage Object中，外层的索引值其实与Key值的关系是一一对应的，或者说这两个键值本质上都是关于Slot位置的唯一索引。这里我们简单讲述一下这两个值在使用上的区别。Key值代表了Slot在Storage层的Position，这个值用于会作为stateObject.go/getState()以及setState()函数的参数，用于定位Slot。如果我们继续深入上面的两个函数，我们就会发现，当内存中不存在该Slot的缓存时，geth就会尝试从更底层的数据库中来获取这个Slot的值。而Storage在更底层的数据，是由Secure Trie来维护的，Secure Trie中的Key值都是需要Hash的。所以在Secure Trie层我们查询/修改需要的键值就是外层的hash值。具体的关于Secure Trie的描述可以参考[Trie](10_tire_statedb.md)这一章节。总结下来，在上层函数(stateObject)调用中使用的键值是Slot的Position，在下层的函数(Trie)调用中使用的键值是Slot的Position的哈希值。
+
+```go
+func (t *SecureTrie) TryGet(key []byte) ([]byte, error) {
+  // Secure Trie中查询的例子
+  // 这里的key还是Slot的Position
+  // 但是在更下层的Call更下层的函数的时候使用了这个Key的hash值作为查询使用的键值。
+  return t.trie.TryGet(t.hashKey(key))
+}
+```
+
 ### Account Storage Example Two
 
-值得注意的是，如果我们调整一下合约中变量的声明顺序，从(number，number1，number2)调整为(number 2, number 1, number)，则会在Storage 层观察到不一样的结果。
+下面我们来看另外的一个例子。在这个例子中，我们调整一下合约中变量的声明顺序，从(number，number1，number2)调整为(number 2, number 1, number)。合约代码如下所示。
 
 ```solidity
 // SPDX-License-Identifier: GPL-3.0
@@ -280,7 +303,7 @@ contract Storage {
 }
 ```
 
-我们可以发现number2的结果被存储在了第一个Slot中（Key:"0x0000000000000000000000000000000000000000000000000000000000000000"），而number的值北存储在了第三个Slot中 (Key:"0x0000000000000000000000000000000000000000000000000000000000000002")。
+同样我们还是构造Transaction来调用合约中的stores函数。此时我们可以在Storage 层观察到不一样的结果。我们发现number2这个变量的值被存储在了第一个Slot中（Key:"0x0000000000000000000000000000000000000000000000000000000000000000"），而number这个变量的值北存储在了第三个Slot中 (Key:"0x0000000000000000000000000000000000000000000000000000000000000002")。
 
 ```json
 {
@@ -299,7 +322,7 @@ contract Storage {
 }
 ```
 
-这个实验可以证明，在Ethereum中，变量对应的存储层的Slot，是按照其在在合约中的声明顺序，从第一个Slot（Key：0）开始分配的。
+这个例子可以说明，在Ethereum中，变量对应的存储层的Slot，是按照其在在合约中的声明顺序，从第一个Slot（position：0）开始分配的。
 
 ### Account Storage Example Three
 
@@ -353,15 +376,15 @@ contract Storage {
 }
 ```
 
-我们可以看到，transaction的执行只对在合约的Storage中位置在1和2位置的两个Slot进行了赋值。值得注意的是，在本例中，针对Slot的赋值是从1号位置Slot的开始，而不是0号Slot。这说明，对于固定长度的变量，其值的所占用的Slot的位置在Contract初始化开始的时候就已经分配的。即使变量只是被声明没有真正的赋值，其对应的保存值的Slot已经被分配好了。而不是在第一次给变量赋值的时候，进行再对变量的Slot值进行分配。
+我们可以观察到，stores函数调用的结果只对在合约的Storage层中位置在1和2位置的两个Slot进行了赋值。值得注意的是，在本例中，对于Slot的赋值是从1号位置Slot的开始，而不是0号Slot。这说明对于固定长度的变量，其值的所占用的Slot的位置在Contract初始化开始的时候就已经分配的。即使变量只是被声明还没有真正的赋值，保存其值所需要的Slot也已经被EVM分配完毕。而不是在第一次进行变量赋值的时候，进行再对变量所需要的的Slot进行分配。
 
 ![Remix Debugger](../figs/01/remix.png)
 
 ### Account Storage Example Four
 
-在Solidity中，有一类特殊的类型**Address**，用于表示账户的地址信息。例如在ERC-20合约中，所有用户拥有的token信息是被存储在一个(address->uint)的map结构中。这个map的key是Address类型的，它表示了用户实际的address。目前Address的大小为160bits(20bytes)，并不足以填满一整个Slot。因此当Address作为value单独存储在的时候，它并不会排他的独占用一个Slot。我们使用下面的例子来说明。
+在Solidity中，有一类特殊的变量类型**Address**，通常用于表示账户的地址信息。例如在ERC-20合约中，用户拥有的token信息是被存储在一个(address->uint)的map结构中。在这个map中，key就是Address类型的，它表示了用户实际的address。目前Address的大小为160bits(20bytes)，并不足以填满一整个Slot。因此当Address作为value单独存储在的时候，它并不会排他的独占用一个Slot。我们使用下面的例子来说明。
 
-在下面的示例中，我们声明了三个变量，分别是number(uint256)，addr(address)，以及isTrue(bool)。我们知道，在以太坊中Address是一个长度为20 bytes的字符串，所以一个Address类型是没办法填满整个的Slot的。布尔类型在以太坊中只需要一个bit(0 or 1)就可以表示. 我们构造transaction调用函数storeaddr。函数的input为1 “0xb6186d3a3D32232BB21E87A33a4E176853a49d12”。
+在下面的示例中，我们声明了三个变量，分别是number(uint256)，addr(address)，以及isTrue(bool)。我们知道，在以太坊中Address类型变量的长度是20 bytes，所以一个Address类型的变量是没办法填满整个的Slot(32 bytes)的。同时，布尔类型在以太坊中只需要一个bit(0 or 1)的空间. 因此，我们构造transaction并调用函数storeaddr来给这三个变量赋值，函数的input参数是一个uint256的值，一个address类型的值，分别为{1, “0xb6186d3a3D32232BB21E87A33a4E176853a49d12”}。
 
 ```solidity
 // SPDX-License-Identifier: GPL-3.0
@@ -374,11 +397,9 @@ pragma solidity >=0.7.0 <0.9.0;
  */
 contract Storage {
 
-
     uint256 number;
     address addr;
     bool isTrue;
-
 
     function stores(uint256 num) public {
         // number1 = num + 1;
@@ -398,7 +419,9 @@ contract Storage {
 }
 ```
 
-Transaction的运行后的结果如下面的Json所示。我们可以观察到，在本例中Contract声明了三个变量但是Storage只占用了两个Slot。按照我们上面的发现，在第二个slot(Key:0x0000000000000000000000000000000000000000000000000000000000000001)保存了addr和isTrue的值。
+Transaction的运行后Storage层的结果如下面的Json所示。我们可以观察到，在本例中Contract声明了三个变量，但是在Storage层只调用了两个Slot。第一个Slot用于保存了uint256的值，而在第二个Slot中(Key:0x0000000000000000000000000000000000000000000000000000000000000001)保存了addr和isTrue的值。这里需要注意，虽然这种将两个小于32 bytes长的变量合并到一个Slot的做法节省了物理空间，但是也同样带来读写放大的问题。因为在Geth中，读操作最小的读的单位都是按照32bytes来进行的。在本例中，即使我们只需要读取isTrue或者addr这两个变量的值，在具体的函数调用中，我们仍然需要将对应的Slot先读取到内存中。同样的，如果我们想修改这两个变量的值，同样需要对整个的Slot进行重写。这无疑增加了额外的开销。所以在Ethereum使用32 bytes的变量，在某些情况下消耗的Gas反而比更小长度类型的变量要小(例如 unit8)。这也是为什么Ethereum官方也建议使用长度为32 bytes变量的原因。
+
+// Todo Gas cost? here or in EVM Section
 
 ```json
 {
@@ -415,7 +438,7 @@ Transaction的运行后的结果如下面的Json所示。我们可以观察到�
 
 ### Account Storage Example Five
 
-对于变长数组，map结构的存储构造则更为复杂。虽然Map本身就是key-value的结构，但是在Storage 层并不直接使用map中key的值或者key的值的hash值来作为Storage的索引值。目前，使用map的key的值和当前数组所在变量声明位置对应的slot的值进行拼接，再进行keccak256哈希值作为索引。我们在下面的例子中展示了EVM是如何处理mapping这种变长的数据结构的。在下面的合约中，我们声明了几个定长的uint256类型的对象，和一个string=>uint256类型的Mapping对象。
+对于变长数组和Map结构的变量存储分配则相对的复杂。虽然Map本身就是key-value的结构，但是在Storage 层并不直接使用map中key的值或者key的值的sha3 哈希值来作为Storage分配的Slot的索引值。目前，Geth首先会使用map中元素的key的值和当前Map变量声明位置对应的slot的值进行拼接，再使用拼接后的值的keccak256哈希值作为Slot的位置索引(Position)。我们在下面的例子中展示了Geth是如何处理map这种变长的数据结构的。在下面的合约中，我们声明了一个定长的uint256类型的对象number，和一个[string=>uint256]类型的Map对象。
 
 <!-- Todo: 变长数据结构的存储情况。 -->
 
@@ -447,7 +470,7 @@ contract Storage {
 }
 ```
 
-我们发现，对于定长变量number被存储在了第一个Slot(key:0x0000000000000000000000000000000000000000000000000000000000000000)中。但是对于mapping变量balances，它包括的两个数据并没有按照slot的顺序来存储。除此之外，存储这两个值的Slot的key，也并不是这两个字在mapping中key的直接hash。Solidity会使用mapping中元素的key值与，当前mapping本身对应的slot的位置进行拼接，之后再进行其使用keccak256的hash来得到map中元素最终的存储位置。
+我们构造Transaction来调用了set_balance函数，在Transaction执行之后的Storage层的结果如下面的Json所示。我们发现，对于定长的变量number占据了第一个Slot的空间(Position:0x0000000000000000000000000000000000000000000000000000000000000000)。但是对于Map类型变量balances，它包含的两个数据并没有按照变量定义的物理顺序来定义Slot。此外，我们观察到存储这两个值的Slot的key，也并不是这两个字在mapping中key的直接hash。正如我们在上段中提到的那样，Geth会使用Map中元素的的key值与当前Map被分配的slot的位置进行拼接，之后对拼接之后对值进行使用keccak256函数求得哈希值，来最终得到map中元素最终的存储位置。比如在本例中，按照变量定义的顺序，balances这个Map变量会被分配到第二个Slot，对应的Slot Position是1。因此，balances中的kv对分配到的slot的位置就是，keccak(key, 1)，这里是一个特殊的拼接操作。
 
 ```json
 {
@@ -465,6 +488,15 @@ contract Storage {
  }
 }
 ```
+
+为了验证上面的说法，我们使用go语言编写了一段代码，来调用相关的库来验证一下上面的结论。对于 balances["hsy"]，它被分配的Slot的位置可以由下面的代码求得。读者可以阅读/使用[示例代码](../example/account/main.go)进行尝试。这里的k1是一个整形实数，代表了Slot的在storage层的位置(Position)。
+
+```go
+k1 := solsha3.SoliditySHA3([]byte("hsy"), solsha3.Uint256(big.NewInt(int64(1))))
+fmt.Printf("Test the Solidity Map storage Key1:         0x%x\n", k1)
+```
+
+// TODO: The wallet part. Not sure in this section or another section.
 
 ## Wallet
 
