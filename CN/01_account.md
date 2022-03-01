@@ -6,7 +6,7 @@
 
 在本文中我们来探索一下以太坊中的基本数据元(Metadata)之一的Account。
 
-我们知道，Ethereum是基于交易的状态机模型(Transaction-based State Machine)来运行的。在这种模型中，State基于Transaction的执行(数据更新/删除/创建)，而转移到另一个State。具体的说，Transaction的执行会让系统元对象(Meta Object)的数据值发生改变，表现为系统元对象从一个状态转换到另一个状态。在Ethereum中，这个元对象就是Account。State表现(represent)出来的是Account在某个时刻的包含/对应的数据的值。
+我们知道，Ethereum是基于交易的状态机模型(Transaction-based State Machine)来运行的。在这种模型中，State基于Transaction的执行引发的数据更新/删除/创建，而转移到另一个State。具体的说，Transaction的执行会让系统元对象(Meta Object)的数据值发生改变，表现为系统元对象从一个状态转换到另一个状态。在Ethereum中，这个元对象就是Account。State表现(represent)出来的是Account在某个时刻的包含/对应的数据的值。
 
 - Account --> Object
 - State   --> The value of the Object
@@ -184,11 +184,20 @@ type Hash [HashLength]byte
 
 EOA与Contract不同的点在于，EOA并没有维护自己的Storage层以及代码(codeHash)。相比与外部账户，Contract账户额外保存了一个存储层(Storage)用于存储合约代码中持久化的变量的数据。而上面的我们提到的stateObject中的四个Storage类型的变量，就是作为Contract Storage层的内存缓存。
 
-Storage层的基本组成单元称为槽 (Slot)。每个Slot的大小是256bits，最多保存32 bytes的数据。作为基本的存储单元，Slot类似于内存的page以及HDD中的Block，可以通过地址索引的方式被上层函数访问(state_object/getState())。Slot的索引key的长度同样是32 bytes(256 bits)，寻址空间从0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个Contract的Storage层最多可以保存$2^{256} - 1$个Slot。合约帐户同样使用MPT，作为可验证的索引结构来管理Slot。Storage Trie的根数据被保存在StateAccount结构体中的Root变量中，它是一个32bytes长的byte数组。
+在Ethereum中，每个Contract都维护了自己的独立的Storage空间，我们称为Storage层。在Transaction执行过程中，EVM通过两个专用的指令来读取和修改Storage层的数据。Storage层的基本组成单元称为槽 (Slot)。每个Slot的大小是256bits，也就是最多保存32 bytes的数据。作为基本的存储单元，Slot类似于内存的page以及HDD中的Block，可以通过地址索引的方式被上层函数访问(state_object/getState())。Slot的索引key的长度同样是32 bytes(256 bits)，寻址空间从0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个Contract的Storage层最多可以保存$2^{256} - 1$个Slot。这里注意，Storage层的数据并不会被打包进入Block中。Contract同样使用MPT结构，作为可验证的索引结构来管理Slot。值得注意的是，Storage层的数据并不会被打包进入Block中。唯一与Chain内数据相关的是，Storage Trie的根数据被保存在StateAccount结构体中的Root变量中(它是一个32bytes长的byte数组)。当某个Contract的Storage层的数据发生变化时，根据骨牌效应，向上传导到World State Root的值发生变化，从而影响到Chain数据。
+
+我们知道目前Ethereum中的大部分合约都通过Solidity语言编写。Solidity做为强类型的图灵完备的语言，支持多种类型的变量。总的来说，根据变量的长度性质，Ethereum中的持久化的变量可以分为定长的变量和不定长度的变量两种。定长的变量有常见的单变量类型，比如 uint256。不定长的变量包括了由若干单变量组成的Array，以及KV形式的Map类型。
+
+根据上面的介绍，我们了解到对Contract Storage层的访问是通过Slot的地址来进行的。请读者先思考下面的几个问题:
+
+- **如何给定一个包含若干持久化存储变量的Solidity的合约，EVM是怎么给其包含的变量分配存储空间的呢？**
+- 怎么保证Contract Storage的一致性读写的？(怎么保证每个合约的验证者和执行者都能获取到相同的数据？)
+
+我们将通过下面的一些实例来展示，在Ethereum中，Contract是如何保存持久化变量的，以及保证所有的参与者都能一致性读写的Contract中的数据的。
 
 ### Contract Storage Example One
 
-我们使用一个简单的合约来展示Contract Storage层的逻辑，合约代码如下所示。在本例中，Storage合约保存了三个持久化uint256 变量(number, number1, and number2)，并通过stores函数给它们进行赋值。
+我们使用一个简单的合约来展示Contract Storage层的逻辑，合约代码如下所示。在本例中，我们使用了一个叫做"Storage"合约，其中保存了三个持久化uint256 变量分别是number, number1, 以及number2，并通过stores函数给它们进行赋值。
 
 ```solidity
 // SPDX-License-Identifier: GPL-3.0
@@ -225,7 +234,9 @@ contract Storage {
 }
 ```
 
-我们使用remix来在本地部署这个合约，并使用remix debugger构造transaction调用stores(1)函数，并观察Storage层的变化。在Transaction生效之后，合约中三个变量的值将被分别赋给1，2，3。此时，我们观察Storage层会发现，现在的存储层增加了三个Storage Object，或者说使用了三个Slots。每个Object包含一个256 bits的key和256 bits的value字段（本例中表现为64位的16进制数）。其中Key的值是从0开始的递增整数，它代表了Slot的索引值(或者该Slot在Storage层对应的物理位置)。它们的value存储了合约中三个变量值(1,2,3)。此外，每个object外层的值，则是key值的sha3的哈希值，比如下面的"0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563" 是keccak(0)的值，"0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6" 对应了是keccak(1)的值 。我们在示例代码中展示了这一结果。这个hash值会被作为参数，用在state_object/getState()函数中。
+我们使用remix来在本地部署这个合约，构造一个调用stores(1)函数的Transaction，同时使用remix debugger来Storage层的变化。在Transaction生效之后，合约中三个变量的值将被分别赋给1，2，3。此时，我们观察Storage层会发现，存储层增加了三个Storage Object，或者合约增加了三个Slots来存储数据。我们可以发现每个Object包含一个32 bytes的key字段和32 bytess的value字段，以及32 bytessObject本身的索引字段，我们简称为Storage Object index字段或者index。注意在下面的示例中，index/[key/value]的值都表现为64位的16进制数。
+
+其中Key的值是从0开始的递增整数，它代表了Slot的索引值(或者该Slot在Storage层对应的物理位置)。它们的value存储了合约中三个变量值(1,2,3)。此外，每个object外层的值，则是key值的sha3的哈希值，比如下面的"0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563" 是keccak(0)的值，"0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6" 对应了是keccak(1)的值 。我们在示例代码中展示了这一结果。这个hash值会被作为参数，用在state_object/getState()函数中。
 
 ```json
 {
