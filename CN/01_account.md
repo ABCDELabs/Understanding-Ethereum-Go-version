@@ -173,7 +173,7 @@ type StateAccount struct {
 type Storage map[common.Hash]common.Hash
 ```
 
-我们可以看到，*Storage*是一个key和value都是common.Hash类型的map结构。common.Hash类型，则对应了一个长度为32bytes的byte类型数组。这个类型在go-ethereum中被大量使用，通常用于表示32字节长度的数据，比如Keccak256的哈希值。在之后的旅程中，我们也会经常看到它的身影，它的定义在common.type.go文件中。
+我们可以看到，*Storage*是一个key和value都是common.Hash类型的map结构。common.Hash类型，则对应了一个长度为32bytes的byte类型数组。这个类型在go-ethereum中被大量使用，通常用于表示32字节长度的数据，比如Keccak256函数的哈希值。在之后的旅程中，我们也会经常看到它的身影，它的定义在common.type.go文件中。
 
 ```go
 // HashLength is the expected length of the hash
@@ -182,9 +182,9 @@ HashLength = 32
 type Hash [HashLength]byte
 ```
 
-EOA与Contract不同的点在于，EOA并没有维护自己的Storage层以及代码(codeHash)。相比与外部账户，Contract账户额外保存了一个存储层(Storage)用于存储合约代码中持久化的变量的数据。而上面的我们提到的stateObject中的四个Storage类型的变量，就是作为Contract Storage层的内存缓存。
+从功能层面讲，外部账户(EOA)与合约账户(Contract)不同的点在于，外部账户并没有维护自己的代码(codeHash)以及额外的Storage层。相比与外部账户，合约账户额外保存了一个存储层(Storage)用于存储合约代码中持久化的变量的数据。在上文中我们提到，StateObject中的声明的四个Storage类型的变量，就是作为Contract Storage层的内存缓存。
 
-在Ethereum中，每个Contract都维护了自己的独立的Storage空间，我们称为Storage层。在Transaction执行过程中，EVM通过两个专用的指令来读取和修改Storage层的数据。Storage层的基本组成单元称为槽 (Slot)。每个Slot的大小是256bits，也就是最多保存32 bytes的数据。作为基本的存储单元，Slot类似于内存的page以及HDD中的Block，可以通过地址索引的方式被上层函数访问(state_object/getState())。Slot的索引key的长度同样是32 bytes(256 bits)，寻址空间从0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个Contract的Storage层最多可以保存$2^{256} - 1$个Slot。这里注意，Storage层的数据并不会被打包进入Block中。Contract同样使用MPT结构，作为可验证的索引结构来管理Slot。值得注意的是，Storage层的数据并不会被打包进入Block中。唯一与Chain内数据相关的是，Storage Trie的根数据被保存在StateAccount结构体中的Root变量中(它是一个32bytes长的byte数组)。当某个Contract的Storage层的数据发生变化时，根据骨牌效应，向上传导到World State Root的值发生变化，从而影响到Chain数据。
+在Ethereum中，每个合约都维护了自己的*独立*的Storage空间，我们称为Storage层。Storage层的基本组成单元称为槽 (Slot)，若干个Slot按照*Stack*的方式集合在一起构造成了Storage 层。每个Slot的大小是256bits，也就是最多保存32 bytes的数据。作为基本的存储单元，Slot管理的方式与内存或者HDD中的基本单元的管理方式类似，通过地址索引的方式被上层函数访问。Slot的地址索引的长度同样是32 bytes(256 bits)，寻址空间从 0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个Contract的Storage层最多可以保存$2^{256} - 1$个Slot。也就说在理论状态下，一个Contract可以最多保存$(2^{256} - 1)$ bytes的数据，这是个相当大的数字。Contract同样使用MPT来管理Storage 层的Slot。值得注意的是，Storage层的数据并不会被打包进入Block中。唯一与Chain内数据相关的是，Storage Trie的根数据被保存在StateAccount结构体中的Root变量中(它是一个32bytes长的byte数组)。当某个Contract的Storage层的数据发生变化时，根据骨牌效应，向上传导到World State Root的值发生变化，从而影响到Chain数据。目前，Storage层的数据读取和修改是在执行相关Transaction的时候，通过EVM调用两个专用的指令*OpSload*和*OpSstore*触发。
 
 我们知道目前Ethereum中的大部分合约都通过Solidity语言编写。Solidity做为强类型的图灵完备的语言，支持多种类型的变量。总的来说，根据变量的长度性质，Ethereum中的持久化的变量可以分为定长的变量和不定长度的变量两种。定长的变量有常见的单变量类型，比如 uint256。不定长的变量包括了由若干单变量组成的Array，以及KV形式的Map类型。
 
@@ -197,7 +197,7 @@ EOA与Contract不同的点在于，EOA并没有维护自己的Storage层以及�
 
 ### Contract Storage Example One
 
-我们使用一个简单的合约来展示Contract Storage层的逻辑，合约代码如下所示。在本例中，我们使用了一个叫做"Storage"合约，其中保存了三个持久化uint256 变量分别是number, number1, 以及number2，并通过stores函数给它们进行赋值。
+我们使用一个简单的合约来展示Contract Storage层的逻辑，合约代码如下所示。在本例中，我们使用了一个叫做"Storage"合约，其中定义了了三个持久化uint256类型的变量分别是number, number1, 以及number2。同时，我们定义一个stores函数给这个三个变量进行赋值。
 
 ```solidity
 // SPDX-License-Identifier: GPL-3.0
@@ -234,9 +234,9 @@ contract Storage {
 }
 ```
 
-我们使用remix来在本地部署这个合约，构造一个调用stores(1)函数的Transaction，同时使用remix debugger来Storage层的变化。在Transaction生效之后，合约中三个变量的值将被分别赋给1，2，3。此时，我们观察Storage层会发现，存储层增加了三个Storage Object，或者合约增加了三个Slots来存储数据。我们可以发现每个Object包含一个32 bytes的key字段和32 bytess的value字段，以及32 bytessObject本身的索引字段，我们简称为Storage Object index字段或者index。注意在下面的示例中，index/[key/value]的值都表现为64位的16进制数。
+我们使用[Remix](https://remix.ethereum.org/)来在本地部署这个合约，并构造一个调用stores(1)函数的Transaction，同时使用Remix debugger来Storage层的变化。在Transaction生效之后，合约中三个变量的值将被分别赋给1，2，3。此时，我们观察Storage层会发现，存储层增加了三个Storage Object。这三个Storage Object对应了三个Slot。所以在本例中，合约增加了三个Slots来存储数据。我们可以发现每个Storage Object由三个字段组成，分别是一个32 bytes的key字段和32 bytess的value字段，以及外层的一个32 bytes 的字段。这三个字段在下面的例子中都表现为64位的16进制数(32 Bytes)。
 
-其中Key的值是从0开始的递增整数，它代表了Slot的索引值(或者该Slot在Storage层对应的物理位置)。它们的value存储了合约中三个变量值(1,2,3)。此外，每个object外层的值，则是key值的sha3的哈希值，比如下面的"0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563" 是keccak(0)的值，"0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6" 对应了是keccak(1)的值 。我们在示例代码中展示了这一结果。这个hash值会被作为参数，用在state_object/getState()函数中。
+下面我们来逐个解释一下这个三个值的实际意义。首先我们观察内部的Key-Value对，可以发现下面三个Storage Object中key的值其实是从0开始的递增整数，分别是0，1，2。它代表了当前Slot的地址索引值，或者说该Slot在Storage层对应的绝对位置(Position)。比如，key的值为0时，它代表整个Storage层中的第1个Slot，或者说在1号位置的Slot，当key等于1时代表Storage层中的第2个Slot，以此类推。每个Storage Object中的value变量，存储了合约中三个变量的值(1,2,3)。而Storage Object外层的值由等于Storage Object的key的值的sha3的哈希值。比如，下面例子中的第一个Storage Object的外层索引值"0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563" 是通过keccak256(0)计算出的值，代表了第一个Slot position的Sha3的哈希，而"0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6" 对应了是keccak(1)的值。我们在[示例代码](../example/account/main.go)中展示了如何计算的过程。
 
 ```json
 {
@@ -252,6 +252,17 @@ contract Storage {
   "key": "0x0000000000000000000000000000000000000000000000000000000000000002",
   "value": "0x0000000000000000000000000000000000000000000000000000000000000003"
  }
+}
+```
+
+读者可能以及发现了，在这个Storage Object中，外层的索引值其实与Key值的关系是一一对应的，或者说这两个键值本质上都是关于Slot位置的唯一索引。这里我们简单讲述一下这两个值在使用上的区别。Key值代表了Slot在Storage层的Position，这个值用于会作为stateObject.go/getState()以及setState()函数的参数，用于定位Slot。如果我们继续深入上面的两个函数，我们就会发现，当内存中不存在该Slot的缓存时，geth就会尝试从更底层的数据库中来获取这个Slot的值。而Storage在更底层的数据，是由Secure Trie来维护的，Secure Trie中的Key值都是需要Hash的。所以在Secure Trie层我们查询/修改需要的键值就是外层的hash值。具体的关于Secure Trie的描述可以参考[Trie](10_tire_statedb.md)这一章节。总结下来，上层函数调用中使用Slot的Position，下层的函数调用中使用的是Slot的Position的哈希值。
+
+```go
+func (t *SecureTrie) TryGet(key []byte) ([]byte, error) {
+  // Secure Trie中查询的例子
+  // 这里的key还是Slot的Position
+  // 但是在更下层的Call更下层的函数的时候传递了这个Key的hash值。
+  return t.trie.TryGet(t.hashKey(key))
 }
 ```
 
