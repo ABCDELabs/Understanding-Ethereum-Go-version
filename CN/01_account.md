@@ -255,20 +255,20 @@ contract Storage {
 }
 ```
 
-读者可能以及发现了，在这个Storage Object中，外层的索引值其实与Key值的关系是一一对应的，或者说这两个键值本质上都是关于Slot位置的唯一索引。这里我们简单讲述一下这两个值在使用上的区别。Key值代表了Slot在Storage层的Position，这个值用于会作为stateObject.go/getState()以及setState()函数的参数，用于定位Slot。如果我们继续深入上面的两个函数，我们就会发现，当内存中不存在该Slot的缓存时，geth就会尝试从更底层的数据库中来获取这个Slot的值。而Storage在更底层的数据，是由Secure Trie来维护的，Secure Trie中的Key值都是需要Hash的。所以在Secure Trie层我们查询/修改需要的键值就是外层的hash值。具体的关于Secure Trie的描述可以参考[Trie](10_tire_statedb.md)这一章节。总结下来，上层函数调用中使用Slot的Position，下层的函数调用中使用的是Slot的Position的哈希值。
+读者可能以及发现了，在这个Storage Object中，外层的索引值其实与Key值的关系是一一对应的，或者说这两个键值本质上都是关于Slot位置的唯一索引。这里我们简单讲述一下这两个值在使用上的区别。Key值代表了Slot在Storage层的Position，这个值用于会作为stateObject.go/getState()以及setState()函数的参数，用于定位Slot。如果我们继续深入上面的两个函数，我们就会发现，当内存中不存在该Slot的缓存时，geth就会尝试从更底层的数据库中来获取这个Slot的值。而Storage在更底层的数据，是由Secure Trie来维护的，Secure Trie中的Key值都是需要Hash的。所以在Secure Trie层我们查询/修改需要的键值就是外层的hash值。具体的关于Secure Trie的描述可以参考[Trie](10_tire_statedb.md)这一章节。总结下来，在上层函数(stateObject)调用中使用的键值是Slot的Position，在下层的函数(Trie)调用中使用的键值是Slot的Position的哈希值。
 
 ```go
 func (t *SecureTrie) TryGet(key []byte) ([]byte, error) {
   // Secure Trie中查询的例子
   // 这里的key还是Slot的Position
-  // 但是在更下层的Call更下层的函数的时候传递了这个Key的hash值。
+  // 但是在更下层的Call更下层的函数的时候使用了这个Key的hash值作为查询使用的键值。
   return t.trie.TryGet(t.hashKey(key))
 }
 ```
 
 ### Account Storage Example Two
 
-值得注意的是，如果我们调整一下合约中变量的声明顺序，从(number，number1，number2)调整为(number 2, number 1, number)，则会在Storage 层观察到不一样的结果。
+下面我们来看另外的一个例子。在这个例子中，我们调整一下合约中变量的声明顺序，从(number，number1，number2)调整为(number 2, number 1, number)。合约代码如下所示。
 
 ```solidity
 // SPDX-License-Identifier: GPL-3.0
@@ -305,7 +305,7 @@ contract Storage {
 }
 ```
 
-我们可以发现number2的结果被存储在了第一个Slot中（Key:"0x0000000000000000000000000000000000000000000000000000000000000000"），而number的值北存储在了第三个Slot中 (Key:"0x0000000000000000000000000000000000000000000000000000000000000002")。
+同样我们还是构造Transaction来调用合约中的stores函数。此时我们可以在Storage 层观察到不一样的结果。我们发现number2这个变量的值被存储在了第一个Slot中（Key:"0x0000000000000000000000000000000000000000000000000000000000000000"），而number这个变量的值北存储在了第三个Slot中 (Key:"0x0000000000000000000000000000000000000000000000000000000000000002")。
 
 ```json
 {
@@ -324,7 +324,7 @@ contract Storage {
 }
 ```
 
-这个实验可以证明，在Ethereum中，变量对应的存储层的Slot，是按照其在在合约中的声明顺序，从第一个Slot（Key：0）开始分配的。
+这个例子可以说明，在Ethereum中，变量对应的存储层的Slot，是按照其在在合约中的声明顺序，从第一个Slot（position：0）开始分配的。
 
 ### Account Storage Example Three
 
@@ -378,15 +378,15 @@ contract Storage {
 }
 ```
 
-我们可以看到，transaction的执行只对在合约的Storage中位置在1和2位置的两个Slot进行了赋值。值得注意的是，在本例中，针对Slot的赋值是从1号位置Slot的开始，而不是0号Slot。这说明，对于固定长度的变量，其值的所占用的Slot的位置在Contract初始化开始的时候就已经分配的。即使变量只是被声明没有真正的赋值，其对应的保存值的Slot已经被分配好了。而不是在第一次给变量赋值的时候，进行再对变量的Slot值进行分配。
+我们可以观察到，stores函数调用的结果只对在合约的Storage层中位置在1和2位置的两个Slot进行了赋值。值得注意的是，在本例中，对于Slot的赋值是从1号位置Slot的开始，而不是0号Slot。这说明对于固定长度的变量，其值的所占用的Slot的位置在Contract初始化开始的时候就已经分配的。即使变量只是被声明还没有真正的赋值，保存其值所需要的Slot也已经被EVM分配完毕。而不是在第一次进行变量赋值的时候，进行再对变量所需要的的Slot进行分配。
 
 ![Remix Debugger](../figs/01/remix.png)
 
 ### Account Storage Example Four
 
-在Solidity中，有一类特殊的类型**Address**，用于表示账户的地址信息。例如在ERC-20合约中，所有用户拥有的token信息是被存储在一个(address->uint)的map结构中。这个map的key是Address类型的，它表示了用户实际的address。目前Address的大小为160bits(20bytes)，并不足以填满一整个Slot。因此当Address作为value单独存储在的时候，它并不会排他的独占用一个Slot。我们使用下面的例子来说明。
+在Solidity中，有一类特殊的变量类型**Address**，通常用于表示账户的地址信息。例如在ERC-20合约中，用户拥有的token信息是被存储在一个(address->uint)的map结构中。在这个map中，key就是Address类型的，它表示了用户实际的address。目前Address的大小为160bits(20bytes)，并不足以填满一整个Slot。因此当Address作为value单独存储在的时候，它并不会排他的独占用一个Slot。我们使用下面的例子来说明。
 
-在下面的示例中，我们声明了三个变量，分别是number(uint256)，addr(address)，以及isTrue(bool)。我们知道，在以太坊中Address是一个长度为20 bytes的字符串，所以一个Address类型是没办法填满整个的Slot的。布尔类型在以太坊中只需要一个bit(0 or 1)就可以表示. 我们构造transaction调用函数storeaddr。函数的input为1 “0xb6186d3a3D32232BB21E87A33a4E176853a49d12”。
+在下面的示例中，我们声明了三个变量，分别是number(uint256)，addr(address)，以及isTrue(bool)。我们知道，在以太坊中Address类型变量的长度是20 bytes，所以一个Address类型的变量是没办法填满整个的Slot(32 bytes)的。同时，布尔类型在以太坊中只需要一个bit(0 or 1)的空间. 因此，我们构造transaction并调用函数storeaddr来给这三个变量赋值，函数的input参数是一个uint256的值，一个address类型的值，分别为{1, “0xb6186d3a3D32232BB21E87A33a4E176853a49d12”}。
 
 ```solidity
 // SPDX-License-Identifier: GPL-3.0
@@ -399,11 +399,9 @@ pragma solidity >=0.7.0 <0.9.0;
  */
 contract Storage {
 
-
     uint256 number;
     address addr;
     bool isTrue;
-
 
     function stores(uint256 num) public {
         // number1 = num + 1;
@@ -423,7 +421,9 @@ contract Storage {
 }
 ```
 
-Transaction的运行后的结果如下面的Json所示。我们可以观察到，在本例中Contract声明了三个变量但是Storage只占用了两个Slot。按照我们上面的发现，在第二个slot(Key:0x0000000000000000000000000000000000000000000000000000000000000001)保存了addr和isTrue的值。
+Transaction的运行后Storage层的结果如下面的Json所示。我们可以观察到，在本例中Contract声明了三个变量，但是在Storage层只调用了两个Slot。第一个Slot用于保存了uint256的值，而在第二个Slot中(Key:0x0000000000000000000000000000000000000000000000000000000000000001)保存了addr和isTrue的值。这里需要注意，虽然这种将两个小于32 bytes长的变量合并到一个Slot的做法节省了物理空间，但是也同样带来读写放大的问题。因为在Geth中，读操作最小的读的单位都是按照32bytes来进行的。在本例中，即使我们只需要读取isTrue或者addr这两个变量的值，在具体的函数调用中，我们仍然需要将对应的Slot先读取到内存中。同样的，如果我们想修改这两个变量的值，同样需要对整个的Slot进行重写。这无疑增加了额外的开销。所以在Ethereum使用32 bytes的变量，在某些情况下消耗的Gas反而比更小长度类型的变量要小(例如 unit8)。这也是为什么Ethereum官方也建议使用长度为32 bytes变量的原因。
+
+// Todo Gas cost? here or in EVM Section
 
 ```json
 {
@@ -440,7 +440,7 @@ Transaction的运行后的结果如下面的Json所示。我们可以观察到�
 
 ### Account Storage Example Five
 
-对于变长数组，map结构的存储构造则更为复杂。虽然Map本身就是key-value的结构，但是在Storage 层并不直接使用map中key的值或者key的值的hash值来作为Storage的索引值。目前，使用map的key的值和当前数组所在变量声明位置对应的slot的值进行拼接，再进行keccak256哈希值作为索引。我们在下面的例子中展示了EVM是如何处理mapping这种变长的数据结构的。在下面的合约中，我们声明了几个定长的uint256类型的对象，和一个string=>uint256类型的Mapping对象。
+对于变长数组和Map结构的变量存储分配则相对的复杂。虽然Map本身就是key-value的结构，但是在Storage 层并不直接使用map中key的值或者key的值的sha3 哈希值来作为Storage分配的Slot的索引值。目前，Geth首先会使用map中元素的key的值和当前Map变量声明位置对应的slot的值进行拼接，再使用拼接后的值的keccak256哈希值作为Slot的位置索引(Position)。我们在下面的例子中展示了Geth是如何处理map这种变长的数据结构的。在下面的合约中，我们声明了一个定长的uint256类型的对象number，和一个[string=>uint256]类型的Map对象。
 
 <!-- Todo: 变长数据结构的存储情况。 -->
 
@@ -472,7 +472,7 @@ contract Storage {
 }
 ```
 
-我们发现，对于定长变量number被存储在了第一个Slot(key:0x0000000000000000000000000000000000000000000000000000000000000000)中。但是对于mapping变量balances，它包含的两个数据并没有按照变量定义的物理顺序来定义Slot。此外，我们也观察到存储这两个值的Slot的key，也并不是这两个字在mapping中key的直接hash。这是由于Solidity对这种变长的数据结构有额外的分配Slot的方式。具体的来说Solidity会使用mapping中元素的key值与，当前mapping本身对应的slot的位置进行拼接，之后再进行其使用keccak256的hash来得到map中元素最终的存储位置。比如在本例中，按照变量定义的顺序，balances这个mapping会被分配到第二个Slot，对应的绝对位置1。那么balances中的kv对分配到的slot的位置就是，keccak(key, 1)，这里是一个特殊的拼接操作。
+我们构造Transaction来调用了set_balance函数，在Transaction执行之后的Storage层的结果如下面的Json所示。我们发现，对于定长的变量number占据了第一个Slot的空间(Position:0x0000000000000000000000000000000000000000000000000000000000000000)。但是对于Map类型变量balances，它包含的两个数据并没有按照变量定义的物理顺序来定义Slot。此外，我们观察到存储这两个值的Slot的key，也并不是这两个字在mapping中key的直接hash。正如我们在上段中提到的那样，Geth会使用Map中元素的的key值与当前Map被分配的slot的位置进行拼接，之后对拼接之后对值进行使用keccak256函数求得哈希值，来最终得到map中元素最终的存储位置。比如在本例中，按照变量定义的顺序，balances这个Map变量会被分配到第二个Slot，对应的Slot Position是1。因此，balances中的kv对分配到的slot的位置就是，keccak(key, 1)，这里是一个特殊的拼接操作。
 
 ```json
 {
@@ -491,14 +491,14 @@ contract Storage {
 }
 ```
 
-我们通过go语言来调用相关的库来验证一下上面的结论。对于 balances["hsy"]，它应该分配的slot的位置可以由下面的代码求得:
+为了验证上面的说法，我们使用go语言编写了一段代码，来调用相关的库来验证一下上面的结论。对于 balances["hsy"]，它被分配的Slot的位置可以由下面的代码求得。读者可以阅读/使用[示例代码](../example/account/main.go)进行尝试。这里的k1是一个整形实数，代表了Slot的在storage层的位置(Position)。
 
 ```go
 k1 := solsha3.SoliditySHA3([]byte("hsy"), solsha3.Uint256(big.NewInt(int64(1))))
 fmt.Printf("Test the Solidity Map storage Key1:         0x%x\n", k1)
 ```
 
-这里的k1是一个意义是一个数值，代表了slot的在storage层的绝对位置。
+// TODO: The wallet part. Not sure in this section or another section.
 
 ## Wallet
 

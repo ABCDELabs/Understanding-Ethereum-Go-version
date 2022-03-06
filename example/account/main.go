@@ -38,7 +38,8 @@ func main() {
 
 	stateDB.Commit(true)
 
-	fmt.Println(string(stateDB.Dump(true, true, true)))
+	// TODO Geth changed this API.
+	// fmt.Println(string(stateDB.Dump(true, true, true)))
 
 	fmt.Println("------Test Hash-------")
 	for i := 0; i <= 2; i++ {

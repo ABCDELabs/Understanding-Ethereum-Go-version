@@ -18,10 +18,10 @@ Secure Trie结构本质上是对Trie的一层封装，与Trie不同的是。CURD
 
 ```go
 type SecureTrie struct {
-	trie             Trie
-	hashKeyBuf       [common.HashLength]byte
-	secKeyCache      map[string][]byte
-	secKeyCacheOwner *SecureTrie // Pointer to self, replace the key cache on mismatch
+  trie             Trie
+  hashKeyBuf       [common.HashLength]byte
+  secKeyCache      map[string][]byte
+  secKeyCacheOwner *SecureTrie // Pointer to self, replace the key cache on mismatch
 }
 ```
 
@@ -31,15 +31,13 @@ type SecureTrie struct {
 
 ## Finalize And Commit and Commit to Disk
 
-
-
 ## StackTrie
 
 我们可以在genesis block创建的相关代码中，找到最近的例子。
 
 ```go
-	statedb.Commit(false)
-	statedb.Database().TrieDB().Commit(root, true, nil)
+ statedb.Commit(false)
+ statedb.Database().TrieDB().Commit(root, true, nil)
 ```
 
 具体的顺序是statedb --> Memory Database (Memory State Trie) --> Disk (Leveldb Batch)
