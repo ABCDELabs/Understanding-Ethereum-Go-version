@@ -130,7 +130,6 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 ## 关键函数
 
 ```go
-
  // 向leveldb中更新Storage 数据
  func WritePreimages(db ethdb.KeyValueWriter, preimages map[common.Hash][]byte)
 

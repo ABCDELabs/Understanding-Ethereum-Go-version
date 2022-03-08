@@ -29,7 +29,96 @@ type SecureTrie struct {
 
 值得注意的是一个关键函数Prove的实现并不在这两个Trie的定义文件中，而是位于trie/proof.go文件中。
 
-## Finalize And Commit and Commit to Disk
+## Trie Operations
+
+### Insert
+
+```go
+func (t *Trie) insert(n node, prefix, key []byte, value node) (bool, node, error) {
+ fmt.Println("Out n:", &n)
+ if len(key) == 0 {
+  if v, ok := n.(valueNode); ok {
+   return !bytes.Equal(v, value.(valueNode)), value, nil
+  }
+  return true, value, nil
+ }
+ switch n := n.(type) {
+ case *shortNode:
+  matchlen := prefixLen(key, n.Key)
+  // If the whole key matches, keep this short node as is
+  if matchlen == len(n.Key) {
+   dirty, nn, err := t.insert(n.Val, append(prefix, key[:matchlen]...), key[matchlen:], value)
+   if !dirty || err != nil {
+    return false, n, err
+   }
+   return true, &shortNode{n.Key, nn, t.newFlag()}, nil
+  }
+  // Otherwise branch out at the index where they differ.
+  branch := &fullNode{flags: t.newFlag()}
+  var err error
+  _, branch.Children[n.Key[matchlen]], err = t.insert(nil, append(prefix, n.Key[:matchlen+1]...), n.Key[matchlen+1:], n.Val)
+  if err != nil {
+   return false, nil, err
+  }
+  _, branch.Children[key[matchlen]], err = t.insert(nil, append(prefix, key[:matchlen+1]...), key[matchlen+1:], value)
+  if err != nil {
+   return false, nil, err
+  }
+  // Replace this shortNode with the branch if it occurs at index 0.
+  if matchlen == 0 {
+   return true, branch, nil
+  }
+  // Otherwise, replace it with a short node leading up to the branch.
+  return true, &shortNode{key[:matchlen], branch, t.newFlag()}, nil
+
+ case *fullNode:
+  dirty, nn, err := t.insert(n.Children[key[0]], append(prefix, key[0]), key[1:], value)
+  if !dirty || err != nil {
+   return false, n, err
+  }
+  n = n.copy()
+  n.flags = t.newFlag()
+  n.Children[key[0]] = nn
+  return true, n, nil
+
+ case nil:
+  return true, &shortNode{key, value, t.newFlag()}, nil
+
+ case hashNode:
+  // We've hit a part of the trie that isn't loaded yet. Load
+  // the node and insert into it. This leaves all child nodes on
+  // the path to the value in the trie.
+  rn, err := t.resolveHash(n, prefix)
+  if err != nil {
+   return false, nil, err
+  }
+  dirty, nn, err := t.insert(rn, prefix, key, value)
+  if !dirty || err != nil {
+   return false, rn, err
+  }
+  return true, nn, nil
+
+ default:
+  panic(fmt.Sprintf("%T: invalid node: %v", n, n))
+ }
+}
+```
+
+这里有一个关于go语言的知识。我们可以观察到insert函数的第一个参数是一个node类型的变量，变量名为n。有趣的是，在switch语句中我们看到了一个这样的写法.
+
+```go
+switch n := n.(type)
+```
+
+这种写法是合法的。
+
+### Update
+
+### Delete
+
+### Finalize And Commit and Commit to Disk
+
+- 在leveldb中保存的是Trie中的节点。
 
 ## StackTrie
 
@@ -44,4 +133,4 @@ type SecureTrie struct {
 
 ## Reference
 
-- [1] http://yangzhe.me/2019/01/18/ethereum-trie-part-2/
+- [1] <http://yangzhe.me/2019/01/18/ethereum-trie-part-2/>

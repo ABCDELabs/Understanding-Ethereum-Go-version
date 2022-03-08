@@ -1,8 +1,6 @@
 # Account and Contract
 
-## Account数据结构分析
-
-### Background
+## Background
 
 在本文中我们来探索一下以太坊中的基本数据元(Metadata)之一的Account。
 
@@ -19,7 +17,7 @@ In general, Account (账户)是参与链上交易的基本角色，是Ethereum�
 
 合约(Contract)由外部账户通过Transaction创建，用于在链上保存**不可篡改的**保存**图灵完备的代码段**，以及保存一些**持久化的数据**。这些代码段使用专用语言书写(Like: Solidity)，并且通常提供一些对外部访问API函数。这些函数通常用于计算以及查询或修改合约中的持久化数据。通常我们经常看到这样的描述"**一旦被记录到区块链上数据不可被修改**，或者**不可篡改的智能合约**"。现在我们知道这种描述是不准确。针对一个链上的智能合约，不可修改/篡改的部分是合约中的代码段，或说是合约中的*函数逻辑*/*代码逻辑是*不可以被修改/篡改的。而链上合约中的持久化的数据部分是可以通过调用代码段中的函数进行数据操作的(CURD)。用户在构造Transaction时只能调用一个合约中的API函数。如果一个用户只希望查询某些合约中的持久化数据，而不进行写操作的话，那么他不需要通过构造一个Transaction来查询数据。他可以通过直接调用本地数据中的对应的仅包含查询操作的函数代码或者请求其他节点存储的代码来操作。如果用户需要对合约中的数据进行更新，那么他就要构造一个Transaction来请求合约中相对应的函数。对于如何编写合约，以及Ethereum如何解析和执行Transaction调用的API的，Transaction的构造我们会在后面的文章中详细的进行解读。
 
-### Account and stateObject
+## StateObject, Account, Contract
 
 在实际代码中，这两种Account都是由stateObject这一结构定义的。stateObject的相关代码位于core/state/state_object.go文件中，隶属于package state。我们摘录了stateObject的结构代码，如下所示。通过下面的代码，我们可以观察到，stateObject是由小写字母开头。根据go语言的特性，我们可以知道这个结构主要用于package内部数据操作，并不对外暴露。
 
