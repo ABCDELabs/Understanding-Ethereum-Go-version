@@ -1,12 +1,10 @@
 # 00_万物的起点从geth出发
 
-
-
 ## 什么是Geth？
 
-Geth是基于Go语言开发以太坊的客户端，也是go-ethereum代码库编译来的可执行程序。Geth实现了Ethereum黄皮书中所有需要的实现的功能，包括状态管理，挖矿，网络通信，密码学模块，数据库模块，EVM解释器等模块。
+Geth是基于Go语言开发以太坊的客户端，它实现了Ethereum协议(黄皮书)中所有需要的实现的功能，包括状态管理，挖矿，网络通信，密码学模块，数据库模块，EVM解释器等模块。而Go-ethereum是包含了Geth在内的一个代码库，它包含了Geth本身，以及编译Geth所需要的其他代码段。
 
-Geth对用户提供了高层的API方便调用，我们需要的就是深入这些高层的API内部，了解Ethereum具体实现的细节。
+Geth实现了Ethereum的运行逻辑，同时提供了高层的API方便用户调用，我们需要的就是从Ethereum的主业务逻辑出发深入Go-ethereum代码库，沿着Ethereum主工作逻辑，以及高层的API的底层实现，从而理解Ethereum具体实现的细节。
 
 ### Geth CLI
 
@@ -54,6 +52,9 @@ type Console struct {
 目前，go-ethereum项目的主要目录结构如下所示。
 
 ```
+cmd/ ethereum相关的Command-line程序。该目录下的每个子目录都包含一个可运行的main.go。
+   |── clef/ Ethereum官方推出的Account管理程序
+   |── geth/ Geth的本体。
 core/   以太坊核心模块，包括核心数据结构，statedb，EVM等算法实现
    |── rawdb/ db相关函数的高层封装(在ethdb和更底层的leveldb之上的封装)
    |── state/
@@ -75,7 +76,7 @@ console/
 ethdb/    Ethereum 本地存储的相关实现, 包括leveldb的调用
    |── leveldb/   Go-Ethereum使用的与Bitcoin Core version一样的Leveldb作为本机存储用的数据库
 miner/
-   |── miner.go   矿工的基本的实现。
+   |── miner.go   矿工模块的实现。
    |── worker.go  真正的block generation的实现实现，包括打包transaction，计算合法的Block
 p2p/     Ethereum 的P2P模块
    |── params    Ethereum 的一些参数的配置，例如: bootnode的enode地址
