@@ -52,6 +52,8 @@ alloc字段用于给一些账户初始化一些本网络的Native Token。在创
 
 #### 初始化创世区块
 
+在每个网络节点运行之前，都需要基于创始节点进行初始化。命令是init 加上 --datadir 后面跟上需要存放Chain数据文件路径，最后跟上链的创世区块genesis.json文件。
+
 ```cmd
 geth init --datadir  <Datadir> genesis.json
 ```
