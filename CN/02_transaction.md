@@ -1,6 +1,5 @@
 # 一个Transaction的生老病死/Transaction CRUD
 
-
 ## General
 
 Transaction是Ethereum

@@ -54,48 +54,49 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 
 ## Contents(暂定)
 
-### PART ONE - General Source Code Analysis: Basic Components
+### PART ONE - General Source Code Analysis: Basic Workflow and Data Components
 
 - [00_万物的起点从geth出发: Basic Geth](CN/00_geth.md)
 - [01_State-based 模型 & Account](CN/01_account.md)
-- [02_Transaction是怎么被打包的: 一个Transaction的生老病死](CN/02_transaction.md)
-- [03_从Block到Blockchain: 区块链数据结构的构建](CN/03_block_blockchain.md)
+- [02_Transaction: 一个Transaction的生老病死](CN/02_transaction.md)
+- [03_从Block到Blockchain: 链状区块结构的构建](CN/03_block_blockchain.md)
 - [04_一个新节点是怎么加入网络并同步区块的](CN/04_p2p_net_node_sync.md)
 - [05_一个网吧老板是怎么用闲置的电脑进行挖矿的](CN/05_mining_hash_gpu.md)
 
-### PART TWO - General Source Code Analysis: Services
+### PART TWO - General Source Code Analysis: Lower-level Services
 
-- [10_构建StateDB的实例](CN/10_trie_statedb.md)
+- [10_StateDB的实例是如何构建的](CN/10_statedb_trie.md)
 - [11_Blockchain的数据是如何持久化的](CN/11_leveldb_in_practice.md)
-- [12_Signer一个签名者的实现](CN/12_signer.md)
-- [13_如何实现节点的RPC调用](CN/13_rpc.md)
-- [14_如何实现节点的IPC调用](CN/14_ipc.md)
+- [12_Signer: 如何证明Transaction是合法的]
+- [13_节点的调用 RPC and IPC](CN/13_rpc_ipc.md)
+- [14_深入EVM: 设计与实现]
 
 ### PART THREE - Advanced Topics
 
-- [20_结合BFT Consensus 解决拜占庭将军问题](CN/20_bft_consensus.md)
-- [21_Plasma与 Zk Rollup](CN/21_zkp_Plasma.md)
-- [22_ADS](CN/22_ads_merkel.md)
+- [20_结合BFT Consensus 解决拜占庭将军问题]
+- [21_从Plasma到Rollup](CN/21_rollup.md)
+- [22_Authenticated data structures Brief](CN/22_ads.md)
 - [23_Bloom Filter](CN/23_bloom_filter.md)
-- [24_图灵机和停机问题](CN/24_turing_halting.md)
+- [24_图灵机和停机问题]
 - [25_Log-structured merge-tree in Ethereum](CN/25_lsm_tree.md)
-- [26_Ethereum Transaction Concurrency](CN/26_txn_concurrency.md)
+- [26_Concurrency in Ethereum Transaction](CN/26_txn_concurrency.md)
+- [27_Zero-knowledge Proof]
 
 ### PART FOUR - Ethereum in Practice
 
 - [30_使用geth构建一个私有网络](CN/30_geth_private_network.md)
 - [31_如何编写Solidity语言](CN/31_solidity_in_practice.md)
-- [32_使用预言机(Oracle)构建随机化的DApp](CN/32_oracle.md)
-- [33_Query On Ethereum Data](CN/33_query.md)
+- [32_使用预言机(Oracle)构建随机化的DApp]
+- [33_Query On Ethereum Data]
+- [34_layer2 in Practice]
 
 ### PART FIVE - APPENDIX
 
 - [40_FQA](#tips)
-- [41_Ethereum System Tunning](CN/41_system_tunning.md)
-- [42_go-ethereum的开发思想](CN/42_developer_view.md)
-- [43_Metrics in Ethereum](CN/43_metrics.md)
-- [44_Golang with Ethereum](CN/44_golang_ethereum.md)
-
+- [41_Ethereum System Tunning]
+- [42_go-ethereum的开发思想]
+- [43_Metrics in Ethereum]
+- [44_Golang & Ethereum]
 -----------------------------------------------------------
 
 ## How to measure the level of understanding of a system？

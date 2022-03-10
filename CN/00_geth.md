@@ -4,7 +4,7 @@
 
 Geth是基于Go语言开发以太坊的客户端，它实现了Ethereum协议(黄皮书)中所有需要的实现的功能，包括状态管理，挖矿，网络通信，密码学模块，数据库模块，EVM解释器等模块。而Go-ethereum是包含了Geth在内的一个代码库，它包含了Geth本身，以及编译Geth所需要的其他代码段。
 
-Geth实现了Ethereum的运行逻辑，同时提供了高层的API方便用户调用，我们需要的就是从Ethereum的主业务逻辑出发深入Go-ethereum代码库，沿着Ethereum主工作逻辑，以及高层的API的底层实现，从而理解Ethereum具体实现的细节。
+Geth实现了Ethereum的运行逻辑，同时提供了高层的API方便用户调用，我们需要的就是从Ethereum的主业务逻辑出发深入Go-ethereum代码库，沿着Ethereum主工作逻辑，深入高层的API的底层实现，从而理解Ethereum具体实现的细节。
 
 ### Geth CLI
 
