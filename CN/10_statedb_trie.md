@@ -29,6 +29,8 @@ type SecureTrie struct {
 
 值得注意的是一个关键函数Prove的实现并不在这两个Trie的定义文件中，而是位于trie/proof.go文件中。
 
+## StateDB
+
 ## Trie Operations
 
 ### Insert
