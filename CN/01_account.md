@@ -1,6 +1,6 @@
 # Account and Contract
 
-## Background
+## 概述
 
 在本文中我们来探索一下以太坊中的基本数据元(Metadata)之一的Account。
 

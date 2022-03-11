@@ -1,6 +1,6 @@
 # 一个Transaction的生老病死/Transaction CRUD
 
-## General
+## 概述
 
 Transaction是Ethereum执行数据操作的媒介。它主要起到下面的几个作用:
 
@@ -9,6 +9,8 @@ Transaction是Ethereum执行数据操作的媒介。它主要起到下面的几�
 3. 调用Contract中会修改Contract持久化数据或者修改其他Account/Contract数据的函数。
 
 这里我们对Transaction功能性的细节再进行额外的补充说明。首先，Transaction只能创建Contract，而不能用于创建外部账户(EOA)。其次，关于Transaction的第三个作用我们使用了很长的定语进行说明，这里是为了强调，如果调用的Contract函数只进行了查询的操作，是不需要构造依赖Transaction的。总结下来，所有参与Account/Contract数据修改的操作都需要通过Transaction来进行。
+
+## LegacyTx & AccessListTX & DynamicFeeTx
 
 下面我们根据源代码中的定义来了解一下Transaction具体的数据结构的定义，了解其包含的相关变量。
 
@@ -45,7 +47,9 @@ type TxData interface {
 }
 ```
 
-这里注意，目前版本的geth中将TxData声明成了一个interface而不是直接给出了具体的结构的声明。同时通过，DynamicFeeTx, LegacyTx and AccessListTx，这三种类型的Transaction来实现了这个接口。这样的设计好处在于，后续的更新中可以对Transaction类型进行更加灵活的修改。DynamicFeeTx是[EIP-1559](https://eips.ethereum.org/EIPS/eip-1559)生效之后的默认的Transaction。LegacyTx顾名思义，是原始的Ethereum的Transaction设计，目前市面上大部分早年关于Ethereum Transaction结构的文档实际上都是在描述LegacyTx的结构。而AccessListTX是基于EIP-2930的Transaction。
+这里注意，在目前版本的geth中(1.10.*)，根据[EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)的设计，原来的TxData现在被声明成了一个interface，而不是定义了具体的结构。这样的设计好处在于，后续版本的更新中可以对Transaction类型进行更加灵活的修改。目前，在Ethereum中定义了三种类型的Transaction来实现TxData这个接口。按照时间上的定义顺序来说，这三种类型的Transaction分别是，LegacyT，AccessListTx，TxDynamicFeeTx。LegacyTx顾名思义，是原始的Ethereum的Transaction设计，目前市面上大部分早年关于Ethereum Transaction结构的文档实际上都是在描述LegacyTx的结构。而AccessListTX是基于EIP-2930(Berlin分叉)的Transaction。DynamicFeeTx是[EIP-1559](https://eips.ethereum.org/EIPS/eip-1559)(伦敦分叉)生效之后的默认的Transaction。
+
+(PS:目前Ethereum的黄皮书只更新到了Berlin分叉的内容，还没有添加London分叉的更新, 2022.3.10)
 
 ### DynamicFeeTx
 

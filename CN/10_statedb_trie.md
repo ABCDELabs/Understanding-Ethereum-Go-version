@@ -121,6 +121,7 @@ switch n := n.(type)
 ### Finalize And Commit and Commit to Disk
 
 - 在leveldb中保存的是Trie中的节点。
+- <hash, node.rlprawdata>
 
 ## StackTrie
 
