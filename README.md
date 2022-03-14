@@ -3,7 +3,7 @@
 - Title: Understanding Ethereum: Starting with go-ethereum source code｜理解以太坊: Go 版本源码剖析
 - Subject: Ethereum Source Code Analysis | 以太坊源码分析
 - Author: Siyuan Han
-- Go-Ethereum Version: v1.10.15(London upgrade)
+- Go-Ethereum Version: v1.10.15 (London Upgrade)
 - Updated date: 2022-03
 
 ## Preface

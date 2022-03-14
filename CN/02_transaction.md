@@ -8,7 +8,7 @@ Transaction是Ethereum执行数据操作的媒介。它主要起到下面的几�
 2. 创建新的Contract。
 3. 调用Contract中会修改Contract持久化数据或者修改其他Account/Contract数据的函数。
 
-这里我们对Transaction功能性的细节再进行额外的补充说明。首先，Transaction只能创建Contract，而不能用于创建外部账户(EOA)。其次，关于Transaction的第三个作用我们使用了很长的定语进行说明，这里是为了强调，如果调用的Contract函数只进行了查询的操作，是不需要构造依赖Transaction的。总结下来，所有参与Account/Contract数据修改的操作都需要通过Transaction来进行。
+这里我们对Transaction功能性的细节再进行额外的补充说明。首先，Transaction只能创建Contract，而不能用于创建外部账户(EOA)。其次，关于Transaction的第三个作用我们使用了很长的定语进行说明，这里是为了强调，如果调用的Contract函数只进行了查询的操作，是不需要构造依赖Transaction的。总结下来，所有参与Account/Contract数据修改的操作都需要通过Transaction来进行。第三，Transaction只能由外部账户(EOA)构建，Contract是没办法构交易的。
 
 ## LegacyTx & AccessListTX & DynamicFeeTx
 
@@ -51,29 +51,6 @@ type TxData interface {
 
 (PS:目前Ethereum的黄皮书只更新到了Berlin分叉的内容，还没有添加London分叉的更新, 2022.3.10)
 
-### DynamicFeeTx
-
-如果我们观察DynamicFeeTx就会发现，DynamicFeeTx的定义其实就是在LegacyTx/AccessListTX的定义的基础上额外的增加了GasTipCap与GasFeeCap这两个字段。
-
-```go
-type DynamicFeeTx struct {
- ChainID    *big.Int
- Nonce      uint64
- GasTipCap  *big.Int // a.k.a. maxPriorityFeePerGas
- GasFeeCap  *big.Int // a.k.a. maxFeePerGas
- Gas        uint64
- To         *common.Address `rlp:"nil"` // nil means contract creation
- Value      *big.Int
- Data       []byte
- AccessList AccessList
-
- // Signature values
- V *big.Int `json:"v" gencodec:"required"`
- R *big.Int `json:"r" gencodec:"required"`
- S *big.Int `json:"s" gencodec:"required"`
-}
-```
-
 ### LegacyTx
 
 ```go
@@ -104,14 +81,28 @@ type AccessListTx struct {
 }
 ```
 
-## Background of State-based Blockchain
+### DynamicFeeTx
 
-- State-based Blockchain 的数据主要由两部分的数据管理模块组成：World State 和 Blockchain。
-- State Object是系统中基于K-V结构的基础数据元素。在Ethereum中，State Object是Account。
-- World State表示了System中所有State Object的最新值的一个Snapshot，。
-- Blockchain是以块为单位的数据结构，每个块中包含了若干Transaction。Blockchain 可以被视为历史交易数据的组合。
-- Transaction是Blockchain System中与承载数据更新的载体。通过Transaction，State Object从当前状态切换到另一个状态。
-- World State的更新是以Block为单位的。
+如果我们观察DynamicFeeTx就会发现，DynamicFeeTx的定义其实就是在LegacyTx/AccessListTX的定义的基础上额外的增加了GasTipCap与GasFeeCap这两个字段。
+
+```go
+type DynamicFeeTx struct {
+ ChainID    *big.Int
+ Nonce      uint64
+ GasTipCap  *big.Int // a.k.a. maxPriorityFeePerGas
+ GasFeeCap  *big.Int // a.k.a. maxFeePerGas
+ Gas        uint64
+ To         *common.Address `rlp:"nil"` // nil means contract creation
+ Value      *big.Int
+ Data       []byte
+ AccessList AccessList
+
+ // Signature values
+ V *big.Int `json:"v" gencodec:"required"`
+ R *big.Int `json:"r" gencodec:"required"`
+ S *big.Int `json:"s" gencodec:"required"`
+}
+```
 
 ## Transaction是如何被打包并修改Blockchain中的值的
 
@@ -369,6 +360,15 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
  return receipts, allLogs, *usedGas, nil
 }
 ```
+
+## Background of State-based Blockchain
+
+- State-based Blockchain 的数据主要由两部分的数据管理模块组成：World State 和 Blockchain。
+- State Object是系统中基于K-V结构的基础数据元素。在Ethereum中，State Object是Account。
+- World State表示了System中所有State Object的最新值的一个Snapshot，。
+- Blockchain是以块为单位的数据结构，每个块中包含了若干Transaction。Blockchain 可以被视为历史交易数据的组合。
+- Transaction是Blockchain System中与承载数据更新的载体。通过Transaction，State Object从当前状态切换到另一个状态。
+- World State的更新是以Block为单位的。
 
 1. <https://www.codenong.com/cs105936343/>
 2. <https://yangzhe.me/2019/08/12/ethereum-evm/>
