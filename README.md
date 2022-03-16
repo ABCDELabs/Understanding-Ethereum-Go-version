@@ -196,6 +196,8 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 - [7] EIP-2718: Typed Transaction Envelope[[link]](https://eips.ethereum.org/EIPS/eip-2718)
 - [8] EIP-2930: Optional access lists [[link]](https://eips.ethereum.org/EIPS/eip-2930)
 - [9] EIP-1559: Fee market change for ETH 1.0 chain [[link]](https://eips.ethereum.org/EIPS/eip-1559)
+- [10] Ask about Geth: Snapshot acceleration
+[[link](https://blog.ethereum.org/2020/07/17/ask-about-geth-snapshot-acceleration/)
 
 ## Talks
 

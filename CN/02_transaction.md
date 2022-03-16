@@ -1,4 +1,4 @@
-# 一个Transaction的生老病死/Transaction CRUD
+# Transaction: 一个Transaction的生老病死
 
 ## 概述
 
@@ -106,9 +106,9 @@ type DynamicFeeTx struct {
 
 ## Transaction是如何被打包并修改Blockchain中的值的
 
-Transaction用于更新一个或多个Account的State的。Miner负责将一个或多个Transaction被打包到一个block中，并按照顺序执行他们。顺序执行的结构会被finalise成一个新的World State。这个过程成为World State的状态转移。
+Transaction可以更新一个或多个Account的State的。Miner负责将一个或多个Transaction被打包到一个block中，并按照顺序执行他们。顺序执行的结构会被finalise成一个新的World State，并最终被保存到State Trie中。这个过程成为World State的状态转移。
 
-在Ethereum中，当Miner开始构造新的区块的时候，首先会启动 "miner/worker.go的 mainLoop()"函数。
+在Ethereum中，当Miner开始构造新的区块的时候，首先会启动 "miner/worker.go的 mainLoop()"函数。具体的函数如下所示。
 
 ```go
 func (w *worker) mainLoop() {
@@ -130,7 +130,7 @@ func (w *worker) mainLoop() {
 }
 ```
 
-首先Worker会从TransactionPool中拿出若干的transaction, 赋值给*txs*, 然后按照Price和Nonce对*txs*进行排序，并将结果赋值给*txset*。在拿到*txset*之后，mainLoop函数会调用"miner/worker.go的commitTransactions()"函数。
+首先Worker会从Transaction Pool中拿出若干的transaction, 赋值给*txs*, 然后按照Price和Nonce对*txs*进行排序，并将结果赋值给*txset*。在拿到*txset*之后，mainLoop函数会调用"miner/worker.go的commitTransactions()"函数。
 
 ```go
 func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coinbase common.Address, interrupt *int32) bool {
@@ -267,7 +267,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 }
 ```
 
-更细粒度的对每个opcode循环调用core/vm/jump_table.go中的execute函数。这里值得一提的是，获取Contract中每条Operate的方式，是从Contact中的code数组中按照第n个拿取。
+在更细粒度的对每个opcode循环调用core/vm/jump_table.go中的execute函数。这里值得一提的是，获取Contract中每条Operate的方式，是从Contact中的code数组中按照第n个拿取。
 
 ```go
 // GetOp returns the n'th element in the contract's byte array
@@ -285,7 +285,7 @@ func (c *Contract) GetByte(n uint64) byte {
 }
 ```
 
-OPCODE的具体实现代码位于core/vm/instructor.go文件中。比如，对Contract中持久化数据修改的OPSSTORE指令的实现位于opStore()函数中。
+OPCODE的具体实现代码位于core/vm/instructor.go文件中。比如，对Contract中持久化数据修改的OPSSTORE指令的实现位于opStore()函数中。而opStore的函数的具体操作又是调用了StateDB中的SetState函数，将Go-ethereum中的几个主要的模块串联了起来。
 
 ```go
 func opSstore(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {

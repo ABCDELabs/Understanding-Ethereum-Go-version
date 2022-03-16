@@ -25,13 +25,15 @@ type SecureTrie struct {
 }
 ```
 
-不管是Secure Trie还是Trie，他们的创建的前提是更下层的db的实例以及创建成功了，否则就会报错。
+不管是Secure Trie还是Trie，他们的创建的前提是更下层的db的实例已经创建成功了，否则就会报错。
 
 值得注意的是一个关键函数Prove的实现并不在这两个Trie的定义文件中，而是位于trie/proof.go文件中。
 
 ## StateDB
 
 ## Trie Operations
+
+### Read Operation
 
 ### Insert
 
@@ -132,7 +134,7 @@ switch n := n.(type)
  statedb.Database().TrieDB().Commit(root, true, nil)
 ```
 
-具体的顺序是statedb --> Memory Database (Memory State Trie) --> Disk (Leveldb Batch)
+具体World State的更新顺序是: statedb --> Memory Database (Memory State Trie) --> Disk (Leveldb Batch)
 
 ## Reference
 
