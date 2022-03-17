@@ -12,7 +12,7 @@ Transaction是Ethereum执行数据操作的媒介。它主要起到下面的几�
 
 ## LegacyTx & AccessListTX & DynamicFeeTx
 
-下面我们根据源代码中的定义来了解一下Transaction具体的数据结构的定义，了解其包含的相关变量。
+下面我们根据源代码来了解一下Transaction具体的数据结构的定义，了解其包含的相关变量。
 
 ```go
 type Transaction struct {

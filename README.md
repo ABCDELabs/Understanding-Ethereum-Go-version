@@ -66,10 +66,11 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 ### PART TWO - General Source Code Analysis: Lower-level Services
 
 - [10_StateDB的实例是如何构建的](CN/10_statedb_trie.md)
-- [11_Blockchain的数据是如何持久化的]
-- [12_Signer: 如何证明Transaction是合法的]
-- [13_节点的调用 RPC and IPC](CN/13_rpc_ipc.md)
-- [14_深入EVM: 设计与实现]
+- [11_Blockchain的数据是如何持久化的:Leveldb in Practice]
+- [12_当I/O变成瓶颈:Snapshot in Practice]
+- [13_深入EVM: 设计与实现]
+- [14_Signer: 如何证明Transaction的合法性]
+- [15_节点的调用 RPC and IPC](CN/15_rpc_ipc.md)
 
 ### PART THREE - Advanced Topics
 
