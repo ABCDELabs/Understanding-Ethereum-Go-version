@@ -140,9 +140,9 @@ switch n := n.(type)
 
 ## StackTrie
 
-StackTrie虽然也是MPT结构，但是它与另外的两个Trie最大的不同在于，其主要作用不是用于存储数据，而是用于给一组数据生成证明。比如，在Block中的Transaction Hash以及Receipt Hash都是基于StackTrie生成的。这里我们使用一个更直观的例子。这个部分的代码位于*core/block_validator.go*中。在block_validator中定义了一系列验证用的函数, 比如`ValidateBody`和 `ValidateState`函数。我们选取了这两个函数的其中一部分，如下所示。为了验证Block的合法性，ValidateBody和ValidateState函数分别在本地基于Block中提供的数据来构造Transaction和Receipt的哈希来与Header中的TxHash与ReceiptHash。我们可以发现，构造哈希的函数`types.DeriveSha`的第二个参数就是`trie.NewStackTrie`类型的。这里`DeriveSha`不断的向StackTrie中添加数据，并最终返回StackTrie的Root哈希值。
+StackTrie虽然也是MPT结构，但是它与另外的两个Trie最大的不同在于，其主要作用不是用于存储数据，而是用于给一组数据生成证明。比如，在Block中的Transaction Hash以及Receipt Hash都是基于StackTrie生成的。这里我们使用一个更直观的例子。这个部分的代码位于*core/block_validator.go*中。在block_validator中定义了一系列验证用的函数, 比如`ValidateBody`和 `ValidateState`函数。我们选取了这两个函数的其中一部分，如下所示。为了验证Block的合法性，ValidateBody和ValidateState函数分别在本地基于Block中提供的数据来构造Transaction和Receipt的哈希来与Header中的TxHash与ReceiptHash。我们可以发现，函数`types.DeriveSha`需要一个`TrieHasher`类型的参数。但是在具体调用的时候，却传入了了一个`trie.NewStackTrie`类型的变量。这是因为StackTrie实现了TrieHasher接口所需要的三个函数，所以这种调用是合法的。我们可以在*core/types/hashing.go*中找到TrieHasher的定义。这里`DeriveSha`不断的向StackTrie中添加数据，并最终返回StackTrie的Root哈希值。
 
-同时，我们可以发现，在调用DeriveSha函数的时候，我们每次都会new一个新的StackTrie作为参数，也是反映了，StackTrie的主要作用就是生成验证用的Proof而不是存储数据。
+同时，我们可以发现，在调用DeriveSha函数的时候，我们每次都会new一个新的StackTrie作为参数。这也反映出了，StackTrie的主要作用就是生成验证用的Proof，而不是存储数据。
 
 ```golang
 func (v *BlockValidator) ValidateBody(block *types.Block) error {
