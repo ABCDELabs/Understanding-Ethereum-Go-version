@@ -4,30 +4,32 @@
 
 在本文中我们来探索一下以太坊中的基本数据元(Metadata)之一的Account。
 
-我们知道，Ethereum是基于交易的状态机模型(Transaction-based State Machine)来运行的。在这种模型中，State基于Transaction的执行引发的数据更新/删除/创建，而转移到另一个State。具体的说，Transaction的执行会让系统元对象(Meta Object)的数据值发生改变，表现为系统元对象从一个状态转换到另一个状态。在Ethereum中，这个元对象就是Account。State表现(represent)出来的是Account在某个时刻的包含/对应的数据的值。
+我们知道，Ethereum的运行依赖于基于交易的状态机模型(Transaction-based State Machine。状态(State)指的是数据变量在*某一时刻*下的信息。承载State的数据变量，称之为StateObject。当StateObject的数据或信息发生了变化时，我们称为*状态转移*。在Ethereum的运行模型中，StateObject所包含的数据会因为Transaction的执行引发的数据更新/删除/创建而发生变化，从而造成状态转移，StateObject的状态会从当前的State转移到另一个State。
 
-- Account --> Object
-- State   --> The value of the Object
+在Ethereum中，StateObject的具体实现就是Account。因此，我们提到的State具体指的的是，Account在某个时刻的包含的数据的值。
 
-In general, Account (账户)是参与链上交易的基本角色，是Ethereum状态机模型中的基本单位，承担了链上交易的发起者以及交易接收者的角色。
+- Account --> StateObject
+- State   --> The value/data of the Account
 
-目前，在以太坊中，有两种类型的Account，分别是外部账户(EOA)以及合约(Contract)。
+总的来说, Account (账户)是参与链上交易(Transaction)的基本角色，是Ethereum状态机模型中的基本单位，承担了链上交易的发起者以及接收者的角色。目前，在以太坊中，有两种类型的Account，分别是外部账户(EOA)以及合约(Contract)。
 
-外部账户(EOA)由用户直接控制的账户，负责签名并发起交易(transaction)。
+### EOA
 
-合约(Contract)由外部账户通过Transaction创建，用于在链上保存**不可篡改的**保存**图灵完备的代码段**，以及保存一些**持久化的数据**。这些代码段使用专用语言书写(Like: Solidity)，并且通常提供一些对外部访问API函数。这些函数通常用于计算以及查询或修改合约中的持久化数据。通常我们经常看到这样的描述"**一旦被记录到区块链上数据不可被修改**，或者**不可篡改的智能合约**"。现在我们知道这种描述是不准确。针对一个链上的智能合约，不可修改/篡改的部分是合约中的代码段，或说是合约中的*函数逻辑*/*代码逻辑是*不可以被修改/篡改的。而链上合约中的持久化的数据部分是可以通过调用代码段中的函数进行数据操作的(CURD)。用户在构造Transaction时只能调用一个合约中的API函数。如果一个用户只希望查询某些合约中的持久化数据，而不进行写操作的话，那么他不需要通过构造一个Transaction来查询数据。他可以通过直接调用本地数据中的对应的仅包含查询操作的函数代码或者请求其他节点存储的代码来操作。如果用户需要对合约中的数据进行更新，那么他就要构造一个Transaction来请求合约中相对应的函数。对于如何编写合约，以及Ethereum如何解析和执行Transaction调用的API的，Transaction的构造我们会在后面的文章中详细的进行解读。
+外部账户(EOA)是由用户直接控制的账户，负责签名并发起交易(Transaction)。用户通过Account的私钥来保证对账户数据的控制权。
+
+合约账户(Contract)，简称为合约，是由外部账户通过Transaction创建。通常合约账户，保存了**不可篡改的图灵完备的代码段**，以及保存一些**持久化的数据**。这些代码段使用专用语言书写(Like: Solidity)，并通常提供一些对外部访问API接口函数。这些API接口可以通过Transaction，或者通过本地/第三方提供的RPC服务来调用。这种模式构成了目前的DApp生态圈的基础。
+
+通常，合约中的函数用于计算以及查询或修改合约中的持久化数据。我们经常看到这样的描述"**一旦被记录到区块链上数据不可被修改**，或者**不可篡改的智能合约**"。现在我们知道这种描述是不准确。针对一个链上的智能合约，不可修改/篡改的部分是合约中的代码段，或说是合约中的*函数逻辑*/*代码逻辑是*不可以被修改/篡改的。而链上合约中的持久化的数据是可以通过调用代码段中的函数进行数据操作的(CURD)，包括修改和删除，具体取决于合约函数中的代码逻辑。
+
+如果一个用户**只**希望查询某些合约中的持久化数据，而不进行写操作的话，那么他不需要通过构造一个Transaction来查询数据。他可以通过直接调用本地数据或者第三方数据中的对应的仅包含查询操作的函数代码。如果用户需要对合约中的数据进行更新，那么他就要构造一个Transaction来请求合约中相对应的函数。当用户通过构造Transaction的方式来调用合约中的函数时，每个Transaction只能调用一个合约中的一个API函数。
+
+对于如何编写合约，以及Ethereum如何解析Transaction并调用对应的合约中API的，我们会在后面的文章中详细的进行解析。
 
 ## StateObject, Account, Contract
 
-在实际代码中，这两种Account都是由stateObject这一结构定义的。stateObject的相关代码位于core/state/state_object.go文件中，隶属于package state。我们摘录了stateObject的结构代码，如下所示。通过下面的代码，我们可以观察到，stateObject是由小写字母开头。根据go语言的特性，我们可以知道这个结构主要用于package内部数据操作，并不对外暴露。
+在实际代码中，这两种Account都是由`stateObject`这一数据结构定义的。`stateObject`的相关代码位于*core/state/state_object.go*文件中，隶属于*package state*。我们摘录了`stateObject`的结构代码，如下所示。通过下面的代码，我们可以观察到，`stateObject`是由小写字母开头。根据go语言的特性，我们可以知道这个结构主要用于package内部数据操作，并不对外暴露。
 
 ```go
-  // stateObject represents an Ethereum account which is being modified.
-  //
-  // The usage pattern is as follows:
-  // First you need to obtain a state object.
-  // Account values can be accessed and modified through the object.
-  // Finally, call CommitTrie to write the modified storage trie into a database.
   type stateObject struct {
     address  common.Address
     addrHash common.Hash // hash of ethereum address of the account
@@ -56,7 +58,7 @@ In general, Account (账户)是参与链上交易的基本角色，是Ethereum�
 
 ### Address
 
-在stateObject这一结构体中，开头的两个成员变量为address以及address的哈希值addrHash。address是common.Address类型，address是common.Hash类型，它们分别对应了一个20字节长度的byte数组和一个32字节长度的byte数组。关于这两种数据类型的定义如下所示。
+在`stateObject`这一结构体中，开头的两个成员变量为`address`以及address的哈希值`addrHash`。`address`是common.Address类型，`addrHash`是common.Hash类型，它们分别对应了一个20字节长度的byte数组和一个32字节长度的byte数组。关于这两种数据类型的定义如下所示。
 
 ```go
 // Lengths of hashes and addresses in bytes.
@@ -72,11 +74,11 @@ type Address [AddressLength]byte
 type Hash [HashLength]byte
 ```
 
-在Ethereum中，每个Account都拥有独一无二的address，用于检索。Address作为每个Account的身份信息，类似于现实生活中的身份证，它与用户信息时刻绑定而且不能被修改。Ethereum通过Account Address来构建Merkle Patricia Trie来管理所有的Account state。MPT结构，也被称为World State Trie(or World State)。关于MPT结构以及World State的细节我们会在之后的文章中详细说明。
+在Ethereum中，每个Account都拥有独一无二的地址。Address作为每个Account的身份信息，类似于现实生活中的身份证，它与用户信息时刻绑定而且不能被修改。
 
 ### data and StateAccount
 
-继续向下探索，我们会遇到成员变量data，它是一个types.StateAccount类型的变量。在上面的分析中我们提到，stateObject这种类型只对Package State这个内部使用。所以相应的，Package State也为外部Package API提供了与Account相关的数据类型"State Account"。在上面的代码中我们就可以看到，"State Account"对应了State Object中"data Account"成员变量。State Account的具体数据结构的被定义在"core/types/state_account.go"文件中(~~在之前的版本中Account的代码位于core/account.go~~)，其定义如下所示。
+继续向下探索，我们会遇到成员变量data，它是一个`types.StateAccount`类型的变量。在上面的分析中我们提到，`stateObject`这种类型只对Package State这个内部使用。所以相应的，Package State也为外部Package API提供了与Account相关的数据类型"State Account"。在上面的代码中我们就可以看到，"State Account"对应了State Object中"data Account"成员变量。State Account的具体数据结构的被定义在"core/types/state_account.go"文件中(~~在之前的版本中Account的代码位于core/account.go~~)，其定义如下所示。
 
 ```go
 // Account is the Ethereum consensus representation of accounts.
@@ -91,19 +93,20 @@ type StateAccount struct {
 
 其中的包含四个变量为:
 
-- Nonce 表示该账户发送的交易序号，随着账户发送的交易数量的增加而单调增加。
-- Balance 表示该账户的余额。这里的余额指的是链上的Global Token Ether。
+- Nonce 表示该账户发送的交易序号，随着账户发送的交易数量的增加而单调增加。每次发送一个交易，Nonce的值就会加1。
+- Balance 表示该账户的余额。这里的余额指的是链上的Global/Native Token Ether。
 - Root 表示当前账户的下Storage层的 Merkle Patricia Trie的Root。EOA账户这个部分为空值。
 - CodeHash是该账户的Contract代码的哈希值。EOA账户这个部分为空值。
 
 ### db
 
-上述的几个成员变量基本覆盖了Account自身定义有关的全部成员变量。那么继续向下看，我们会遇到db和dbErr这两个成员变量。db这个变量保存了一个StateDB类型的指针(或者称为句柄handle)。这是为了方便调用StateDB相关的API对Account所对应的stateObject进行操作。StateDB本质上是Ethereum用于管理stateObject信息的而抽象出来的内存数据库，所有的Account数据的更新，检索都会使用StateDB提供的API。关于StateDB的具体实现，功能，以及如何与更底层(leveldb)进行结合的，我们会在之后的文章中进行详细描述。
+上述的几个成员变量基本覆盖了Account主工作流相关的全部成员变量。那么继续向下看，我们会遇到db和dbErr这两个成员变量。db这个变量保存了一个StateDB类型的指针。这是为了方便调用StateDB相关的API对Account所对应的stateObject进行操作。StateDB本质上是Ethereum用于管理stateObject信息的而抽象出来的内存数据库。所有的Account数据的更新，检索都会使用StateDB提供的API。关于StateDB的具体实现，功能，以及如何与更底层(leveldb)进行结合的，我们会在之后的文章中进行详细描述。
 
 ### Cache
 
-对于剩下的成员变量，它们的主要用于内存Cache。trie用于保存Contract中的持久化存储的数据，code用于缓存contract中的代码段到内存中，它是一个byte数组。剩下的四个Storage字段主要在执行Transaction的时候缓存Contract合约修改的持久化数据，比如dirtyStorage就用于缓存在Block被Finalize之前，Transaction所修改的合约中的持久化存储数据。对于外部账户，由于没有代码字段，所以对应stateObject对象中的code字段，以及四个Storage类型的字段对应的变量的值都为空(originStorage, pendingStorage, dirtyStorage, fakeStorage)。关于Contract的Storage层的详细信息，我们会在后面部分进行详细的描述。
+对于剩下的成员变量，它们的主要用于内存Cache。trie用于保存Contract中的持久化存储的数据，code用于缓存contract中的代码段到内存中，它是一个byte数组。剩下的四个Storage字段主要在执行Transaction的时候缓存Contract合约修改的持久化数据，比如dirtyStorage就用于缓存在Block被Finalize之前，Transaction所修改的合约中的持久化存储数据。对于外部账户，由于没有代码字段，所以对应stateObject对象中的code字段，以及四个Storage类型的字段对应的变量的值都为空(originStorage, pendingStorage, dirtyStorage, fakeStorage)。
 
+从调用关系上看，这四个缓存变量的调用关系是originStorage --> dirtyStorage--> pendingStorage。关于Contract的Storage层的详细信息，我们会在后面部分进行详细的描述。
 
 ## 深入Account
 
@@ -163,15 +166,15 @@ type StateAccount struct {
 
 ### Contract Storage (合约存储)
 
-[在文章的开头](#general Background)我们提到，在外部账户对应的，stateObject结构体的实例中，有四个Storage类型的变量是空值。那显然的，这四个变量是为Contract类型的账户准备的。
+[在文章的开头](#general Background)我们提到，在外部账户对应的stateObject结构体的实例中，有四个Storage类型的变量是空值。那显然的，这四个变量是为Contract类型的账户准备的。
 
-在"state_object.go"文件的开头部分(41行左右)，我们可以找到Storage类型的定义。具体如下所示。
+在*state_object.go*文件的开头部分(41行左右)，我们可以找到Storage类型的定义。具体如下所示。
 
 ```go
 type Storage map[common.Hash]common.Hash
 ```
 
-我们可以看到，*Storage*是一个key和value都是common.Hash类型的map结构。common.Hash类型，则对应了一个长度为32bytes的byte类型数组。这个类型在go-ethereum中被大量使用，通常用于表示32字节长度的数据，比如Keccak256函数的哈希值。在之后的旅程中，我们也会经常看到它的身影，它的定义在common.type.go文件中。
+我们可以看到，*Storage*是一个key和value都是`common.Hash`类型的map结构。common.Hash类型，则对应了一个长度为32bytes的byte类型数组。这个类型在go-ethereum中被大量使用，通常用于表示32字节长度的数据，比如Keccak256函数的哈希值。在之后的旅程中，我们也会经常看到它的身影，它的定义在common.type.go文件中。
 
 ```go
 // HashLength is the expected length of the hash

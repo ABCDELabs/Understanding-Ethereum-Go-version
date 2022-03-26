@@ -138,7 +138,6 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
  func WritePreimages(db ethdb.KeyValueWriter, preimages map[common.Hash][]byte)
 
  // 向Blockchain中添加新的Block，会涉及到StateDB(Memory)/Trie(Memory)/EthDB(Disk)的更新
- func (bc *BlockChain) InsertChain(chain types.Blocks) (int, error)
  func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals, setHead bool) (int, error)
 
  // insertChain中调用来执行Block中的所有的交易
