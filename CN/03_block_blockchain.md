@@ -43,7 +43,7 @@ type Header struct {
 
 ### Date Structure
 
-```go
+```golang
 type BlockChain struct {
  chainConfig *params.ChainConfig // Chain & network configuration
  cacheConfig *CacheConfig        // Cache configuration for pruning
@@ -99,3 +99,5 @@ type BlockChain struct {
 }
 
 ```
+## 向Blockchain中插入Block
+`func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals, setHead bool) (int, error)`
