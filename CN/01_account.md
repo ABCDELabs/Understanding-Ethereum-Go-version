@@ -2,26 +2,27 @@
 
 ## 概述
 
-在本文中我们来探索一下以太坊中的基本数据元(Metadata)之一的Account。
+我们常常听到这么一个说法，“Ethereum和Bitcoin最大的不同之一是，Ethereum是基于Account模型的Blockchain系统，而Bitcoin是基于UTXO模型的”。那么，这个另辟蹊径的Account模型究竟不同在何处呢？在本文中我们来探索一下以太坊中的基本数据单元(Metadata)之一的Account。
 
-我们知道，Ethereum的运行依赖于基于交易的状态机模型(Transaction-based State Machine。状态(State)指的是数据变量在*某一时刻*下的信息。承载State的数据变量，称之为StateObject。当StateObject的数据或信息发生了变化时，我们称为*状态转移*。在Ethereum的运行模型中，StateObject所包含的数据会因为Transaction的执行引发的数据更新/删除/创建而发生变化，从而造成状态转移，StateObject的状态会从当前的State转移到另一个State。
+我们知道，Ethereum的运行依赖于基于交易的状态机模型(Transaction-based State Machine)。其中，状态(State)指的是数据变量在*某一时刻*下的信息。承载State的数据变量，称之为StateObject。当StateObject的数据或信息发生了变化时，我们称为*状态转移*。在Ethereum的运行模型中，StateObject所包含的数据会因为Transaction的执行引发的数据更新/删除/创建而发生变化，从而造成状态转移，StateObject的状态会从当前的State转移到另一个State。
 
-在Ethereum中，StateObject的具体实现就是Account。因此，我们提到的State具体指的的是，Account在某个时刻的包含的数据的值。
+在Ethereum中，StateObject的具体实现就是Account。因此，我们提到的State具体指的就是Account在某个时刻的包含的数据的值。
 
 - Account --> StateObject
 - State   --> The value/data of the Account
 
-总的来说, Account (账户)是参与链上交易(Transaction)的基本角色，是Ethereum状态机模型中的基本单位，承担了链上交易的发起者以及接收者的角色。目前，在以太坊中，有两种类型的Account，分别是外部账户(EOA)以及合约(Contract)。
+总的来说, Account (账户)是参与链上交易(Transaction)的基本角色，是Ethereum状态机模型中的基本单位，承担了链上交易的发起者以及接收者的角色。目前，在以太坊中，有两种类型的Account，分别是外部账户(EOA)以及合约账户(Contract)。
 
 ### EOA
 
 外部账户(EOA)是由用户直接控制的账户，负责签名并发起交易(Transaction)。用户通过Account的私钥来保证对账户数据的控制权。
 
-合约账户(Contract)，简称为合约，是由外部账户通过Transaction创建。通常合约账户，保存了**不可篡改的图灵完备的代码段**，以及保存一些**持久化的数据**。这些代码段使用专用语言书写(Like: Solidity)，并通常提供一些对外部访问API接口函数。这些API接口可以通过Transaction，或者通过本地/第三方提供的RPC服务来调用。这种模式构成了目前的DApp生态圈的基础。
+合约账户(Contract)，简称为合约，是由外部账户通过Transaction创建。合约账户，保存了**不可篡改的图灵完备的代码段**，以及保存一些**持久化的数据**。这些代码段使用专用语言书写(Like: Solidity)，并通常提供一些对外部访问API接口函数。这些API接口可以通过Transaction，或者通过本地/第三方提供的RPC服务来调用。这种模式构成了目前的DApp生态圈的基础。
 
 通常，合约中的函数用于计算以及查询或修改合约中的持久化数据。我们经常看到这样的描述"**一旦被记录到区块链上数据不可被修改**，或者**不可篡改的智能合约**"。现在我们知道这种描述是不准确。针对一个链上的智能合约，不可修改/篡改的部分是合约中的代码段，或说是合约中的*函数逻辑*/*代码逻辑是*不可以被修改/篡改的。而链上合约中的持久化的数据是可以通过调用代码段中的函数进行数据操作的(CURD)，包括修改和删除，具体取决于合约函数中的代码逻辑。
 
-如果一个用户**只**希望查询某些合约中的持久化数据，而不进行写操作的话，那么他不需要通过构造一个Transaction来查询数据。他可以通过直接调用本地数据或者第三方数据中的对应的仅包含查询操作的函数代码。如果用户需要对合约中的数据进行更新，那么他就要构造一个Transaction来请求合约中相对应的函数。当用户通过构造Transaction的方式来调用合约中的函数时，每个Transaction只能调用一个合约中的一个API函数。
+根据*合约中函数是否会修改合约中持久化的变量*，合约中的函数可以分为两种，只读函数和写函数。
+如果用户**只**希望查询某些合约中的持久化数据，而不对数据进行修改的话，那么用户只需要调用相关的只读函数。调用只读函数不需要通过构造一个Transaction来查询数据。用户可以通过直接调用本地数据或者第三方提供的数据，来调用对应的函数。如果用户需要对合约中的数据进行更新，那么他就要构造一个Transaction来请求合约中相对应的鞋函数。注意，当用户通过构造Transaction的方式来调用合约中的函数时，每个Transaction只能调用一个合约中的一个API函数。
 
 对于如何编写合约，以及Ethereum如何解析Transaction并调用对应的合约中API的，我们会在后面的文章中详细的进行解析。
 
@@ -185,7 +186,7 @@ type Hash [HashLength]byte
 
 从功能层面讲，外部账户(EOA)与合约账户(Contract)不同的点在于，外部账户并没有维护自己的代码(codeHash)以及额外的Storage层。相比与外部账户，合约账户额外保存了一个存储层(Storage)用于存储合约代码中持久化的变量的数据。在上文中我们提到，StateObject中的声明的四个Storage类型的变量，就是作为Contract Storage层的内存缓存。
 
-在Ethereum中，每个合约都维护了自己的*独立*的Storage空间，我们称为Storage层。Storage层的基本组成单元称为槽 (Slot)，若干个Slot按照*Stack*的方式集合在一起构造成了Storage 层。每个Slot的大小是256bits，也就是最多保存32 bytes的数据。作为基本的存储单元，Slot管理的方式与内存或者HDD中的基本单元的管理方式类似，通过地址索引的方式被上层函数访问。Slot的地址索引的长度同样是32 bytes(256 bits)，寻址空间从 0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个Contract的Storage层最多可以保存$2^{256} - 1$个Slot。也就说在理论状态下，一个Contract可以最多保存$(2^{256} - 1)$ bytes的数据，这是个相当大的数字。Contract同样使用MPT来管理Storage 层的Slot。值得注意的是，Storage层的数据并不会被打包进入Block中。唯一与Chain内数据相关的是，Storage Trie的根数据被保存在StateAccount结构体中的Root变量中(它是一个32bytes长的byte数组)。当某个Contract的Storage层的数据发生变化时，根据骨牌效应，向上传导到World State Root的值发生变化，从而影响到Chain数据。目前，Storage层的数据读取和修改是在执行相关Transaction的时候，通过EVM调用两个专用的指令*OpSload*和*OpSstore*触发。
+在Ethereum中，每个合约都维护了自己的*独立*的Storage空间，我们称为Storage层。Storage层的基本组成单元称为槽 (Slot)，若干个Slot按照*Stack*的方式集合在一起构造成了Storage层。每个Slot的大小是256 bits，也就是最多保存32 bytes的数据。作为基本的存储单元，Slot管理的方式与内存或者HDD中的基本单元的管理方式类似，通过地址索引的方式被上层函数访问。Slot的地址索引的长度同样是32 bytes(256 bits)，寻址空间从 0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个Contract的Storage层最多可以保存$2^{256} - 1$个Slot。也就说在理论状态下，一个Contract可以最多保存$(2^{256} - 1)$ bytes的数据，这是个相当大的数字。Contract同样使用MPT来管理Storage 层的Slot。值得注意的是，Storage层的数据并不会被打包进入Block中。唯一与Chain内数据相关的是，Storage Trie的根数据被保存在StateAccount结构体中的Root变量中(它是一个32bytes长的byte数组)。当某个Contract的Storage层的数据发生变化时，根据骨牌效应，向上传导到World State Root的值发生变化，从而影响到Chain数据。目前，Storage层的数据读取和修改是在执行相关Transaction的时候，通过EVM调用两个专用的指令*OpSload*和*OpSstore*触发。
 
 我们知道目前Ethereum中的大部分合约都通过Solidity语言编写。Solidity做为强类型的图灵完备的语言，支持多种类型的变量。总的来说，根据变量的长度性质，Ethereum中的持久化的变量可以分为定长的变量和不定长度的变量两种。定长的变量有常见的单变量类型，比如 uint256。不定长的变量包括了由若干单变量组成的Array，以及KV形式的Map类型。
 

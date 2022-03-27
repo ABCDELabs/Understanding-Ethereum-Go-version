@@ -2,17 +2,19 @@
 
 ## 概述
 
+在[Account章节](./01_account.md)的开头，我们提到了，Ethereum的运行依赖于基于交易的状态机模型(Transaction-based State Machine)。本章我们就来探索一下，Ethereum中的另一个基本数据单元Transaction。在本文中，我们提到的交易指的是在Ethereum Layer-1层面上构造的交易，以太坊生态中的Layer-2中的交易不在我们的讨论中。
+
 Transaction是Ethereum执行数据操作的媒介。它主要起到下面的几个作用:
 
-1. 在主网络上的Account之间进行Native Token的转账。
+1. 在Layer-1网络上的Account之间进行Native Token的转账。
 2. 创建新的Contract。
-3. 调用Contract中会修改Contract持久化数据或者修改其他Account/Contract数据的函数。
+3. 调用Contract中会修改目标Contract中持久化数据或者间接修改其他Account/Contract数据的函数。
 
-这里我们对Transaction功能性的细节再进行额外的补充说明。首先，Transaction只能创建Contract，而不能用于创建外部账户(EOA)。其次，关于Transaction的第三个作用我们使用了很长的定语进行说明，这里是为了强调，如果调用的Contract函数只进行了查询的操作，是不需要构造依赖Transaction的。总结下来，所有参与Account/Contract数据修改的操作都需要通过Transaction来进行。第三，Transaction只能由外部账户(EOA)构建，Contract是没办法构交易的。
+这里我们对Transaction功能性的细节再进行额外的补充说明。首先，Transaction只能创建Contract账户，而不能用于创建外部账户(EOA)。其次，关于Transaction的第三个作用我们使用了很长的定语进行说明，这里是为了强调，如果调用的Contract函数只进行了查询的操作，是不需要构造依赖Transaction的。总结下来，所有参与Account/Contract数据修改的操作都需要通过Transaction来进行。第三，广义上的Transaction只能由外部账户(EOA)构建。Contract是没有办法显式构造Layer-1层面的交易的。在某些合约函数的执行过程中，Contract在可以通过构造internal transaction来与其他的合约进行交互，但是这种Internal transaction与我们提到的Layer-1层面的交易有所不同，我们会在之后的章节介绍。
 
 ## LegacyTx & AccessListTX & DynamicFeeTx
 
-下面我们根据源代码来了解一下Transaction具体的数据结构的定义，了解其包含的相关变量。
+下面我们根据源代码中的Transaction的定义来了解一下Transaction的数据结构。Transaction结构体的定义位于*core/types/transaction.go*中。Transaction的结构体如下所示。
 
 ```go
 type Transaction struct {
@@ -25,6 +27,10 @@ type Transaction struct {
  from atomic.Value
 }
 ```
+
+从代码定义中我们可以看到，Transaction的结构体是非常简单的结构，它只包含了五个变量分别是, `TxData`类型的inner，`Time`类型的time，以及三个`atomic.Value`类型的hash，size，以及from。这里我们需要重点关注一下`inner`这个变量。目前与Transaction直接相关的数据大部分都保存在了这个变量总。
+
+目前，`TxData`类型是一个接口，它的定义如下面的代码所示。
 
 ```go
 type TxData interface {
