@@ -110,16 +110,16 @@ type DynamicFeeTx struct {
 }
 ```
 
-## Transaction是如何被打包并修改Blockchain中的值的
+## Transaction修改合约中的值的
 
-Transaction可以更新一个或多个Account的State的。Miner负责将一个或多个Transaction被打包到一个block中，并按照顺序执行他们。顺序执行的结构会被finalise成一个新的World State，并最终被保存到State Trie中。这个过程成为World State的状态转移。
+一个Transaction的执行，可以更新一个或多个Account的State的。Miner负责将一个或多个Transaction被打包到一个block中，并按照顺序执行他们。顺序执行的结构会被finalise成一个新的World State，并最终被保存到World State Trie中。这个过程成为World State的状态转移。
 
-在Ethereum中，当Miner开始构造新的区块的时候，首先会启动 "miner/worker.go的 mainLoop()"函数。具体的函数如下所示。
+在Ethereum中，当Miner开始构造新的区块的时候，首先会启动*miner/worker.go*的 `mainLoop()`函数。具体的函数如下所示。
 
 ```go
 func (w *worker) mainLoop() {
     ....
-    // 用于接受挖矿奖励
+    // 设置接受该区块中挖矿奖励的账户地址
     coinbase := w.coinbase
     w.mu.RUnlock()
 
@@ -128,6 +128,7 @@ func (w *worker) mainLoop() {
         acc, _ := types.Sender(w.current.signer, tx)
         txs[acc] = append(txs[acc], tx)
     }
+    // 这里看到，通过NewTransactionsByPriceAndNonce获取一部分的Tx并打包
     txset := types.NewTransactionsByPriceAndNonce(w.current.signer, txs, w.current.header.BaseFee)
     tcount := w.current.tcount
     //提交打包任务
@@ -136,7 +137,10 @@ func (w *worker) mainLoop() {
 }
 ```
 
-首先Worker会从Transaction Pool中拿出若干的transaction, 赋值给*txs*, 然后按照Price和Nonce对*txs*进行排序，并将结果赋值给*txset*。在拿到*txset*之后，mainLoop函数会调用"miner/worker.go的commitTransactions()"函数。
+在Mining新区块前，Worker首先需要决定，那些Transaction会被打包到新的Block中。这里选取Transaction其实经历了两个步骤。首先，`txs`变量保存了从Transaction Pool中拿去到的合法的，以及准备好被打包的交易。这里举一个例子，来说明什么是**准备好被打包的交易**，比如Alice先后发了新三个交易到网络中，对应的Nonce分别是100和101，102。假如Miner只收到了100和102号交易。那么对于此刻的Transaction Pool来说Nonce 100的交易就是**准备好被打包的交易**，交易Nonce 是102需要等待Nonce 101的交易被确认之后才能提交。
+
+在Worker会从Transaction Pool中拿出若干的transaction, 赋值给*txs*之后, 然后调用`NewTransactionsByPriceAndNonce`函数按照Gas Price和Nonce对*txs*进行排序，并将结果赋值给*txset*。在拿到*txset*之后，mainLoop函数会调用`commitTransactions`函数，正式进入Mining新区块的流程。`commitTransactions`函数如下所示。
+
 
 ```go
 func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coinbase common.Address, interrupt *int32) bool {
@@ -167,7 +171,7 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 }
 ```
 
-commitTransactions()函数的主体是一个for循环，每次获取结构体切片头部的txs.Peek()的transaction，并作为参数调用函数miner/worker.go的commitTransaction()。
+`commitTransactions`函数的主体是一个for循环，每次获取结构体切片头部的txs.Peek()的transaction，并作为参数调用函数miner/worker.go的`commitTransaction()`。`commitTransaction()`函数如下所示。
 
 ```go
 func (w *worker) commitTransaction(tx *types.Transaction, coinbase common.Address) ([]*types.Log, error){
@@ -220,19 +224,6 @@ func ApplyMessage(evm *vm.EVM, msg Message, gp *GasPool) (*ExecutionResult, erro
 之后调用core/state_transition.go/TransitionDb()函数。
 
 ```go
-// TransitionDb will transition the state by applying the current message and
-// returning the evm execution result with following fields.
-//
-// - used gas:
-//      total gas used (including gas being refunded)
-// - returndata:
-//      the returned data from evm
-// - concrete execution error:
-//      various **EVM** error which aborts the execution,
-//      e.g. ErrOutOfGas, ErrExecutionReverted
-//
-// However if any consensus issue encountered, return the error directly with
-// nil evm execution result.
 func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
     ....
     ret, st.gas, vmerr = st.evm.Call(sender, st.to(), st.data, st.gas, st.value)
