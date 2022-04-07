@@ -304,7 +304,10 @@ func (s *StateDB) SetState(addr common.Address, key, value common.Hash) {
 
  这样就完成了，一个新区块的形成过程中，Transaction如何修改StateDB的Workflow。
 
-- commitTransactions ->> commitTransaction ->> ApplyTransaction ->> applyTransaction ->>  ApplyMessage ->> TransactionDB ->> Call  ->> Run ->> opSstore ->> StateDB ->> StateObject ->> Key-Value-Trie
+```mermaid
+flowchart LR
+commitTransactions --> commitTransaction --> ApplyTransaction --> applyTransaction -->  ApplyMessage --> TransactionDB --> Call --> Run --> opSstore --> StateDB --> StateObject --> Key-Value-Trie
+```
 
 ![Transaction Execution Flow](../figs/02/tx_execu_flow.png)
 

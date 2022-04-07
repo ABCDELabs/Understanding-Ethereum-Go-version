@@ -98,6 +98,7 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 - [42_go-ethereum的开发思想]
 - [43_Metrics in Ethereum]
 - [44_Golang & Ethereum]
+- [45_Looking Forward to the Ethereum2.0]
 
 -----------------------------------------------------------
 
