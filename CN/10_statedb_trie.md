@@ -138,6 +138,8 @@ switch n := n.(type)
 - 在leveldb中保存的是Trie中的节点。
 - <hash, node.rlprawdata>
 
+在Geth中，Trie并不是实时更新的，而是依赖于Committer和Database两个额外的辅助单位
+
 ## StackTrie
 
 StackTrie虽然也是MPT结构，但是它与另外的两个Trie最大的不同在于，其主要作用不是用于存储数据，而是用于给一组数据生成证明。比如，在Block中的Transaction Hash以及Receipt Hash都是基于StackTrie生成的。这里我们使用一个更直观的例子。这个部分的代码位于*core/block_validator.go*中。在block_validator中定义了一系列验证用的函数, 比如`ValidateBody`和 `ValidateState`函数。我们选取了这两个函数的其中一部分，如下所示。为了验证Block的合法性，ValidateBody和ValidateState函数分别在本地基于Block中提供的数据来构造Transaction和Receipt的哈希来与Header中的TxHash与ReceiptHash。我们可以发现，函数`types.DeriveSha`需要一个`TrieHasher`类型的参数。但是在具体调用的时候，却传入了了一个`trie.NewStackTrie`类型的变量。这是因为StackTrie实现了TrieHasher接口所需要的三个函数，所以这种调用是合法的。我们可以在*core/types/hashing.go*中找到TrieHasher的定义。这里`DeriveSha`不断的向StackTrie中添加数据，并最终返回StackTrie的Root哈希值。
