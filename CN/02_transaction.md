@@ -2,15 +2,17 @@
 
 ## 概述
 
-在[Account章节](./01_account.md)的开头，我们提到了，Ethereum的运行依赖于基于交易的状态机模型(Transaction-based State Machine)。本章我们就来探索一下，Ethereum中的另一个基本数据单元Transaction。在本文中，我们提到的交易指的是在Ethereum Layer-1层面上构造的交易，以太坊生态中的Layer-2中的交易不在我们的讨论中。
+在[Account章节](./01_account.md)的开头，我们提到了，
 
-Transaction是Ethereum执行数据操作的媒介。它主要起到下面的几个作用:
+我们知道，Ethereum的基本模型是基于交易的状态机模型(Transaction-based State Machine)。在[Account章节](./01_account.md)我们简述了一下Account/State的基本结构。本章我们就来探索一下，Ethereum基本模型中的另一个基本数据单元Transaction。在本文中，我们提到的交易指的是在Ethereum Layer-1层面上构造的交易，以太坊生态中的Layer-2中的交易不在我们的讨论中。
+
+首先，Transaction是Ethereum执行数据操作的媒介。它主要起到下面的几个作用:
 
 1. 在Layer-1网络上的Account之间进行Native Token的转账。
 2. 创建新的Contract。
 3. 调用Contract中会修改目标Contract中持久化数据或者间接修改其他Account/Contract数据的函数。
 
-这里我们对Transaction功能性的细节再进行额外的补充说明。首先，Transaction只能创建Contract账户，而不能用于创建外部账户(EOA)。其次，关于Transaction的第三个作用我们使用了很长的定语进行说明，这里是为了强调，如果调用的Contract函数只进行了查询的操作，是不需要构造依赖Transaction的。总结下来，所有参与Account/Contract数据修改的操作都需要通过Transaction来进行。第三，广义上的Transaction只能由外部账户(EOA)构建。Contract是没有办法显式构造Layer-1层面的交易的。在某些合约函数的执行过程中，Contract在可以通过构造internal transaction来与其他的合约进行交互，但是这种Internal transaction与我们提到的Layer-1层面的交易有所不同，我们会在之后的章节介绍。
+这里我们对Transaction功能性的细节再进行一些额外的补充说明。首先，Transaction只能创建Contract账户，而不能用于创建外部账户(EOA)。其次，如果调用的Contract函数只进行了查询的操作，是不需要构造依赖Transaction的。而所有参与Account/Contract数据修改的操作都需要通过Transaction来进行。第三，广义上的Transaction只能由外部账户(EOA)构建。Contract是没有办法显式构造Layer-1层面的交易的。在某些合约函数的执行过程中，Contract在可以通过构造internal transaction来与其他的合约进行交互，但是这种Internal transaction与我们提到的Layer-1层面的交易有所不同，我们会在之后的章节介绍。
 
 ## LegacyTx & AccessListTX & DynamicFeeTx
 
@@ -28,7 +30,7 @@ type Transaction struct {
 }
 ```
 
-从代码定义中我们可以看到，Transaction的结构体是非常简单的结构，它只包含了五个变量分别是, `TxData`类型的inner，`Time`类型的time，以及三个`atomic.Value`类型的hash，size，以及from。这里我们需要重点关注一下`inner`这个变量。目前与Transaction直接相关的数据大部分都保存在了这个变量总。
+从代码定义中我们可以看到，Transaction的结构体是非常简单的结构，它只包含了五个变量分别是, `TxData`类型的inner，`Time`类型的time，以及三个`atomic.Value`类型的hash，size，以及from。这里我们需要重点关注一下`inner`这个变量。目前与Transaction直接相关的数据都由这个变量来维护。
 
 目前，`TxData`类型是一个接口，它的定义如下面的代码所示。
 
@@ -110,9 +112,16 @@ type DynamicFeeTx struct {
 }
 ```
 
-## Transaction修改合约中的值的
+## Transaction的执行
 
-一个Transaction的执行，可以更新一个或多个Account的State的。Miner负责将一个或多个Transaction被打包到一个block中，并按照顺序执行他们。顺序执行的结构会被finalise成一个新的World State，并最终被保存到World State Trie中。这个过程成为World State的状态转移。
+Transaction的执行主要在发生在两个过程中。1. Miner在打包新的Block时，会按Block中Transaction的打包顺序来执行其中的Transaction 2. 当网络中的Node获取到新的Block时，它们会执行Block中的Transaction，来更新本地的State Trie的 Root，并与Block Header中的State Trie Root进行比较，来验证Block的合法性。
+
+Transaction的执行，可以更新一个或多个Account的State的。Miner负责将一个或多个Transaction被打包到一个block中，并按照顺序执行他们。顺序执行的结构会被finalise成一个新的World State，并最终被保存到World State Trie中。这个过程成为World State的状态转移。
+
+### Native Token Transferring Transaction
+
+### Transaction修改Contract的持久化存储的
+
 
 在Ethereum中，当Miner开始构造新的区块的时候，首先会启动*miner/worker.go*的 `mainLoop()`函数。具体的函数如下所示。
 
@@ -264,7 +273,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 }
 ```
 
-在更细粒度的对每个opcode循环调用core/vm/jump_table.go中的execute函数。这里值得一提的是，获取Contract中每条Operate的方式，是从Contact中的code数组中按照第n个拿取。
+在更细粒度的层面，每个opcode循环调用core/vm/jump_table.go中的execute函数。这里值得一提的是，获取Contract中每条Operate的方式，是从Contact中的code数组中按照第n个拿取。
 
 ```go
 // GetOp returns the n'th element in the contract's byte array
@@ -300,9 +309,8 @@ func (s *StateDB) SetState(addr common.Address, key, value common.Hash) {
     stateObject.SetState(s.db, key, value)
     }
 }
-```
 
- 这样就完成了，一个新区块的形成过程中，Transaction如何修改StateDB的Workflow。
+对于一条调用合约函数的交易，其中必然会存在修改StateDB的操作。通过上述的函数调用关系，我们就完成了在一个新区块的形成过程中，Transaction如何修改StateDB的Workflow。
 
 ```mermaid
 flowchart LR
