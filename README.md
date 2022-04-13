@@ -57,15 +57,17 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 ### PART ONE - General Source Code Analysis: Basic Workflow and Data Components
 
 - [00_万物的起点从geth出发: Basic Geth](CN/00_geth.md)
-- [01_State-based 模型 & Account](CN/01_account.md)
-- [02_Transaction: 一个Transaction的生老病死](CN/02_transaction.md)
-- [03_从Block到Blockchain: 链状区块结构的构建](CN/03_block_blockchain.md)
-- [04_一个新节点是怎么加入网络并同步区块的]
-- [05_一个网吧老板是怎么用闲置的电脑进行挖矿的]
+- [01_Account and State](CN/01_account_state.md)
+- [02_State Management i: StateDB](CN/02_state_management_statedb.md)
+- [03_State Management ii: World State Trie and Storage Trie](CN/03_state_management_stateTrie.md)
+- [04_Transaction: 一个Transaction的生老病死](CN/04_transaction.md)
+- [05_从Block到Blockchain: 链状区块结构的构建](CN/05_block_blockchain.md)
+- [06_一个网吧老板是怎么用闲置的电脑进行挖矿的]
+- [07_一个新节点是怎么加入网络并同步区块的]
 
 ### PART TWO - General Source Code Analysis: Lower-level Services
 
-- [10_StateDB的实例是如何构建的](CN/10_statedb_trie.md)
+- [10_状态数据优化: Batch and Pruning]
 - [11_Blockchain的数据是如何持久化的:Leveldb in Practice]
 - [12_当I/O变成瓶颈:Snapshot in Practice]
 - [13_深入EVM: 设计与实现]

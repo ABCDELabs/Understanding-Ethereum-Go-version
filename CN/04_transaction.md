@@ -2,8 +2,6 @@
 
 ## 概述
 
-在[Account章节](./01_account.md)的开头，我们提到了，
-
 我们知道，Ethereum的基本模型是基于交易的状态机模型(Transaction-based State Machine)。在[Account章节](./01_account.md)我们简述了一下Account/State的基本结构。本章我们就来探索一下，Ethereum基本模型中的另一个基本数据单元Transaction。在本文中，我们提到的交易指的是在Ethereum Layer-1层面上构造的交易，以太坊生态中的Layer-2中的交易不在我们的讨论中。
 
 首先，Transaction是Ethereum执行数据操作的媒介。它主要起到下面的几个作用:
@@ -55,7 +53,7 @@ type TxData interface {
 }
 ```
 
-这里注意，在目前版本的geth中(1.10.*)，根据[EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)的设计，原来的TxData现在被声明成了一个interface，而不是定义了具体的结构。这样的设计好处在于，后续版本的更新中可以对Transaction类型进行更加灵活的修改。目前，在Ethereum中定义了三种类型的Transaction来实现TxData这个接口。按照时间上的定义顺序来说，这三种类型的Transaction分别是，LegacyT，AccessListTx，TxDynamicFeeTx。LegacyTx顾名思义，是原始的Ethereum的Transaction设计，目前市面上大部分早年关于Ethereum Transaction结构的文档实际上都是在描述LegacyTx的结构。而AccessListTX是基于EIP-2930(Berlin分叉)的Transaction。DynamicFeeTx是[EIP-1559](https://eips.ethereum.org/EIPS/eip-1559)(伦敦分叉)生效之后的默认的Transaction。
+这里注意，在目前版本的geth中(1.10.*)，根据[EIP-2718][EIP2718]的设计，原来的TxData现在被声明成了一个interface，而不是定义了具体的结构。这样的设计好处在于，后续版本的更新中可以对Transaction类型进行更加灵活的修改。目前，在Ethereum中定义了三种类型的Transaction来实现TxData这个接口。按照时间上的定义顺序来说，这三种类型的Transaction分别是，LegacyT，AccessListTx，TxDynamicFeeTx。LegacyTx顾名思义，是原始的Ethereum的Transaction设计，目前市面上大部分早年关于Ethereum Transaction结构的文档实际上都是在描述LegacyTx的结构。而AccessListTX是基于EIP-2930(Berlin分叉)的Transaction。DynamicFeeTx是[EIP-1559](https://eips.ethereum.org/EIPS/eip-1559)(伦敦分叉)生效之后的默认的Transaction。
 
 (PS:目前Ethereum的黄皮书只更新到了Berlin分叉的内容，还没有添加London分叉的更新, 2022.3.10)
 
@@ -114,9 +112,12 @@ type DynamicFeeTx struct {
 
 ## Transaction的执行
 
-Transaction的执行主要在发生在两个过程中。1. Miner在打包新的Block时，会按Block中Transaction的打包顺序来执行其中的Transaction 2. 当网络中的Node获取到新的Block时，它们会执行Block中的Transaction，来更新本地的State Trie的 Root，并与Block Header中的State Trie Root进行比较，来验证Block的合法性。
+Transaction的执行主要在发生在两个Workflow中:
 
-Transaction的执行，可以更新一个或多个Account的State的。Miner负责将一个或多个Transaction被打包到一个block中，并按照顺序执行他们。顺序执行的结构会被finalise成一个新的World State，并最终被保存到World State Trie中。这个过程成为World State的状态转移。
+1. Miner在打包新的Block时。此时Miner会按Block中Transaction的打包顺序来执行其中的Transaction。
+2. 其他节点添加Block到Blockchain时。当节点从网络中监听并获取到新的Block时，它们会执行Block中的Transaction，来更新本地的State Trie的 Root，并与Block Header中的State Trie Root进行比较，来验证Block的合法性。
+
+一条Transaction执行的结果，可能会造成一个或多个Account的State的变化。最终一个Block中所有Transaction执行的结果使得World State发生状态转移。下面我们就来分析一下一条Transaction是怎么造成World State 发生变化的。
 
 ### Native Token Transferring Transaction
 
@@ -380,3 +381,5 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 
 1. <https://www.codenong.com/cs105936343/>
 2. <https://yangzhe.me/2019/08/12/ethereum-evm/>
+
+[EIP2718]: https://eips.ethereum.org/EIPS/eip-2718
