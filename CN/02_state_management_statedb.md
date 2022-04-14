@@ -1,4 +1,4 @@
-# State Management i : StateDB
+# State Management (1) : StateDB
 
 ## General
 
@@ -19,4 +19,13 @@
  statedb.Database().TrieDB().Commit(root, true, nil)
 ```
 
-具体World State的更新顺序是: statedb --> Memory Database (Memory State Trie) --> Disk (Leveldb Batch)
+具体World State的更新顺序是:
+
+```mermaid
+flowchart LR
+StateDB --> Memory_Trie_Database --> LevelDB
+```
+
+### From Memory to Disk
+
+当新的Block被添加到Blockchain时，State的数据并不一会立即被写入到Disk Database中。在`writeBlockWithState`函数中，函数会判断gc条件，只有满足一定的条件，才会在此刻调用TrieDB中的Cap或者Commit函数将数据写入Disk Database中。

@@ -1,4 +1,4 @@
-# State Management i : World State Trie
+# State Management (2) : World State Trie and Storage Trie
 
 ## Trie in brief
 
