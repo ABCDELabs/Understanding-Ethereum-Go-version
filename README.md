@@ -4,7 +4,7 @@
 - Subject: Ethereum Source Code Analysis | 以太坊源码剖析
 - Author: Siyuan Han
 - Go-Ethereum Version: v1.10.15 (London Upgrade)
-- Updated date: 2022-03
+- Updated date: 2022-04
 
 ## Preface
 
@@ -56,7 +56,7 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 
 ### PART ONE - General Source Code Analysis: Basic Workflow and Data Components
 
-- [00_万物的起点从geth出发: Basic Geth](CN/00_geth.md)
+- [00_万物的起点: Geth Start](CN/00_geth.md)
 - [01_Account and State](CN/01_account_state.md)
 - [02_State Management i: StateDB](CN/02_state_management_statedb.md)
 - [03_State Management ii: World State Trie and Storage Trie](CN/03_state_management_stateTrie.md)
@@ -68,13 +68,13 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 ### PART TWO - General Source Code Analysis: Lower-level Services
 
 - [10_状态数据优化: Batch and Pruning]
-- [11_Blockchain的数据是如何持久化的:Leveldb in Practice]
-- [12_当I/O变成瓶颈:Snapshot in Practice]
+- [11_Blockchain的数据是如何持久化的: Leveldb in Practice]
+- [12_当I/O变成瓶颈: Snapshot in Practice]
 - [13_深入EVM: 设计与实现]
 - [14_Signer: 如何证明Transaction的合法性]
 - [15_节点的调用 RPC and IPC](CN/15_rpc_ipc.md)
 
-### PART THREE - Advanced Topics
+### PART THREE - Advanced Topics~P
 
 - [20_结合BFT Consensus 解决拜占庭将军问题]
 - [21_从Plasma到Rollup](CN/21_rollup.md)
@@ -186,21 +186,20 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 
 ```
 
-## Reference
+## References
 
 本书主要参考了Go-Ethereum代码库，Ethereum Yellow Paper，以及EIP的具体Spec。读者可以从下面的Link中找到相关的引用资料。
 
 - [1] Ethereum Yellow Paper [(Paper Link)](https://ethereum.github.io/yellowpaper/paper.pdf)
 - [2] Ethereum/Go-Ethereum [(link)](https://github.com/ethereum/go-ethereum)
-- [3] Go-ethereum code analysis [(Link)](https://github.com/ZtesoftCS/go-ethereum-code-analysis)
+- [3] Go-ethereum code analysis [(link)](https://github.com/ZtesoftCS/go-ethereum-code-analysis)
 - [4] Ethereum Improvement Proposals [(link)](https://github.com/ethereum/EIPs)
 - [5] Mastering Bitcoin(Second Edition)
 - [6] Mastering Ethereum [(link)](https://github.com/ethereumbook/ethereumbook)
-- [7] EIP-2718: Typed Transaction Envelope[[link]](https://eips.ethereum.org/EIPS/eip-2718)
-- [8] EIP-2930: Optional access lists [[link]](https://eips.ethereum.org/EIPS/eip-2930)
-- [9] EIP-1559: Fee market change for ETH 1.0 chain [[link]](https://eips.ethereum.org/EIPS/eip-1559)
-- [10] Ask about Geth: Snapshot acceleration
-[[link](https://blog.ethereum.org/2020/07/17/ask-about-geth-snapshot-acceleration/)
+- [7] EIP-2718: Typed Transaction Envelope[(link)](https://eips.ethereum.org/EIPS/eip-2718)
+- [8] EIP-2930: Optional access lists [(link)](https://eips.ethereum.org/EIPS/eip-2930)
+- [9] EIP-1559: Fee market change for ETH 1.0 chain [(link)](https://eips.ethereum.org/EIPS/eip-1559)
+- [10] Ask about Geth: Snapshot acceleration [(link)](https://blog.ethereum.org/2020/07/17/ask-about-geth-snapshot-acceleration/)
 
 ## Talks
 

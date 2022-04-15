@@ -1,1 +1,3 @@
 # Mining
+
+## Block Reward
