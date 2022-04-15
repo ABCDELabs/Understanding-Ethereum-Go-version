@@ -74,7 +74,7 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
 - [14_Signer: 如何证明Transaction的合法性]
 - [15_节点的调用 RPC and IPC](CN/15_rpc_ipc.md)
 
-### PART THREE - Advanced Topics
+### PART THREE - Advanced Topics~P
 
 - [20_结合BFT Consensus 解决拜占庭将军问题]
 - [21_从Plasma到Rollup](CN/21_rollup.md)
