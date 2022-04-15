@@ -6,30 +6,7 @@ Geth是基于Go语言开发以太坊的客户端，它实现了Ethereum协议(�
 
 Geth实现了Ethereum节点运行所需要的逻辑和功能代码，同时提供了方便用户和其他节点调用的API接口。在本系列中，我们会深入Go-ethereum代码库，从High-level的API接口出发，沿着Ethereum主Workflow，从而理解Ethereum具体实现的细节。
 
-### Geth CLI
-
-当我们想要部署一个Ethereum节点的时候，最直接的方式就是下载官方提供的发行版的geth程序。Geth是一个基于CLI的应用，目前还没有特别通用化的GUI程序。Geth的功能的调用需要使用对应的指令来操作。当我第一次阅读Ethereum的文档的时候，我曾经有过这样的疑问，为什么Geth是由Go语言编写的，但是在官方文档中的Web3的API却是基于Javascript的调用？
-
-这是因为Geth内置了一个Javascript的解释器*Goja* (interpreter)，作为用户与Geth交互的CLI Console。我们可以在`console/console.go`的代码中找到它的定义。
-
-```go
-// Console is a JavaScript interpreted runtime environment. It is a fully fledged
-// JavaScript console attached to a running node via an external or in-process RPC
-// client.
-type Console struct {
- client   *rpc.Client         // RPC client to execute Ethereum requests through
- jsre     *jsre.JSRE          // JavaScript runtime environment running the interpreter
- prompt   string              // Input prompt prefix string
- prompter prompt.UserPrompter // Input prompter to allow interactive user feedback
- histPath string              // Absolute path to the console scrollback history
- history  []string            // Scroll history maintained by the console
- printer  io.Writer           // Output writer to serialize any display strings to
-}
-```
-
-<!-- /*Goja is an implementation of ECMAScript 5.1 in Pure GO*/ -->
-
-### Go-ethereum 代码目录结构
+### Go-ethereum Codebase 结构
 
 为了更好的从整体工作流的角度来理解Ethereum，根据主要的业务功能，我们将go-ethereum划分成如下几个模块来分析。
 
@@ -89,7 +66,32 @@ trie/    Ethereum 中至关重要的数据结构 Merkle Patrica Trie(MPT)的实�
    |── trie.go         MPT具体功能的函数实现
  ```
 
-## 启动
+## Geth Start
+
+### 前奏: Geth Console
+
+当我们想要部署一个Ethereum节点的时候，最直接的方式就是下载官方提供的发行版的geth程序。Geth是一个基于CLI的应用，目前还没有特别通用化的GUI程序。Geth的功能的调用需要使用对应的指令来操作。当我第一次阅读Ethereum的文档的时候，我曾经有过这样的疑问，为什么Geth是由Go语言编写的，但是在官方文档中的Web3的API却是基于Javascript的调用？
+
+这是因为Geth内置了一个Javascript的解释器*Goja* (interpreter)，作为用户与Geth交互的CLI Console。我们可以在`console/console.go`的代码中找到它的定义。
+
+<!-- /*Goja is an implementation of ECMAScript 5.1 in Pure GO*/ -->
+
+```go
+// Console is a JavaScript interpreted runtime environment. It is a fully fledged
+// JavaScript console attached to a running node via an external or in-process RPC
+// client.
+type Console struct {
+ client   *rpc.Client         // RPC client to execute Ethereum requests through
+ jsre     *jsre.JSRE          // JavaScript runtime environment running the interpreter
+ prompt   string              // Input prompt prefix string
+ prompter prompt.UserPrompter // Input prompter to allow interactive user feedback
+ histPath string              // Absolute path to the console scrollback history
+ history  []string            // Scroll history maintained by the console
+ printer  io.Writer           // Output writer to serialize any display strings to
+}
+```
+
+### 启动
 
 了解Ethereum，我们首先要了解Ethereum客户端Geth是怎么运行的。
 
@@ -126,9 +128,38 @@ func geth(ctx *cli.Context) error {
 
 在`geth()`函数，我们可以看到三个比较重要的函数调用`prepare()`，`makeFullNode()`，以及`startNode()`。
 
-`prepare()` 函数的实现就在当前的文件中，它主要用于设置一些节点初始化需要的配置。比如，我们在节点启动时看到的这句话: *Starting Geth on Ethereum mainnet...* 就是在`prepare()`函数中被打印出来的。
+`prepare()` 函数的实现就在当前的`main.go`文件中，它主要用于设置一些节点初始化需要的配置。比如，我们在节点启动时看到的这句话: *Starting Geth on Ethereum mainnet...* 就是在`prepare()`函数中被打印出来的。
 
-`makeFullNode()`函数的实现位于`cmd\geth\config.go`文件中。它会将Geth启动时的命令的上下文加载到配置中，并生成`stack`和`backend`两个实例。其中`stack`通过调用`makeConfigNode()`来生成，它是一个Node类型的实例，具体的定义位于`node\node.go`文件中，如下所示。Node类型主要功能是启动作为高层的外部接口，比如管理rpc，http server的接口。
+`makeFullNode()`函数的实现位于`cmd\geth\config.go`文件中。它会将Geth启动时的命令的上下文加载到配置中，并生成`stack`和`backend`两个实例。其中`stack`通过调用`makeConfigNode()`来生成，它是一个Node类型的实例，具体的定义位于`node\node.go`文件中，如下所示。Node类型主要功能是启动作为与外部通信的外部接口，比如管理rpc server，http server，Web Socket，以及P2P Server外部接口。
+
+Ethereum API backend的实例是根据配置调用`utils.RegisterEthService()`函数生成。在`utils.RegisterEthService()`函数，会根据当前的config来判断Ethereum API backend的类型，是light node backend还是full node backend。
+
+我们可以在`eth\backend\new()`函数和`les\client.go\new()`中找到这两种Ethereum API backend的实例是如何初始化的。Ethereum API backend的实例定义了一些更底层的配置，比如chainid，链使用的共识算法的类型等。这两种后端服务的一个典型的区别是light node backend不能启动Mining服务。
+
+```go
+ eth := &Ethereum{
+  config:            config,
+  merger:            merger,
+  chainDb:           chainDb,
+  eventMux:          stack.EventMux(),
+  accountManager:    stack.AccountManager(),
+  engine:            ethconfig.CreateConsensusEngine(stack, chainConfig, &ethashConfig, config.Miner.Notify, config.Miner.Noverify, chainDb),
+  closeBloomHandler: make(chan struct{}),
+  networkID:         config.NetworkId,
+  gasPrice:          config.Miner.GasPrice,
+  etherbase:         config.Miner.Etherbase,
+  bloomRequests:     make(chan chan *bloombits.Retrieval),
+  bloomIndexer:      core.NewBloomIndexer(chainDb, params.BloomBitsBlocks, params.BloomConfirms),
+  p2pServer:         stack.Server(),
+  shutdownTracker:   shutdowncheck.NewShutdownTracker(chainDb),
+ }
+```
+
+通过调用`startNode()`函数，正式启动一个Ethereum Node，包括RPClient的模块和Wallet模块都是在`startNode()`函数中启动的。在该函数中，这些子模块的启动是通过额外的协程开启的。
+
+我们可以在`geth()`函数看到，通过`stack.Wait()`，此时主线程进入了监听状态，主要的业务逻辑被分散到了各个子模块。
+
+### Node
 
 ```go
 // Node is a container on which services can be registered.
@@ -157,32 +188,83 @@ type Node struct {
 
  databases map[*closeTrackingDB]struct{} // All open databases
 }
-
 ```
 
-Ethereum API backend的实例是根据配置调用`utils.RegisterEthService()`函数生成。在`utils.RegisterEthService()`函数，会根据当前的config来判断Ethereum API backend的类型，是light模式还是full node模式。
+### Ethereum API Backend
 
-我们可以在`eth\backend\new()`函数和`les\client.go\new()`中找到这两种Ethereum API backend的实例是如何初始化的。Ethereum API backend的实例定义了一些更底层的配置，比如chainid，链使用的共识算法的类型等。
+我们可以在`eth\backend.go`中找到`Ethereum`这个结构体的定义。这个结构体包含的成员变量以及接收的方法实现了Ethereum full node的全部功能和数据结构。我们可以在下面的代码定义中看到，Ethereum结构体中包含了`TxPool`，`Blockchain`，`consensus.Engine`，`miner`等最核心的几个数据结构作为成员变量。
 
 ```go
- eth := &Ethereum{
-  config:            config,
-  merger:            merger,
-  chainDb:           chainDb,
-  eventMux:          stack.EventMux(),
-  accountManager:    stack.AccountManager(),
-  engine:            ethconfig.CreateConsensusEngine(stack, chainConfig, &ethashConfig, config.Miner.Notify, config.Miner.Noverify, chainDb),
-  closeBloomHandler: make(chan struct{}),
-  networkID:         config.NetworkId,
-  gasPrice:          config.Miner.GasPrice,
-  etherbase:         config.Miner.Etherbase,
-  bloomRequests:     make(chan chan *bloombits.Retrieval),
-  bloomIndexer:      core.NewBloomIndexer(chainDb, params.BloomBitsBlocks, params.BloomConfirms),
-  p2pServer:         stack.Server(),
-  shutdownTracker:   shutdowncheck.NewShutdownTracker(chainDb),
- }
+// Ethereum implements the Ethereum full node service.
+type Ethereum struct {
+ config *ethconfig.Config
+
+ // Handlers
+ txPool             *core.TxPool
+ blockchain         *core.BlockChain
+ handler            *handler
+ ethDialCandidates  enode.Iterator
+ snapDialCandidates enode.Iterator
+ merger             *consensus.Merger
+
+ // DB interfaces
+ chainDb ethdb.Database // Block chain database
+
+ eventMux       *event.TypeMux
+ engine         consensus.Engine
+ accountManager *accounts.Manager
+
+ bloomRequests     chan chan *bloombits.Retrieval // Channel receiving bloom data retrieval requests
+ bloomIndexer      *core.ChainIndexer             // Bloom indexer operating during block imports
+ closeBloomHandler chan struct{}
+
+ APIBackend *EthAPIBackend
+
+ miner     *miner.Miner
+ gasPrice  *big.Int
+ etherbase common.Address
+
+ networkID     uint64
+ netRPCService *ethapi.PublicNetAPI
+
+ p2pServer *p2p.Server
+
+ lock sync.RWMutex // Protects the variadic fields (e.g. gas price and etherbase)
+
+ shutdownTracker *shutdowncheck.ShutdownTracker // Tracks if and when the node has shutdown ungracefully
+}
+
 ```
 
-`startNode()`函数正式的启动一个Ethereum Node，包括RPClient的模块和Wallet模块都是在`startNode()`函数中启动的。在该函数中，这些子模块的启动是通过额外的协程开启的。
+节点启动和停止Mining的就是通过调用`Ethereum.StartMining()`和`Ethereum.StopMining()`实现的。
 
-我们可以在`geth()`函数看到，通过`stack.Wait()`，此时主线程进入了监听状态，主要的业务逻辑被分散到了各个子模块。
+设置Mining的收益账户是通过调用`Ethereum.SetEtherbase()`实现的。
+
+```go
+// StartMining starts the miner with the given number of CPU threads. If mining
+// is already running, this method adjust the number of threads allowed to use
+// and updates the minimum price required by the transaction pool.
+func (s *Ethereum) StartMining(threads int) error {
+   ...
+ // If the miner was not running, initialize it
+ if !s.IsMining() {
+      ...
+      // Start Mining
+  go s.miner.Start(eb)
+ }
+ return nil
+}
+```
+
+这里补充一个Go语言的语法知识: **Comma-ok断言**。在`Ethereum.StartMining()`函数中，出现了`if c, ok := s.engine.(*clique.Clique); ok`的写法。这中写法是Golang中的语法糖，称为Comma-ok断言。具体的语法是`value, ok := element.(T)`，它的含义是如果`element`是`T`类型的话，那么ok等于`True`, `value`等于`element`的值。在`if c, ok := s.engine.(*clique.Clique); ok`语句中，就是在判断`s.engine`的是否为`*clique.Clique`类型。
+
+```go
+  var cli *clique.Clique
+  if c, ok := s.engine.(*clique.Clique); ok {
+   cli = c
+  } else if cl, ok := s.engine.(*beacon.Beacon); ok {
+   if c, ok := cl.InnerEngine().(*clique.Clique); ok {
+    cli = c
+   }
+  }
+```
