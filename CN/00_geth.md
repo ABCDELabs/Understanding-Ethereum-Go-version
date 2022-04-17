@@ -159,7 +159,7 @@ func geth(ctx *cli.Context) error {
 
 ### Node
 
-Node类型在Ethereum的生态中属于顶级实例，它负责作为与外部通信的外部接口，比如管理rpc server，http server，Web Socket，以及P2P Server外部接口。同时，Node中维护了节点运行所需要的后端的实例和服务(`lifecycles  []Lifecycle`)。
+Node类型在Geth的生命周期性中属于顶级实例，它负责作为与外部通信的外部接口，比如管理rpc server，http server，Web Socket，以及P2P Server外部接口。同时，Node中维护了节点运行所需要的后端的实例和服务(`lifecycles  []Lifecycle`)。
 
 ```go
 // Node is a container on which services can be registered.
