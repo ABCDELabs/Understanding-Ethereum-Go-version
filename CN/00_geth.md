@@ -1,4 +1,4 @@
-# 00_万物的起点: 从geth出发
+# 00_万物的起点: Geth Start \!
 
 ## 什么是Geth？
 
@@ -130,11 +130,9 @@ func geth(ctx *cli.Context) error {
 
 `prepare()` 函数的实现就在当前的`main.go`文件中，它主要用于设置一些节点初始化需要的配置。比如，我们在节点启动时看到的这句话: *Starting Geth on Ethereum mainnet...* 就是在`prepare()`函数中被打印出来的。
 
-`makeFullNode()`函数的实现位于`cmd\geth\config.go`文件中。它会将Geth启动时的命令的上下文加载到配置中，并生成`stack`和`backend`两个实例。其中`stack`通过调用`makeConfigNode()`来生成，它是一个Node类型的实例，具体的定义位于`node\node.go`文件中，如下所示。Node类型主要功能是启动作为与外部通信的外部接口，比如管理rpc server，http server，Web Socket，以及P2P Server外部接口。
+`makeFullNode()`函数的实现位于`cmd/geth/config.go`文件中。它会将Geth启动时的命令的上下文加载到配置中，并生成`stack`和`backend`两个实例。其中`stack`通过调用`makeConfigNode()`来生成，它是一个Node类型的实例，具体的定义位于`node/node.go`文件中。
 
-Ethereum API backend的实例是根据配置调用`utils.RegisterEthService()`函数生成。在`utils.RegisterEthService()`函数，会根据当前的config来判断Ethereum API backend的类型，是light node backend还是full node backend。
-
-我们可以在`eth\backend\new()`函数和`les\client.go\new()`中找到这两种Ethereum API backend的实例是如何初始化的。Ethereum API backend的实例定义了一些更底层的配置，比如chainid，链使用的共识算法的类型等。这两种后端服务的一个典型的区别是light node backend不能启动Mining服务。
+`backend`实例是根据上下文的配置信息在调用`utils.RegisterEthService()`函数生成。在`utils.RegisterEthService()`函数中，首先会根据当前的config来判断需要生成的Ethereum API backend的类型，是light node backend还是full node backend。我们可以在`eth/backend/new()`函数和`les/client.go/new()`中找到这两种Ethereum API backend的实例是如何初始化的。Ethereum API backend的实例定义了一些更底层的配置，比如chainid，链使用的共识算法的类型等。这两种后端服务的一个典型的区别是light node backend不能启动Mining服务。在`utils.RegisterEthService()`函数的最后，调用了`Nodes.RegisterAPIs()`函数，将刚刚生成的backend实例注册到`stack`实例中。
 
 ```go
  eth := &Ethereum{
@@ -155,11 +153,13 @@ Ethereum API backend的实例是根据配置调用`utils.RegisterEthService()`�
  }
 ```
 
-通过调用`startNode()`函数，正式启动一个Ethereum Node，包括RPClient的模块和Wallet模块都是在`startNode()`函数中启动的。在该函数中，这些子模块的启动是通过额外的协程开启的。
+`startNode()`函数的作用是正式的启动一个Ethereum Node。它通过调用`utils.StartNode()`函数来触发`Node.Start()`函数来启动的节点。同时在`Node.Start()`函数中，会遍历`Node.lifecycles`中注册的后端实例，并在启动它们。此外，在`startNode()`函数中，还是调用了`unlockAccounts()`函数，并将解锁的钱包注册到`stack`中，以及通过`stack.Attach()`函数创建了与local Geth交互的RPClient模块
 
-我们可以在`geth()`函数看到，通过`stack.Wait()`，此时主线程进入了监听状态，主要的业务逻辑被分散到了各个子模块。
+最后，在`geth()`函数看到，通过`stack.Wait()`，此时主线程进入了监听状态，主要的业务逻辑被分散到了由不同的协程维护的各个子模块。
 
 ### Node
+
+Node类型在Ethereum的生态中属于顶级实例，它负责作为与外部通信的外部接口，比如管理rpc server，http server，Web Socket，以及P2P Server外部接口。同时，Node中维护了节点运行所需要的后端的实例和服务(`lifecycles  []Lifecycle`)。
 
 ```go
 // Node is a container on which services can be registered.
@@ -192,7 +192,7 @@ type Node struct {
 
 ### Ethereum API Backend
 
-我们可以在`eth\backend.go`中找到`Ethereum`这个结构体的定义。这个结构体包含的成员变量以及接收的方法实现了Ethereum full node的全部功能和数据结构。我们可以在下面的代码定义中看到，Ethereum结构体中包含了`TxPool`，`Blockchain`，`consensus.Engine`，`miner`等最核心的几个数据结构作为成员变量。
+我们可以在`eth/backend.go`中找到`Ethereum`这个结构体的定义。这个结构体包含的成员变量以及接收的方法实现了Ethereum full node的全部功能和数据结构。我们可以在下面的代码定义中看到，Ethereum结构体中包含了`TxPool`，`Blockchain`，`consensus.Engine`，`miner`等最核心的几个数据结构作为成员变量，我们会在后面的章节中详细的讲述这些核心数据结构的主要功能，以及它们的实现的方法。
 
 ```go
 // Ethereum implements the Ethereum full node service.
@@ -268,3 +268,47 @@ func (s *Ethereum) StartMining(threads int) error {
    }
   }
 ```
+
+这里我们额外关注一下`handler`这个成员变量。`handler`的定义在`eth/handler.go`中。
+
+我们从从宏观角度来看一个Blockchain 节点的的Workflow主要只有: 1.从网络中获取/同步Transaction和Block的数据 2. 将网络中获取到Block添加到Blockchain中。而`handler`维护了backend中同步/请求数据的实例，比如`downloader.Downloader`，`fetcher.TxFetcher`。关于这些成员变量的具体实现，我们会在后续的文章中详细介绍。
+
+```go
+type handler struct {
+ networkID  uint64
+ forkFilter forkid.Filter // Fork ID filter, constant across the lifetime of the node
+
+ snapSync  uint32 // Flag whether snap sync is enabled (gets disabled if we already have blocks)
+ acceptTxs uint32 // Flag whether we're considered synchronised (enables transaction processing)
+
+ checkpointNumber uint64      // Block number for the sync progress validator to cross reference
+ checkpointHash   common.Hash // Block hash for the sync progress validator to cross reference
+
+ database ethdb.Database
+ txpool   txPool
+ chain    *core.BlockChain
+ maxPeers int
+
+ downloader   *downloader.Downloader
+ blockFetcher *fetcher.BlockFetcher
+ txFetcher    *fetcher.TxFetcher
+ peers        *peerSet
+ merger       *consensus.Merger
+
+ eventMux      *event.TypeMux
+ txsCh         chan core.NewTxsEvent
+ txsSub        event.Subscription
+ minedBlockSub *event.TypeMuxSubscription
+
+ peerRequiredBlocks map[uint64]common.Hash
+
+ // channels for fetcher, syncer, txsyncLoop
+ quitSync chan struct{}
+
+ chainSync *chainSyncer
+ wg        sync.WaitGroup
+ peerWG    sync.WaitGroup
+}
+```
+
+这样，Geth及其所需要的基本模块都已经启动完毕。我们在接下来将视角转入到各个模块中，从更细粒度的角度深入Ethereum的实现。
