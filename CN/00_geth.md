@@ -2,9 +2,7 @@
 
 ## 什么是Geth？
 
-Geth是基于Go语言开发以太坊的客户端，它实现了Ethereum协议(黄皮书)中所有需要的实现的功能，包括状态管理，挖矿，P2P网络通信，密码学，数据库，EVM解释器等模块。我们可以通过启动Geth来运行Ethereum的节点。Go-ethereum是包含了Geth在内的一个代码库，它包含了Geth本身，以及编译Geth所需要的其他代码段。
-
-Geth实现了Ethereum节点运行所需要的逻辑和功能代码，同时提供了方便用户和其他节点调用的API接口。在本系列中，我们会深入Go-ethereum代码库，从High-level的API接口出发，沿着Ethereum主Workflow，从而理解Ethereum具体实现的细节。
+Geth是基于Go语言开发以太坊的客户端，它实现了Ethereum协议(黄皮书)中所有需要的实现的功能模块，包括状态管理，挖矿，P2P网络通信，密码学，数据库，EVM解释器等。我们可以通过启动Geth来运行一个Ethereum的节点。Go-ethereum是包含了Geth在内的一个代码库，它包含了Geth，以及编译Geth所需要的其他代码。在本系列中，我们会深入Go-ethereum代码库，从High-level的API接口出发，沿着Ethereum主Workflow，从而理解Ethereum具体实现的细节。
 
 ### Go-ethereum Codebase 结构
 
@@ -70,9 +68,9 @@ trie/    Ethereum 中至关重要的数据结构 Merkle Patrica Trie(MPT)的实�
 
 ### 前奏: Geth Console
 
-当我们想要部署一个Ethereum节点的时候，最直接的方式就是下载官方提供的发行版的geth程序。Geth是一个基于CLI的应用，目前还没有特别通用化的GUI程序。Geth的功能的调用需要使用对应的指令来操作。当我第一次阅读Ethereum的文档的时候，我曾经有过这样的疑问，为什么Geth是由Go语言编写的，但是在官方文档中的Web3的API却是基于Javascript的调用？
+当我们想要部署一个Ethereum节点的时候，最直接的方式就是下载官方提供的发行版的geth程序。Geth是一个基于CLI的应用，启动Geth和调用Geth的功能性API需要使用对应的指令来操作。Geth提供了一个相对友好的console来方便用户调用各种指令。当我第一次阅读Ethereum的文档的时候，我曾经有过这样的疑问，为什么Geth是由Go语言编写的，但是在官方文档中的Web3的API却是基于Javascript的调用？
 
-这是因为Geth内置了一个Javascript的解释器*Goja* (interpreter)，作为用户与Geth交互的CLI Console。我们可以在`console/console.go`的代码中找到它的定义。
+这是因为Geth内置了一个Javascript的解释器:å*Goja* (interpreter)，来作为用户与Geth交互的CLI Console。我们可以在`console/console.go`中找到它的定义。
 
 <!-- /*Goja is an implementation of ECMAScript 5.1 in Pure GO*/ -->
 
@@ -97,7 +95,7 @@ type Console struct {
 
  <!-- `geth console 2` -->
 
-整个Geth项目的启动点在`cmd/geth/main.go/main()`函数处，如下所示。
+Geth的启动点位于`cmd/geth/main.go/main()`函数处，如下所示。
 
 ```go
 func main() {
@@ -108,7 +106,7 @@ func main() {
 }
 ```
 
-`main()`函数非常的简短，其主要功能就是启动一个解析 command line命令的工具app: `gopkg.in/urfave/cli.v1`。cli初始化的时候会调用`app.Action = geth`，来调用`geth()`函数。
+我们可以看到`main()`函数非常的简短，其主要功能就是启动一个解析 command line命令的工具: `gopkg.in/urfave/cli.v1`。我们会发现在cli app初始化的时候会调用`app.Action = geth`，来调用`geth()`函数。`geth()`函数就是用于启动Ethereum节点的顶层函数，其代码如下所示。
 
 ```go
 func geth(ctx *cli.Context) error {
@@ -126,13 +124,13 @@ func geth(ctx *cli.Context) error {
 }
 ```
 
-在`geth()`函数，我们可以看到三个比较重要的函数调用`prepare()`，`makeFullNode()`，以及`startNode()`。
+在`geth()`函数，我们可以看到有三个比较重要的函数调用，分别是：`prepare()`，`makeFullNode()`，以及`startNode()`。
 
-`prepare()` 函数的实现就在当前的`main.go`文件中，它主要用于设置一些节点初始化需要的配置。比如，我们在节点启动时看到的这句话: *Starting Geth on Ethereum mainnet...* 就是在`prepare()`函数中被打印出来的。
+`prepare()` 函数的实现就在当前的`main.go`文件中。它主要用于设置一些节点初始化需要的配置。比如，我们在节点启动时看到的这句话: *Starting Geth on Ethereum mainnet...* 就是在`prepare()`函数中被打印出来的。
 
-`makeFullNode()`函数的实现位于`cmd/geth/config.go`文件中。它会将Geth启动时的命令的上下文加载到配置中，并生成`stack`和`backend`两个实例。其中`stack`通过调用`makeConfigNode()`来生成，它是一个Node类型的实例，具体的定义位于`node/node.go`文件中。
+`makeFullNode()`函数的实现位于`cmd/geth/config.go`文件中。它会将Geth启动时的命令的上下文加载到配置中，并生成`stack`和`backend`这两个实例。其中`stack`是一个Node类型的实例，它是通过`makeFullNode()`函数调用`makeConfigNode()`函数来生成。Node是Geth生命周期中最顶级的实例，它的开启和关闭与Geth的启动和关闭直接对应。关于Node类型的定义位于`node/node.go`文件中。
 
-`backend`实例是根据上下文的配置信息在调用`utils.RegisterEthService()`函数生成。在`utils.RegisterEthService()`函数中，首先会根据当前的config来判断需要生成的Ethereum API backend的类型，是light node backend还是full node backend。我们可以在`eth/backend/new()`函数和`les/client.go/new()`中找到这两种Ethereum API backend的实例是如何初始化的。Ethereum API backend的实例定义了一些更底层的配置，比如chainid，链使用的共识算法的类型等。这两种后端服务的一个典型的区别是light node backend不能启动Mining服务。在`utils.RegisterEthService()`函数的最后，调用了`Nodes.RegisterAPIs()`函数，将刚刚生成的backend实例注册到`stack`实例中。
+`backend`实例是指的是具体Ethereum Client的功能性实例。它是一个Ethereum类型的实例，负责提供更为具体的以太坊的功能性Service，比如管理Blockchain，共识算法等具体模块。它根据上下文的配置信息在调用`utils.RegisterEthService()`函数生成。在`utils.RegisterEthService()`函数中，首先会根据当前的config来判断需要生成的Ethereum backend的类型，是light node backend还是full node backend。我们可以在`eth/backend/new()`函数和`les/client.go/new()`中找到这两种Ethereum backend的实例是如何初始化的。Ethereum backend的实例定义了一些更底层的配置，比如chainid，链使用的共识算法的类型等。这两种后端服务的一个典型的区别是light node backend不能启动Mining服务。在`utils.RegisterEthService()`函数的最后，调用了`Nodes.RegisterAPIs()`函数，将刚刚生成的backend实例注册到`stack`实例中。
 
 ```go
  eth := &Ethereum{
@@ -153,13 +151,13 @@ func geth(ctx *cli.Context) error {
  }
 ```
 
-`startNode()`函数的作用是正式的启动一个Ethereum Node。它通过调用`utils.StartNode()`函数来触发`Node.Start()`函数来启动的节点。同时在`Node.Start()`函数中，会遍历`Node.lifecycles`中注册的后端实例，并在启动它们。此外，在`startNode()`函数中，还是调用了`unlockAccounts()`函数，并将解锁的钱包注册到`stack`中，以及通过`stack.Attach()`函数创建了与local Geth交互的RPClient模块
+`startNode()`函数的作用是正式的启动一个Ethereum Node。它通过调用`utils.StartNode()`函数来触发`Node.Start()`函数来启动`Stack`实例（Node）。在`Node.Start()`函数中，会遍历`Node.lifecycles`中注册的后端实例，并在启动它们。此外，在`startNode()`函数中，还是调用了`unlockAccounts()`函数，并将解锁的钱包注册到`stack`中，以及通过`stack.Attach()`函数创建了与local Geth交互的RPClient模块。
 
-最后，在`geth()`函数看到，通过`stack.Wait()`，此时主线程进入了监听状态，主要的业务逻辑被分散到了由不同的协程维护的各个子模块。
+在`geth()`函数的最后，函数通过执行`stack.Wait()`，使得主线程进入了监听状态，其他的功能模块的服务被分散到其他的子协程中进行维护。
 
 ### Node
 
-Node类型在Geth的生命周期性中属于顶级实例，它负责作为与外部通信的外部接口，比如管理rpc server，http server，Web Socket，以及P2P Server外部接口。同时，Node中维护了节点运行所需要的后端的实例和服务(`lifecycles  []Lifecycle`)。
+正如我们前面提到的，Node类型在Geth的生命周期性中属于顶级实例，它负责作为与外部通信的外部接口，比如管理rpc server，http server，Web Socket，以及P2P Server外部接口。同时，Node中维护了节点运行所需要的后端的实例和服务(`lifecycles  []Lifecycle`)。
 
 ```go
 // Node is a container on which services can be registered.
@@ -311,4 +309,4 @@ type handler struct {
 }
 ```
 
-这样，Geth及其所需要的基本模块都已经启动完毕。我们在接下来将视角转入到各个模块中，从更细粒度的角度深入Ethereum的实现。
+这样，我们就介绍了Geth及其所需要的基本模块是如何启动的。我们在接下来将视角转入到各个模块中，从更细粒度的角度深入Ethereum的实现。
