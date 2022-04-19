@@ -190,7 +190,7 @@ type Node struct {
 
 ### Ethereum API Backend
 
-我们可以在`eth/backend.go`中找到`Ethereum`这个结构体的定义。这个结构体包含的成员变量以及接收的方法实现了Ethereum full node的全部功能和数据结构。我们可以在下面的代码定义中看到，Ethereum结构体中包含了`TxPool`，`Blockchain`，`consensus.Engine`，`miner`等最核心的几个数据结构作为成员变量，我们会在后面的章节中详细的讲述这些核心数据结构的主要功能，以及它们的实现的方法。
+我们可以在`eth/backend.go`中找到`Ethereum`这个结构体的定义。这个结构体包含的成员变量以及接收的方法实现了一个Ethereum full node所需要的全部功能和数据结构。我们可以在下面的代码定义中看到，Ethereum结构体中包含了`TxPool`，`Blockchain`，`consensus.Engine`，`miner`等最核心的几个数据结构作为成员变量，我们会在后面的章节中详细的讲述这些核心数据结构的主要功能，以及它们的实现的方法。
 
 ```go
 // Ethereum implements the Ethereum full node service.
@@ -234,9 +234,7 @@ type Ethereum struct {
 
 ```
 
-节点启动和停止Mining的就是通过调用`Ethereum.StartMining()`和`Ethereum.StopMining()`实现的。
-
-设置Mining的收益账户是通过调用`Ethereum.SetEtherbase()`实现的。
+节点启动和停止Mining的就是通过调用`Ethereum.StartMining()`和`Ethereum.StopMining()`实现的。设置Mining的收益账户是通过调用`Ethereum.SetEtherbase()`实现的。
 
 ```go
 // StartMining starts the miner with the given number of CPU threads. If mining
@@ -254,22 +252,9 @@ func (s *Ethereum) StartMining(threads int) error {
 }
 ```
 
-这里补充一个Go语言的语法知识: **Comma-ok断言**。在`Ethereum.StartMining()`函数中，出现了`if c, ok := s.engine.(*clique.Clique); ok`的写法。这中写法是Golang中的语法糖，称为Comma-ok断言。具体的语法是`value, ok := element.(T)`，它的含义是如果`element`是`T`类型的话，那么ok等于`True`, `value`等于`element`的值。在`if c, ok := s.engine.(*clique.Clique); ok`语句中，就是在判断`s.engine`的是否为`*clique.Clique`类型。
-
-```go
-  var cli *clique.Clique
-  if c, ok := s.engine.(*clique.Clique); ok {
-   cli = c
-  } else if cl, ok := s.engine.(*beacon.Beacon); ok {
-   if c, ok := cl.InnerEngine().(*clique.Clique); ok {
-    cli = c
-   }
-  }
-```
-
 这里我们额外关注一下`handler`这个成员变量。`handler`的定义在`eth/handler.go`中。
 
-我们从从宏观角度来看一个Blockchain 节点的的Workflow主要只有: 1.从网络中获取/同步Transaction和Block的数据 2. 将网络中获取到Block添加到Blockchain中。而`handler`维护了backend中同步/请求数据的实例，比如`downloader.Downloader`，`fetcher.TxFetcher`。关于这些成员变量的具体实现，我们会在后续的文章中详细介绍。
+我们从从宏观角度来看，一个节点的主工作流需要: 1.从网络中获取/同步Transaction和Block的数据 2. 将网络中获取到Block添加到Blockchain中。而`handler`就维护了backend中同步/请求数据的实例，比如`downloader.Downloader`，`fetcher.TxFetcher`。关于这些成员变量的具体实现，我们会在后续的文章中详细介绍。
 
 ```go
 type handler struct {
@@ -310,3 +295,18 @@ type handler struct {
 ```
 
 这样，我们就介绍了Geth及其所需要的基本模块是如何启动的。我们在接下来将视角转入到各个模块中，从更细粒度的角度深入Ethereum的实现。
+
+### Appendix
+
+这里补充一个Go语言的语法知识: **类型断言**。在`Ethereum.StartMining()`函数中，出现了`if c, ok := s.engine.(*clique.Clique); ok`的写法。这中写法是Golang中的语法糖，称为类型断言。具体的语法是`value, ok := element.(T)`，它的含义是如果`element`是`T`类型的话，那么ok等于`True`, `value`等于`element`的值。在`if c, ok := s.engine.(*clique.Clique); ok`语句中，就是在判断`s.engine`的是否为`*clique.Clique`类型。
+
+```go
+  var cli *clique.Clique
+  if c, ok := s.engine.(*clique.Clique); ok {
+   cli = c
+  } else if cl, ok := s.engine.(*beacon.Beacon); ok {
+   if c, ok := cl.InnerEngine().(*clique.Clique); ok {
+    cli = c
+   }
+  }
+```
