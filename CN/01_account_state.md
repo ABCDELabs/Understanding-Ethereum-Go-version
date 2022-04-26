@@ -4,9 +4,9 @@
 
 我们常常听到这么一个说法，“Ethereum和Bitcoin最大的不同之一是，Ethereum是基于Account模型的Blockchain系统，而Bitcoin是基于UTXO模型的”。那么，这个另辟蹊径的Account模型究竟不同在何处呢？在本文中我们来探索一下以太坊中的基本数据单元(Metadata)之一的Account。
 
-我们知道，Ethereum的运行依赖于基于交易的状态机模型(Transaction-based State Machine)。其中，状态(State)指的是数据变量在*某一时刻*下的信息。承载State的数据变量，称之为StateObject。当StateObject的数据或信息发生了变化时，我们称为*状态转移*。在Ethereum的运行模型中，StateObject所包含的数据会因为Transaction的执行引发的数据更新/删除/创建而发生变化，从而造成状态转移，StateObject的状态会从当前的State转移到另一个State。
+我们知道，Ethereum的运行依赖于基于交易的状态机模型(Transaction-based State Machine)。其中，状态(State)表示了某一实例(instance)在*某一时刻*下的值(value)。在以太坊中，State对应的基本数据结构，称为StateObject。当StateObject的值发生了变化时，我们称为*状态转移*。在Ethereum的运行模型中，StateObject所包含的数据会因为Transaction的执行引发数据更新/删除/创建，引发状态转移，我们说：StateObject的状态从当前的State转移到另一个State。
 
-在Ethereum中，StateObject的具体实现就是Account。因此，我们提到的State具体指的就是Account在某个时刻的包含的数据的值。
+在Ethereum中，承载StateObject的具体实例就是Ethereum中的Account。通常，我们提到的State具体指的就是Account在某个时刻的包含的数据的值。
 
 - Account --> StateObject
 - State   --> The value/data of the Account
