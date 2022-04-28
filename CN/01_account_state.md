@@ -2,7 +2,7 @@
 
 ## 概述
 
-我们常常听到这样一个说法，“Ethereum和Bitcoin最大的不同之一是，Ethereum是基于Account模型的Blockchain系统，而Bitcoin是基于UTXO模型的”。那么，这个另辟蹊径的Account模型究竟不同在何处呢？在本文中我们来探索一下以太坊中的基本数据单元(Metadata)之一的Account。
+我们常常听到这样一个说法，"Ethereum和Bitcoin最大的不同之一是二者使用管理链上数据的模型不同。其中，而Bitcoin是基于UTXO模型的Blockchain/Ledger系统，Ethereum是基于Account模型的系统"。那么，这个另辟蹊径的Account模型究竟不同在何处呢？在本文中我们来探索一下以太坊中的基本数据单元(Metadata)之一的Account。
 
 简单的来说，Ethereum依赖于一种*基于交易的状态机模型*(Transaction-based State Machine)。其中，状态(State)表示了某一实例(instance)在*某一时刻*下的值(value)。在以太坊中，State对应的基本数据结构，称为StateObject。当StateObject的值发生了变化时，我们称为*状态转移*。在Ethereum的运行模型中，StateObject所包含的数据会因为Transaction的执行引发数据更新/删除/创建，引发状态转移，我们说：StateObject的状态从当前的State转移到另一个State。
 
@@ -101,7 +101,7 @@ type StateAccount struct {
 
 ### db
 
-上述的几个成员变量基本覆盖了Account主工作流相关的全部成员变量。那么继续向下看，我们会遇到db和dbErr这两个成员变量。db这个变量保存了一个StateDB类型的指针。这是为了方便调用StateDB相关的API对Account所对应的stateObject进行操作。StateDB本质上是Ethereum用于管理stateObject信息的而抽象出来的内存数据库。所有的Account数据的更新，检索都会使用StateDB提供的API。关于StateDB的具体实现，功能，以及如何与更底层(leveldb)进行结合的，我们会在之后的文章中进行详细描述。
+上述的几个成员变量基本覆盖了Account主工作流相关的全部成员变量。那么我们继续向下看，会遇到`db`和`dbErr`这两个成员变量。db这个变量保存了一个StateDB类型的指针。这是为了方便调用StateDB相关的API对Account所对应的stateObject进行操作。StateDB本质上是Ethereum用于管理stateObject信息的而抽象出来的内存数据库。所有的Account数据的更新，检索都会使用StateDB提供的API。关于StateDB的具体实现，功能，以及如何与更底层(leveldb)进行结合的，我们会在之后的文章中进行详细描述。
 
 ### Cache
 
