@@ -153,7 +153,7 @@ func geth(ctx *cli.Context) error {
 
 `startNode()`函数的作用是正式的启动一个Ethereum Node。它通过调用`utils.StartNode()`函数来触发`Node.Start()`函数来启动`Stack`实例（Node）。在`Node.Start()`函数中，会遍历`Node.lifecycles`中注册的后端实例，并在启动它们。此外，在`startNode()`函数中，还是调用了`unlockAccounts()`函数，并将解锁的钱包注册到`stack`中，以及通过`stack.Attach()`函数创建了与local Geth交互的RPClient模块。
 
-在`geth()`函数的最后，函数通过执行`stack.Wait()`，使得主线程进入了监听状态，其他的功能模块的服务被分散到其他的子协程中进行维护。
+在`geth()`函数的最后，函数通过执行`stack.Wait()`，使得主线程进入了阻塞状态，其他的功能模块的服务被分散到其他的子协程中进行维护。
 
 ### Node
 
@@ -185,6 +185,57 @@ type Node struct {
  inprocHandler *rpc.Server // In-process RPC request handler to process the API requests
 
  databases map[*closeTrackingDB]struct{} // All open databases
+}
+```
+
+#### Node的关闭
+
+在前面我们提到，整个程序的主线程因为调用了`stack.Wait()`而进入了阻塞状态。我们可以看到Node结构中声明了一个叫做`stop`的channel。由于这个Channel一直没有被赋值，所以整个Geth的主进程才进入了阻塞状态，并不断循环的执行其他的业务协程。
+```go
+// Wait blocks until the node is closed.
+func (n *Node) Wait() {
+	<-n.stop
+}
+```
+
+当`n.stop`这个Channel被赋予值的时候，Geth函数就会停止阻塞状态，开始执行相应的一系列的资源释放的操作。这个地方的写法还是非常有意思的，值得我们参考，我们为读者编写了一个简单的示例作为参考。
+
+值得注意的是，在目前的go-ethereum的codebase中，并没有使用给`stop`这个channel赋值方式来结束主进程的阻塞状态，而是使用一种更简洁粗暴的方式: 调用close函数直接关闭Channel。我们可以在`node.doClose()`找到相关的实现。`close`是go语言的原生函数，用于关闭Channel时使用。
+
+```go
+// doClose releases resources acquired by New(), collecting errors.
+func (n *Node) doClose(errs []error) error {
+	// Close databases. This needs the lock because it needs to
+	// synchronize with OpenDatabase*.
+	n.lock.Lock()
+	n.state = closedState
+	errs = append(errs, n.closeDatabases()...)
+	n.lock.Unlock()
+
+	if err := n.accman.Close(); err != nil {
+		errs = append(errs, err)
+	}
+	if n.keyDirTemp {
+		if err := os.RemoveAll(n.keyDir); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	// Release instance directory lock.
+	n.closeDataDir()
+
+	// Unblock n.Wait.
+	close(n.stop)
+
+	// Report any errors that might have occurred.
+	switch len(errs) {
+	case 0:
+		return nil
+	case 1:
+		return errs[0]
+	default:
+		return fmt.Errorf("%v", errs)
+	}
 }
 ```
 

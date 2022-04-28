@@ -123,7 +123,6 @@ Transaction的执行主要在发生在两个Workflow中:
 
 ### Transaction修改Contract的持久化存储的
 
-
 在Ethereum中，当Miner开始构造新的区块的时候，首先会启动*miner/worker.go*的 `mainLoop()`函数。具体的函数如下所示。
 
 ```go
@@ -150,7 +149,6 @@ func (w *worker) mainLoop() {
 在Mining新区块前，Worker首先需要决定，那些Transaction会被打包到新的Block中。这里选取Transaction其实经历了两个步骤。首先，`txs`变量保存了从Transaction Pool中拿去到的合法的，以及准备好被打包的交易。这里举一个例子，来说明什么是**准备好被打包的交易**，比如Alice先后发了新三个交易到网络中，对应的Nonce分别是100和101，102。假如Miner只收到了100和102号交易。那么对于此刻的Transaction Pool来说Nonce 100的交易就是**准备好被打包的交易**，交易Nonce 是102需要等待Nonce 101的交易被确认之后才能提交。
 
 在Worker会从Transaction Pool中拿出若干的transaction, 赋值给*txs*之后, 然后调用`NewTransactionsByPriceAndNonce`函数按照Gas Price和Nonce对*txs*进行排序，并将结果赋值给*txset*。在拿到*txset*之后，mainLoop函数会调用`commitTransactions`函数，正式进入Mining新区块的流程。`commitTransactions`函数如下所示。
-
 
 ```go
 func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coinbase common.Address, interrupt *int32) bool {
@@ -383,3 +381,41 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 2. <https://yangzhe.me/2019/08/12/ethereum-evm/>
 
 [EIP2718]: https://eips.ethereum.org/EIPS/eip-2718
+
+## Read Transaction from Database
+
+当我们想要通过Transaction的Hash查询一个Transaction具体的数据的时候，上层的API会调用`eth/api_backend.go`中的`GetTransaction()`函数，并最终调用了`core/rawdb/accessors_indexes.go`中的`ReadTransaction()`函数来查询。
+
+```go
+func (b *EthAPIBackend) GetTransaction(ctx context.Context, txHash common.Hash) (*types.Transaction, common.Hash, uint64, uint64, error) {
+ tx, blockHash, blockNumber, index := rawdb.ReadTransaction(b.eth.ChainDb(), txHash)
+ return tx, blockHash, blockNumber, index, nil
+}
+```
+
+这里值得注意的是，在读取Transaction的时候，`ReadTransaction()`函数首先获取了保存该Transaction的函数block body，并循环遍历该Block Body中获取到对应的Transaction。这是因为，虽然Transaction是作为一个基本的数据结构(Transaction Hash可以保证Transaction的唯一性)，但是在写入数据库的时候就是被按照Block Body的形式被整个的打包写入到Database中的。具体的可以查看`core/rawdb/accesssor_chain.go`中的`WriteBlock()`和`WriteBody()`函数。
+
+```go
+func ReadTransaction(db ethdb.Reader, hash common.Hash) (*types.Transaction, common.Hash, uint64, uint64) {
+ blockNumber := ReadTxLookupEntry(db, hash)
+ if blockNumber == nil {
+  return nil, common.Hash{}, 0, 0
+ }
+ blockHash := ReadCanonicalHash(db, *blockNumber)
+ if blockHash == (common.Hash{}) {
+  return nil, common.Hash{}, 0, 0
+ }
+ body := ReadBody(db, blockHash, *blockNumber)
+ if body == nil {
+  log.Error("Transaction referenced missing", "number", *blockNumber, "hash", blockHash)
+  return nil, common.Hash{}, 0, 0
+ }
+ for txIndex, tx := range body.Transactions {
+  if tx.Hash() == hash {
+   return tx, blockHash, *blockNumber, uint64(txIndex)
+  }
+ }
+ log.Error("Transaction not found", "number", *blockNumber, "hash", blockHash, "txhash", hash)
+ return nil, common.Hash{}, 0, 0
+}
+```
