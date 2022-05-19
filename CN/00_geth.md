@@ -153,7 +153,7 @@ func geth(ctx *cli.Context) error {
 
 `startNode()`函数的作用是正式的启动一个Ethereum Node。它通过调用`utils.StartNode()`函数来触发`Node.Start()`函数来启动`Stack`实例（Node）。在`Node.Start()`函数中，会遍历`Node.lifecycles`中注册的后端实例，并在启动它们。此外，在`startNode()`函数中，还是调用了`unlockAccounts()`函数，并将解锁的钱包注册到`stack`中，以及通过`stack.Attach()`函数创建了与local Geth交互的RPClient模块。
 
-在`geth()`函数的最后，函数通过执行`stack.Wait()`，使得主线程进入了监听状态，其他的功能模块的服务被分散到其他的子协程中进行维护。
+在`geth()`函数的最后，函数通过执行`stack.Wait()`，使得主线程进入了阻塞状态，其他的功能模块的服务被分散到其他的子协程中进行维护。
 
 ### Node
 
@@ -187,6 +187,17 @@ type Node struct {
  databases map[*closeTrackingDB]struct{} // All open databases
 }
 ```
+
+#### Node的关闭
+
+在前面我们提到，整个程序的主线程因为调用了`stack.Wait()`而进入了阻塞状态。我们可以看到Node结构中声明了一个叫做`stop`的channel。由于这个Channel一直没有被赋值，所以整个Geth的主进程才进入了阻塞状态，并不断循环的执行其他的业务协程。
+```go
+// Wait blocks until the node is closed.
+func (n *Node) Wait() {
+	<-n.stop
+}
+```
+
 
 ### Ethereum API Backend
 
