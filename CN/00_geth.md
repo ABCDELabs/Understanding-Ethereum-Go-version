@@ -198,6 +198,46 @@ func (n *Node) Wait() {
 }
 ```
 
+当`n.stop`这个Channel被赋予值的时候，Geth函数就会停止阻塞状态，开始执行相应的一系列的资源释放的操作。这个地方的写法还是非常有意思的，值得我们参考，我们为读者编写了一个简单的示例作为参考。
+
+值得注意的是，在目前的go-ethereum的codebase中，并没有使用给`stop`这个channel赋值方式来结束主进程的阻塞状态，而是使用一种更简洁粗暴的方式: 调用close函数直接关闭Channel。我们可以在`node.doClose()`找到相关的实现。`close`是go语言的原生函数，用于关闭Channel时使用。
+
+```go
+// doClose releases resources acquired by New(), collecting errors.
+func (n *Node) doClose(errs []error) error {
+	// Close databases. This needs the lock because it needs to
+	// synchronize with OpenDatabase*.
+	n.lock.Lock()
+	n.state = closedState
+	errs = append(errs, n.closeDatabases()...)
+	n.lock.Unlock()
+
+	if err := n.accman.Close(); err != nil {
+		errs = append(errs, err)
+	}
+	if n.keyDirTemp {
+		if err := os.RemoveAll(n.keyDir); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	// Release instance directory lock.
+	n.closeDataDir()
+
+	// Unblock n.Wait.
+	close(n.stop)
+
+	// Report any errors that might have occurred.
+	switch len(errs) {
+	case 0:
+		return nil
+	case 1:
+		return errs[0]
+	default:
+		return fmt.Errorf("%v", errs)
+	}
+}
+```
 
 ### Ethereum API Backend
 
