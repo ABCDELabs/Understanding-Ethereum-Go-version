@@ -318,6 +318,9 @@ commitTransactions --> commitTransaction --> ApplyTransaction --> applyTransacti
 
 ![Transaction Execution Flow](../figs/02/tx_execu_flow.png)
 
+![Transaction Execution stack Flow](../figs/04/tx_exec_calls.png)
+
+
 ## [Validator] 验证节点是如何执行Transaction来更新World State
 
 而对于不参与Mining的节点，他们执行Block中Transaction的入口是在core/blockchain.go中的InsertChain()函数。InsertChain函数通过调用内部函数insertChain，对调用中的core/state_processor.go中的Process()函数。Process函数的核心在于循环遍历Block中的Transaction，调用上述的applyTransaction函数。从这里开始更底层的调用关系就与Mining Workflow中的调用关系相同。
