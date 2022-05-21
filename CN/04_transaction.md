@@ -2,19 +2,19 @@
 
 ## 概述
 
-我们知道，Ethereum的基本模型是基于交易的状态机模型(Transaction-based State Machine)。在[Account章节](./01_account.md)我们简述了一下Account/State的基本结构。本章我们就来探索一下，Ethereum基本模型中的另一个基本数据单元Transaction。在本文中，我们提到的交易指的是在Ethereum Layer-1层面上构造的交易，以太坊生态中的Layer-2中的交易不在我们的讨论中。
+我们知道，Ethereum的基本模型是基于交易的状态机模型(Transaction-based State Machine)。在[Account章节](./01_account.md)我们简述了一下Account/Contract的基本数据结构。本章我们就来探索一下，Ethereum中的一个基本数据结构Transaction。在本文中，我们提到的交易指的是在Ethereum Layer-1层面上构造的交易，以太坊生态中的Layer-2中的交易不在我们的讨论中。
 
-首先，Transaction是Ethereum执行数据操作的媒介。它主要起到下面的几个作用:
+首先，Transaction是Ethereum执行数据操作的媒介，它主要起到下面的几个作用:
 
 1. 在Layer-1网络上的Account之间进行Native Token的转账。
 2. 创建新的Contract。
 3. 调用Contract中会修改目标Contract中持久化数据或者间接修改其他Account/Contract数据的函数。
 
-这里我们对Transaction功能性的细节再进行一些额外的补充说明。首先，Transaction只能创建Contract账户，而不能用于创建外部账户(EOA)。其次，如果调用的Contract函数只进行了查询的操作，是不需要构造依赖Transaction的。而所有参与Account/Contract数据修改的操作都需要通过Transaction来进行。第三，广义上的Transaction只能由外部账户(EOA)构建。Contract是没有办法显式构造Layer-1层面的交易的。在某些合约函数的执行过程中，Contract在可以通过构造internal transaction来与其他的合约进行交互，但是这种Internal transaction与我们提到的Layer-1层面的交易有所不同，我们会在之后的章节介绍。
+这里我们对Transaction的功能性的细节再进行一些额外的补充。首先，Transaction只能创建Contract账户，而不能用于创建外部账户(EOA)。第二，如果调用Contract中的只读函数，是不需要构造Transaction的。相对的，所有参与Account/Contract数据修改的操作都需要通过Transaction来进行。第三，广义上的Transaction只能由外部账户(EOA)构建。Contract是没有办法显式构造Layer-1层面的交易的。在某些合约函数的执行过程中，Contract在可以通过构造internal transaction来与其他的合约进行交互，但是这种Internal transaction与我们提到的Layer-1层面的交易有所不同，我们会在之后的章节介绍。
 
 ## LegacyTx & AccessListTX & DynamicFeeTx
 
-下面我们根据源代码中的Transaction的定义来了解一下Transaction的数据结构。Transaction结构体的定义位于*core/types/transaction.go*中。Transaction的结构体如下所示。
+下面我们根据源代码中的定义来了解一下Transaction的数据结构。Transaction结构体的定义位于*core/types/transaction.go*中。Transaction的结构体如下所示。
 
 ```go
 type Transaction struct {
@@ -28,7 +28,7 @@ type Transaction struct {
 }
 ```
 
-从代码定义中我们可以看到，Transaction的结构体是非常简单的结构，它只包含了五个变量分别是, `TxData`类型的inner，`Time`类型的time，以及三个`atomic.Value`类型的hash，size，以及from。这里我们需要重点关注一下`inner`这个变量。目前与Transaction直接相关的数据都由这个变量来维护。
+从代码定义中我们可以看到，`Transaction`的结构体是非常简单的，它只包含了五个变量分别是, `TxData`类型的inner，`Time`类型的time，以及三个`atomic.Value`类型的hash，size，以及from。这里我们需要重点关注一下`inner`这个变量。目前与Transaction直接相关的数据都由这个变量来维护。
 
 目前，`TxData`类型是一个接口，它的定义如下面的代码所示。
 
@@ -110,14 +110,14 @@ type DynamicFeeTx struct {
 }
 ```
 
-## Transaction的执行
+## Transaction的执行流程
 
 Transaction的执行主要在发生在两个Workflow中:
 
 1. Miner在打包新的Block时。此时Miner会按Block中Transaction的打包顺序来执行其中的Transaction。
 2. 其他节点添加Block到Blockchain时。当节点从网络中监听并获取到新的Block时，它们会执行Block中的Transaction，来更新本地的State Trie的 Root，并与Block Header中的State Trie Root进行比较，来验证Block的合法性。
 
-一条Transaction执行的结果，可能会造成一个或多个Account的State的变化。最终一个Block中所有Transaction执行的结果使得World State发生状态转移。下面我们就来分析一下一条Transaction是怎么造成World State 发生变化的。
+一条Transaction执行，可能会涉及到多个Account/Contract的值的变化，最终造成一个或多个Account的State的发生转移。在Byzantium分叉之前的Geth版本中，在每个Transaction执行之后，都会计算一个当前的State Trie Root，并写入到对应的Transaction Receipt中。这符合以太坊黄皮书中的原始设计。即交易是使得Ethereum状态机发生状态状态转移的最细粒度单位。读者们可能已经来开产生疑惑了，“每个Transaction都会重算一个State Trie Root”的方式岂不是会带来大量的计算(重算一次一个MPT Path上的所有Node)和读写开销(新生成的MPT Node是很有可能最终被持久化到LevelDB中的)？结论是显然的。因此在Byzantium分叉之后，在一个Block的验证周期中只会计算一次的State Root。我们仍然可以在`state_processor.go`找寻到早年代码的痕迹。最终，一个Block中所有Transaction执行的结果使得World State发生状态转移。下面我们就来根据geth代码库中的调用关系，从Miner的视角来探索一个Transaction的生命周期。
 
 ### Native Token Transferring Transaction
 
@@ -146,9 +146,11 @@ func (w *worker) mainLoop() {
 }
 ```
 
-在Mining新区块前，Worker首先需要决定，那些Transaction会被打包到新的Block中。这里选取Transaction其实经历了两个步骤。首先，`txs`变量保存了从Transaction Pool中拿去到的合法的，以及准备好被打包的交易。这里举一个例子，来说明什么是**准备好被打包的交易**，比如Alice先后发了新三个交易到网络中，对应的Nonce分别是100和101，102。假如Miner只收到了100和102号交易。那么对于此刻的Transaction Pool来说Nonce 100的交易就是**准备好被打包的交易**，交易Nonce 是102需要等待Nonce 101的交易被确认之后才能提交。
+在Mining新区块前，Worker首先需要决定，哪些Transaction会被打包到新的Block中。这里选取Transaction其实经历了两个步骤。首先，`txs`变量保存了从Transaction Pool中拿去到的合法的，以及准备好被打包的交易。这里举一个例子，来说明什么是**准备好被打包的交易**，比如Alice先后发了新三个交易到网络中，对应的Nonce分别是100和101，102。假如Miner只收到了100和102号交易。那么对于此刻的Transaction Pool来说Nonce 100的交易就是**准备好被打包的交易**，交易Nonce 是102需要等待Nonce 101的交易被确认之后才能提交。
 
-在Worker会从Transaction Pool中拿出若干的transaction, 赋值给*txs*之后, 然后调用`NewTransactionsByPriceAndNonce`函数按照Gas Price和Nonce对*txs*进行排序，并将结果赋值给*txset*。在拿到*txset*之后，mainLoop函数会调用`commitTransactions`函数，正式进入Mining新区块的流程。`commitTransactions`函数如下所示。
+在Worker会从Transaction Pool中拿出若干的transaction, 赋值给*txs*之后, 然后调用`NewTransactionsByPriceAndNonce`函数按照Gas Price和Nonce对*txs*进行排序，并将结果赋值给*txset*。此外在Worker的实例中，还存在`fillTransactions`函数，为了未来定制化的给Transaction的执行顺序进行排序。
+
+在拿到*txset*之后，mainLoop函数会调用`commitTransactions`函数，正式进入Mining新区块的流程。`commitTransactions`函数如下所示。
 
 ```go
 func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coinbase common.Address, interrupt *int32) bool {
@@ -318,6 +320,9 @@ commitTransactions --> commitTransaction --> ApplyTransaction --> applyTransacti
 
 ![Transaction Execution Flow](../figs/02/tx_execu_flow.png)
 
+![Transaction Execution stack Flow](../figs/04/tx_exec_calls.png)
+
+
 ## [Validator] 验证节点是如何执行Transaction来更新World State
 
 而对于不参与Mining的节点，他们执行Block中Transaction的入口是在core/blockchain.go中的InsertChain()函数。InsertChain函数通过调用内部函数insertChain，对调用中的core/state_processor.go中的Process()函数。Process函数的核心在于循环遍历Block中的Transaction，调用上述的applyTransaction函数。从这里开始更底层的调用关系就与Mining Workflow中的调用关系相同。
@@ -419,3 +424,7 @@ func ReadTransaction(db ethdb.Reader, hash common.Hash) (*types.Transaction, com
  return nil, common.Hash{}, 0, 0
 }
 ```
+
+## Terms
+
+- Externally Owned Account(EOA) 外部账户

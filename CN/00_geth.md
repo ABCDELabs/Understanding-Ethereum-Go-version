@@ -1,10 +1,12 @@
-# 00_万物的起点: Geth Start \!
+# 00_万物的起点: Geth Start \
 
 ## 什么是Geth？
 
-Geth是基于Go语言开发以太坊的客户端，它实现了Ethereum协议(黄皮书)中所有需要的实现的功能模块，包括状态管理，挖矿，P2P网络通信，密码学，数据库，EVM解释器等。我们可以通过启动Geth来运行一个Ethereum的节点。Go-ethereum是包含了Geth在内的一个代码库，它包含了Geth，以及编译Geth所需要的其他代码。在本系列中，我们会深入Go-ethereum代码库，从High-level的API接口出发，沿着Ethereum主Workflow，从而理解Ethereum具体实现的细节。
+Geth是基于Go语言开发以太坊的客户端，它实现了Ethereum协议(黄皮书)中所有需要的实现的功能模块，包括状态管理，挖矿，P2P网络通信，密码学，数据库，EVM解释器等。我们可以通过启动Geth来运行一个Ethereum的节点。go-ethereum是包含了Geth在内的一个代码库，它包含了Geth，以及编译Geth所需要的其他代码。在本系列中，我们会深入go-ethereum代码库，从High-level的API接口出发，沿着Ethereum主Workflow，逐一的理解Ethereum具体实现的细节。
 
-### Go-ethereum Codebase 结构
+为了方便区分，在接下来的文章中，我们用Geth来表示Geth的客户端程序，用go-ethereum(geth)来表示go-ethereum的代码库。
+
+### go-ethereum Codebase 结构
 
 为了更好的从整体工作流的角度来理解Ethereum，根据主要的业务功能，我们将go-ethereum划分成如下几个模块来分析。
 
@@ -95,7 +97,7 @@ type Console struct {
 
  <!-- `geth console 2` -->
 
-Geth的启动点位于`cmd/geth/main.go/main()`函数处，如下所示。
+Geth程序的启动点位于`cmd/geth/main.go/main()`函数处，如下所示。
 
 ```go
 func main() {
@@ -190,52 +192,53 @@ type Node struct {
 
 #### Node的关闭
 
-在前面我们提到，整个程序的主线程因为调用了`stack.Wait()`而进入了阻塞状态。我们可以看到Node结构中声明了一个叫做`stop`的channel。由于这个Channel一直没有被赋值，所以整个Geth的主进程才进入了阻塞状态，并不断循环的执行其他的业务协程。
+在前面我们提到，整个程序的主线程因为调用了`stack.Wait()`而进入了阻塞状态。我们可以看到Node结构中声明了一个叫做`stop`的channel。由于这个Channel一直没有被赋值，所以整个Geth的主进程才进入了阻塞状态，持续并发的执行其他的业务协程。
+
 ```go
 // Wait blocks until the node is closed.
 func (n *Node) Wait() {
-	<-n.stop
+ <-n.stop
 }
 ```
 
-当`n.stop`这个Channel被赋予值的时候，Geth函数就会停止阻塞状态，开始执行相应的一系列的资源释放的操作。这个地方的写法还是非常有意思的，值得我们参考，我们为读者编写了一个简单的示例作为参考。
+当`n.stop`这个Channel被赋予值的时候，Geth函数就会停止当前的阻塞状态，并开始执行相应的一系列的资源释放的操作。这个地方的写法还是非常有意思的，值得我们参考。我们为读者编写了一个简单的示例:如何使用Channel来管理Go程序的生命周期。
 
-值得注意的是，在目前的go-ethereum的codebase中，并没有使用给`stop`这个channel赋值方式来结束主进程的阻塞状态，而是使用一种更简洁粗暴的方式: 调用close函数直接关闭Channel。我们可以在`node.doClose()`找到相关的实现。`close`是go语言的原生函数，用于关闭Channel时使用。
+值得注意的是，在目前的go-ethereum的codebase中，并没有直接通过给`stop`这个channel赋值方式来结束主进程的阻塞状态，而是使用一种更简洁粗暴的方式: 调用close函数直接关闭Channel。我们可以在`node.doClose()`找到相关的实现。`close`是go语言的原生函数，用于关闭Channel时使用。
 
 ```go
 // doClose releases resources acquired by New(), collecting errors.
 func (n *Node) doClose(errs []error) error {
-	// Close databases. This needs the lock because it needs to
-	// synchronize with OpenDatabase*.
-	n.lock.Lock()
-	n.state = closedState
-	errs = append(errs, n.closeDatabases()...)
-	n.lock.Unlock()
+ // Close databases. This needs the lock because it needs to
+ // synchronize with OpenDatabase*.
+ n.lock.Lock()
+ n.state = closedState
+ errs = append(errs, n.closeDatabases()...)
+ n.lock.Unlock()
 
-	if err := n.accman.Close(); err != nil {
-		errs = append(errs, err)
-	}
-	if n.keyDirTemp {
-		if err := os.RemoveAll(n.keyDir); err != nil {
-			errs = append(errs, err)
-		}
-	}
+ if err := n.accman.Close(); err != nil {
+  errs = append(errs, err)
+ }
+ if n.keyDirTemp {
+  if err := os.RemoveAll(n.keyDir); err != nil {
+   errs = append(errs, err)
+  }
+ }
 
-	// Release instance directory lock.
-	n.closeDataDir()
+ // Release instance directory lock.
+ n.closeDataDir()
 
-	// Unblock n.Wait.
-	close(n.stop)
+ // Unblock n.Wait.
+ close(n.stop)
 
-	// Report any errors that might have occurred.
-	switch len(errs) {
-	case 0:
-		return nil
-	case 1:
-		return errs[0]
-	default:
-		return fmt.Errorf("%v", errs)
-	}
+ // Report any errors that might have occurred.
+ switch len(errs) {
+ case 0:
+  return nil
+ case 1:
+  return errs[0]
+ default:
+  return fmt.Errorf("%v", errs)
+ }
 }
 ```
 
@@ -345,7 +348,12 @@ type handler struct {
 }
 ```
 
-这样，我们就介绍了Geth及其所需要的基本模块是如何启动的。我们在接下来将视角转入到各个模块中，从更细粒度的角度深入Ethereum的实现。
+这样，我们就介绍了Geth及其所需要的基本模块是如何启动的和关闭的。我们在接下来将视角转入到各个模块中，从更细粒度的角度深入Ethereum的实现。
+
+### Related Terms
+
+- Geth
+- go-ethereum (geth)
 
 ### Appendix
 

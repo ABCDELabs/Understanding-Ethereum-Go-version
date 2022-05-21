@@ -160,7 +160,7 @@ Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑
  // 被修改的state的值会首先被放在StateObject的dirtyStorage中，而不是直接添加到Trie或者Disk Database中。
  func (s *stateObject) setState(key, value common.Hash)
 
- // 在Finalizes所有的pending的Storage时候，并且更新到Trie，计算State Trie的Root
+ // 根据当前的State Trie的值来重新计算State Trie的Root，并返回改Root的值
  func (s *StateDB) IntermediateRoot(deleteEmptyObjects bool) common.Hash
 
  // Finalise 当前内存中的Cache.
