@@ -10,7 +10,7 @@
 2. 创建新的Contract。
 3. 调用Contract中会修改目标Contract中持久化数据或者间接修改其他Account/Contract数据的函数。
 
-这里我们对Transaction功能性的细节再进行一些额外的补充说明。首先，Transaction只能创建Contract账户，而不能用于创建外部账户(EOA)。其次，如果调用的Contract函数只进行了查询的操作，是不需要构造依赖Transaction的。而所有参与Account/Contract数据修改的操作都需要通过Transaction来进行。第三，广义上的Transaction只能由外部账户(EOA)构建。Contract是没有办法显式构造Layer-1层面的交易的。在某些合约函数的执行过程中，Contract在可以通过构造internal transaction来与其他的合约进行交互，但是这种Internal transaction与我们提到的Layer-1层面的交易有所不同，我们会在之后的章节介绍。
+这里我们对Transaction功能性的细节再进行一些额外的补充。首先，Transaction只能创建Contract账户，而不能用于创建外部账户(EOA)。其次，如果调用的Contract函数只进行了查询的操作，是不需要构造Transaction的。而所有参与Account/Contract数据修改的操作都需要通过Transaction来进行。第三，广义上的Transaction只能由外部账户(EOA)构建。Contract是没有办法显式构造Layer-1层面的交易的。在某些合约函数的执行过程中，Contract在可以通过构造internal transaction来与其他的合约进行交互，但是这种Internal transaction与我们提到的Layer-1层面的交易有所不同，我们会在之后的章节介绍。
 
 ## LegacyTx & AccessListTX & DynamicFeeTx
 
@@ -422,3 +422,7 @@ func ReadTransaction(db ethdb.Reader, hash common.Hash) (*types.Transaction, com
  return nil, common.Hash{}, 0, 0
 }
 ```
+
+## Terms
+
+- Externally Owned Account(EOA) 外部账户
