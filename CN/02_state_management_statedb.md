@@ -2,7 +2,7 @@
 
 ## General
 
-在本文中，我们剖析一下Ethereum State 管理模块中最重要的几个数据结构，StateDB, Trie，Secure Trie，以及StackTrie。我们讲通过分析Ethereum中的主workflow的方式来深入理解这三个数据结构的使用场景，以及设计上的不同。
+在本文中，我们剖析一下 Ethereum State 管理模块中最重要的几个数据结构，StateDB, Trie，Secure Trie，以及 StackTrie。我们将通过分析 Ethereum 中的主 workflow 的方式来深入理解这三个数据结构的使用场景，以及设计上的不同。
 
 首先，StateDB是这三个数据结构中最高层的封装，它是直接提供了与StateObject (Account，Contract)相关的CURD的接口给其他的模块，比如：
 
