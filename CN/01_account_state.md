@@ -79,7 +79,7 @@ type Hash [HashLength]byte
 
 ### data and StateAccount
 
-继续向下探索，我们会遇到成员变量 data，它是一个`types.StateAccount`类型的变量。在上面的分析中我们提到，`stateObject`这种类型只对 Package State 这个内部使用。所以相应的，Package State 也为外部 Package API 提供了与 Account 相关的数据类型"State Account"。在上面的代码中我们就可以看到，"State Account"对应了 State Object 中"data Account"成员变量。State Account 的具体数据结构的被定义在"core/types/state_account.go"文件中 (~~在之前的版本中 Account 的代码位于 core/account.go~~)，其定义如下所示。
+继续向下探索，我们会遇到成员变量 data，它是一个`types.StateAccount`类型的变量。在上面的分析中我们提到，`stateObject`这种类型只对 Package State 这个内部使用。所以相应的，Package State 也为外部 Package API 提供了与 Account 相关的数据类型"State Account"。在上面的代码中我们就可以看到，"State Account"对应了 State Object 中"data Account"成员变量。State Account 的具体数据结构的被定义在"core/types/state_account.go"文件中，其定义如下所示。
 
 ```go
 // Account is the Ethereum consensus representation of accounts.
