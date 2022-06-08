@@ -28,7 +28,7 @@
 
 ## StateObject, Account, Contract
 
-在实际代码中，这两种 Account 都是由`stateObject`这一数据结构定义的。`stateObject`的相关代码位于* core/state/state_object.go *文件中，隶属于* package state*。我们摘录了`stateObject`的结构代码，如下所示。通过下面的代码，我们可以观察到，`stateObject`是由小写字母开头。根据 go 语言的特性，我们可以知道这个结构主要用于 package 内部数据操作，并不对外暴露。
+在实际代码中，这两种 Account 都是由`stateObject`这一数据结构定义的。`stateObject`的相关代码位于 *core/state/state_object.go* 文件中，隶属于 *package state* 。我们摘录了`stateObject`的结构代码，如下所示。通过下面的代码，我们可以观察到，`stateObject`是由小写字母开头。根据 go 语言的特性，我们可以知道这个结构主要用于 package 内部数据操作，并不对外暴露。
 
 ```go
   type stateObject struct {
@@ -169,13 +169,13 @@ type StateAccount struct {
 
 [在文章的开头](#general Background) 我们提到，在外部账户对应的 stateObject 结构体的实例中，有四个 Storage 类型的变量是空值。那显然的，这四个变量是为 Contract 类型的账户准备的。
 
-在* state_object.go *文件的开头部分 (41 行左右），我们可以找到 Storage 类型的定义。具体如下所示。
+在 *state_object.go* 文件的开头部分 (41 行左右），我们可以找到 Storage 类型的定义。具体如下所示。
 
 ```go
 type Storage map[common.Hash]common.Hash
 ```
 
-我们可以看到，*Storage *是一个 key 和 value 都是`common.Hash`类型的 map 结构。common.Hash 类型，则对应了一个长度为 32bytes 的 byte 类型数组。这个类型在 go-ethereum 中被大量使用，通常用于表示 32 字节长度的数据，比如 Keccak256 函数的哈希值。在之后的旅程中，我们也会经常看到它的身影，它的定义在 common.type.go 文件中。
+我们可以看到，*Storage* 是一个 key 和 value 都是`common.Hash`类型的 map 结构。common.Hash 类型，则对应了一个长度为 32bytes 的 byte 类型数组。这个类型在 go-ethereum 中被大量使用，通常用于表示 32 字节长度的数据，比如 Keccak256 函数的哈希值。在之后的旅程中，我们也会经常看到它的身影，它的定义在 common.type.go 文件中。
 
 ```go
 // HashLength is the expected length of the hash
@@ -186,7 +186,7 @@ type Hash [HashLength]byte
 
 从功能层面讲，外部账户 (EOA) 与合约账户 (Contract) 不同的点在于，外部账户并没有维护自己的代码 (codeHash) 以及额外的 Storage 层。相比与外部账户，合约账户额外保存了一个存储层 (Storage) 用于存储合约代码中持久化的变量的数据。在上文中我们提到，StateObject 中的声明的四个 Storage 类型的变量，就是作为 Contract Storage 层的内存缓存。
 
-在 Ethereum 中，每个合约都维护了自己的*独立*的 Storage 空间，我们称为 Storage 层。Storage 层的基本组成单元称为槽 (Slot)，若干个 Slot 按照* Stack *的方式集合在一起构造成了 Storage 层。每个 Slot 的大小是 256 bits，也就是最多保存 32 bytes 的数据。作为基本的存储单元，Slot 管理的方式与内存或者 HDD 中的基本单元的管理方式类似，通过地址索引的方式被上层函数访问。Slot 的地址索引的长度同样是 32 bytes(256 bits)，寻址空间从 0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个 Contract 的 Storage 层最多可以保存$2^{256} - 1$个 Slot。也就说在理论状态下，一个 Contract 可以最多保存$(2^{256} - 1)$ bytes 的数据，这是个相当大的数字。Contract 同样使用 MPT 来管理 Storage 层的 Slot。值得注意的是，Storage 层的数据并不会被打包进入 Block 中。唯一与 Chain 内数据相关的是，Storage Trie 的根数据被保存在 StateAccount 结构体中的 Root 变量中（它是一个 32bytes 长的 byte 数组）。当某个 Contract 的 Storage 层的数据发生变化时，根据骨牌效应，向上传导到 World State Root 的值发生变化，从而影响到 Chain 数据。目前，Storage 层的数据读取和修改是在执行相关 Transaction 的时候，通过 EVM 调用两个专用的指令* OpSload *和* OpSstore *触发。
+在 Ethereum 中，每个合约都维护了自己的*独立*的 Storage 空间，我们称为 Storage 层。Storage 层的基本组成单元称为槽 (Slot)，若干个 Slot 按照 *Stack* 的方式集合在一起构造成了 Storage 层。每个 Slot 的大小是 256 bits，也就是最多保存 32 bytes 的数据。作为基本的存储单元，Slot 管理的方式与内存或者 HDD 中的基本单元的管理方式类似，通过地址索引的方式被上层函数访问。Slot 的地址索引的长度同样是 32 bytes(256 bits)，寻址空间从 0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个 Contract 的 Storage 层最多可以保存$2^{256} - 1$个 Slot。也就说在理论状态下，一个 Contract 可以最多保存$(2^{256} - 1)$ bytes 的数据，这是个相当大的数字。Contract 同样使用 MPT 来管理 Storage 层的 Slot。值得注意的是，Storage 层的数据并不会被打包进入 Block 中。唯一与 Chain 内数据相关的是，Storage Trie 的根数据被保存在 StateAccount 结构体中的 Root 变量中（它是一个 32bytes 长的 byte 数组）。当某个 Contract 的 Storage 层的数据发生变化时，根据骨牌效应，向上传导到 World State Root 的值发生变化，从而影响到 Chain 数据。目前，Storage 层的数据读取和修改是在执行相关 Transaction 的时候，通过 EVM 调用两个专用的指令 *OpSload* 和 *OpSstore* 触发。
 
 我们知道目前 Ethereum 中的大部分合约都通过 Solidity 语言编写。Solidity 做为强类型的图灵完备的语言，支持多种类型的变量。总的来说，根据变量的长度性质，Ethereum 中的持久化的变量可以分为定长的变量和不定长度的变量两种。定长的变量有常见的单变量类型，比如 uint256。不定长的变量包括了由若干单变量组成的 Array，以及 KV 形式的 Map 类型。
 
@@ -199,7 +199,7 @@ type Hash [HashLength]byte
 
 ### Contract Storage Example One
 
-我们使用一个简单的合约来展示 Contract Storage 层的逻辑，合约代码如下所示。在本例中，我们使用了一个叫做"Storage"合约，其中定义了了三个持久化 uint256 类型的变量分别是 number, number1, 以及 number2。同时，我们定义一个 stores 函数给这个三个变量进行赋值。
+我们使用一个简单的合约来展示 Contract Storage 层的逻辑，合约代码如下所示。在本例中，我们使用了一个叫做"Storage"合约，其中定义了了三个持久化 uint256 类型的变量，分别是 number, number1, 以及 number2。同时，我们定义一个 stores 函数给这个三个变量进行赋值。
 
 ```solidity
 // SPDX-License-Identifier: GPL-3.0
@@ -386,7 +386,7 @@ contract Storage {
 
 ### Account Storage Example Four
 
-在 Solidity 中，有一类特殊的变量类型** Address**，通常用于表示账户的地址信息。例如在 ERC-20 合约中，用户拥有的 token 信息是被存储在一个 (address->uint) 的 map 结构中。在这个 map 中，key 就是 Address 类型的，它表示了用户实际的 address。目前 Address 的大小为 160bits(20bytes)，并不足以填满一整个 Slot。因此当 Address 作为 value 单独存储在的时候，它并不会排他的独占用一个 Slot。我们使用下面的例子来说明。
+在 Solidity 中，有一类特殊的变量类型 **Address**，通常用于表示账户的地址信息。例如在 ERC-20 合约中，用户拥有的 token 信息是被存储在一个 (address->uint) 的 map 结构中。在这个 map 中，key 就是 Address 类型的，它表示了用户实际的 address。目前 Address 的大小为 160bits(20bytes)，并不足以填满一整个 Slot。因此当 Address 作为 value 单独存储在的时候，它并不会排他的独占用一个 Slot。我们使用下面的例子来说明。
 
 在下面的示例中，我们声明了三个变量，分别是 number(uint256)，addr(address)，以及 isTrue(bool)。我们知道，在以太坊中 Address 类型变量的长度是 20 bytes，所以一个 Address 类型的变量是没办法填满整个的 Slot(32 bytes) 的。同时，布尔类型在以太坊中只需要一个 bit(0 or 1) 的空间。因此，我们构造 transaction 并调用函数 storeaddr 来给这三个变量赋值，函数的 input 参数是一个 uint256 的值，一个 address 类型的值，分别为{1, “0xb6186d3a3D32232BB21E87A33a4E176853a49d12”}。
 
