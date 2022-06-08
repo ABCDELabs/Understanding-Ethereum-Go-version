@@ -24,7 +24,7 @@ Geth 是基于 Go 语言开发以太坊的客户端，它实现了 Ethereum 协�
 
 目前，go-ethereum 项目的主要目录结构如下所示：
 
-```
+```html
 cmd/ ethereum 相关的 Command-line 程序。该目录下的每个子目录都包含一个可运行的 main.go。
    |── clef/ Ethereum 官方推出的 Account 管理程序。
    |── geth/ Geth 的本体。
@@ -72,7 +72,7 @@ trie/    Ethereum 中至关重要的数据结构 Merkle Patrica Trie(MPT) 的实
 
 当我们想要部署一个 Ethereum 节点的时候，最直接的方式就是下载官方提供的发行版的 geth 程序。Geth 是一个基于 CLI 的应用，启动 Geth 和调用 Geth 的功能性 API 需要使用对应的指令来操作。Geth 提供了一个相对友好的 console 来方便用户调用各种指令。当我第一次阅读 Ethereum 的文档的时候，我曾经有过这样的疑问，为什么 Geth 是由 Go 语言编写的，但是在官方文档中的 Web3 的 API 却是基于 Javascript 的调用？
 
-这是因为 Geth 内置了一个 Javascript 的解释器：å*Goja* (interpreter)，来作为用户与 Geth 交互的 CLI Console。我们可以在`console/console.go`中找到它的定义。
+这是因为 Geth 内置了一个 Javascript 的解释器：*Goja* (interpreter)，来作为用户与 Geth 交互的 CLI Console。我们可以在`console/console.go`中找到它的定义。
 
 <!-- /*Goja is an implementation of ECMAScript 5.1 in Pure GO*/ -->
 
