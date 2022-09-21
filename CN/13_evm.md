@@ -4,9 +4,11 @@
 
 EVM是Ethereum中最核心的模块，也可以说是Ethereum运行机制中的灵魂模块。
 
-如果我们抛开Blockchain的属性，那么EVM的JVM(或者其他的类似的Virtual Machine)。
+如果我们抛开Blockchain的属性，那么EVM的JVM(或者其他的类似的Virtual Machine)。EVM更类似于一个解释器(Interpreter)而不是传统的编译器(Complier)。
 
 EVM，由Stack，Program Counter，Gas available，Memory，Storage，Opcodes组成。
+
+![The EVM Workflow](../figs/14/EVM%20Flow.png)
 
 ## EVM Instructions
 
