@@ -1,3 +1,5 @@
+<img src="fake_cover.jpeg" alt="logo" height="420" align="right"/>
+
 # Understanding-Ethereum-Go-version
 
 - Title: Understanding Ethereum: Starting with go-ethereum Source Code｜理解以太坊: Go-Ethereum 源码剖析
