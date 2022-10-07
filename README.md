@@ -40,8 +40,8 @@ Blockchain这一概念，最早由中本聪在**比特币白皮书**提出，至
     - 剩余的gas又是怎么返还给Transaction Proposer的呢？
     - EVM是怎么解释Contract的Message Call并执行的呢？
     - 在执行Transaction中是哪个模块，是怎样去修改Contract中的持久化变量呢？
-    - Smart Contract中的持久化变量又是以什么样的形式存储在什么地方的呢？
-    - 当新的Block加入到Blockchain中时，World State又是何时怎样更新的呢？
+    - Smart Contract中的持久化变量又是以什么样的形式存储？在什么地方的呢？
+    - 当新的Block更新到Blockchain中时，World State又是何时怎样更新的呢？
     - 哪些数据常驻内存，哪些数据又需要保存在Disk中呢？
   
 2. 目前的Blockchain系统并没有像数据库系统(DBMS)那样统一的形成系统性的方法论。在Ethereum中每个不同的模块中都集成了大量的细节。从源码的角度出发可以了解到很多容易被忽视的细节。简单的说，一个完整的区块链系统至少包含以下的模块:
@@ -66,17 +66,17 @@ Blockchain这一概念，最早由中本聪在**比特币白皮书**提出，至
 - [02_State Management i: StateDB](CN/02_state_management_statedb.md)
 - [03_State Management ii: World State Trie and Storage Trie](CN/03_state_management_stateTrie.md)
 - [04_Transaction: 一个Transaction的生老病死](CN/04_transaction.md)
-- [05_从Block到Blockchain: 链状区块结构的构建](CN/05_block_blockchain.md)
+- [05_从Block到Blockchain](CN/05_block_blockchain.md)
 - [06_一个网吧老板是怎么用闲置的电脑进行挖矿的]
 - [07_一个新节点是怎么加入网络并同步区块的]
 
 ### PART TWO - General Source Code Analysis: Lower-level Services
 
-- [10_状态数据优化: Batch and Pruning]
+- [10_State数据优化: Batch and Pruning]
 - [11_Blockchain的数据是如何持久化的: Leveldb in Practice]
 - [12_当I/O变成瓶颈: Caching in Practice]
 - [13_深入EVM: 设计与实现]
-- [14_Signer: 如何证明Transaction的合法性]
+- [14_Signer: 如何保证Transaction的合法性]
 - [15_节点的调用 RPC and IPC](CN/15_rpc_ipc.md)
 
 ### PART THREE - Advanced Topics~P
@@ -133,20 +133,18 @@ Blockchain这一概念，最早由中本聪在**比特币白皮书**提出，至
 ## Some Details
 
 - 以太坊是基于State状态机模型的区块链系统，交易的结果会直接更新到账户的状态上。因此，Miner在生成新的区块的时候，会直接调用EVM中增加余额的函数，添加区块奖励给自己。因此，与Bitcoin不同的是，Ethereum的区块中，并没有额外增加Coinbase的transaction。
-- 在core/transaction.go 中, transaction的的数据结构是有time.Time的参数的。但是在下面的newTransaction的function中只是使用Local的time.now()对Transaction.time进行初始化。
-- 在core/transaction.go 的transaction 数据结构定义的时候, 在transaction.time 后面的注释写到（Time first seen locally (spam avoidance), Time 只是用于在本地首次看到的时间。
-- uncle block中的transaction 不会被包括到主链上。
-- go-ethereum有专用函数来控制每次transaction执行完，返还给用户的Gas的量。有根据EIP-3529，每次最多返还50%的gas.
-- 不同的Contracts的数据会混合的保存在底层的一个LevelDB instance中。
-- LevelDB中保存的是MPT的Node信息，包括State Trie和Storage Trie。
-- 在以太坊更新数据相关的工作流中，通常先调用`Finalise`函数，然后执行`Commit`函数。
+- 在core/transaction.go 中, transaction的数据结构是包含了一个time.Time类型的成员变量的。在后续创建一个新的Transaction的newTransaction函数中，只使用Local time(`time.now()`)对Transaction.time进行初始化。
+- uncle block中打包的transaction 不会被更新到包含该叔块的主链区块中。
+- 不同的合约中的数据会混合的保存在底层的同一个LevelDB instance中。
+- LevelDB中保存的KV-Pair是MPT的Node信息，包括State Trie和Storage Trie。
+- 在以太坊更新数据的工作流中，通常先调用`Finalise`函数，然后执行`Commit`函数。
 
 
 ### Blockchain System (BCS) VS Database Management System (DBMS)
 
 Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑。
 
-- Blockchain系统同样也从Transaction作为基本操作的载体，包含一个Parser模块，Transaction Executor模块，和一个Storage 管理模块。
+- Blockchain系统同样也从Transaction作为基本操作的载体，包含一个Parser模块，Transaction Executor模块，和一个Storage管理模块。
 
 ## 关键函数
 

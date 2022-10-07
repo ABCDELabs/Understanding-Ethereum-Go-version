@@ -1,10 +1,20 @@
-# 00_万物的起点: Geth Start \
+# [Chapter_00] 万物的起点: Geth Start
 
-## 什么是Geth？
+本章概要:
 
-Geth是基于Go语言开发以太坊的客户端，它实现了Ethereum协议(黄皮书)中所有需要的实现的功能模块，包括状态管理，挖矿，P2P网络通信，密码学，数据库，EVM解释器等。我们可以通过启动Geth来运行一个Ethereum的节点。go-ethereum是包含了Geth在内的一个代码库，它包含了Geth，以及编译Geth所需要的其他代码。在本系列中，我们会深入go-ethereum代码库，从High-level的API接口出发，沿着Ethereum主Workflow，逐一的理解Ethereum具体实现的细节。
+ 1. `go-ethereum`代码库的主要目录结构
+ 2. `geth`客户端是如何启动的。
 
-为了方便区分，在接下来的文章中，我们用Geth来表示Geth的客户端程序，用go-ethereum(geth)来表示go-ethereum的代码库。
+## 什么是 geth？
+
+`geth`是以太坊基金会基于Go语言开发以太坊的官方客户端，它实现了Ethereum协议(黄皮书)中所有需要的实现的功能模块。我们可以通过启动`geth`来运行一个Ethereum的节点。`go-ethereum`是包含了geth客户端代码和以及编译geth所需要的其他代码在内的一个完整的代码库。在本系列中我们会通过深入go-ethereum代码库，从High-level的API接口出发，沿着Ethereum主Workflow，逐一的理解Ethereum具体实现的细节。
+
+为了方便区分，在接下来的文章中，我们用`geth`来表示Geth的客户端程序，用go-ethereum(`Geth`)来表示go-ethereum的代码库。
+
+总结的来说:
+
+1. 基于`go-ethereum`代码库中的代码，我们可以编译出`geth`客户端程序。
+2. 通过运行`geth`客户端程序我们可以启动一个Ethereum的节点。
 
 ### go-ethereum Codebase 结构
 
@@ -22,7 +32,7 @@ Geth是基于Go语言开发以太坊的客户端，它实现了Ethereum协议(�
   - 节点数据同步
 - ...
 
-目前，go-ethereum项目的主要目录结构如下所示:
+目前，go-ethereum代码库中的主要目录结构如下所示:
 
 ```
 cmd/ ethereum相关的Command-line程序。该目录下的每个子目录都包含一个可运行的main.go。
@@ -50,7 +60,7 @@ ethdb/    Ethereum 本地存储的相关实现, 包括leveldb的调用
    |── leveldb/   Go-Ethereum使用的与Bitcoin Core version一样的Leveldb作为本机存储用的数据库
 miner/
    |── miner.go   矿工模块的实现。
-   |── worker.go  真正的block generation的实现实现，包括打包transaction，计算合法的Block
+   |── worker.go  Block generation的实现实现，包括打包transaction，计算合法的Block
 p2p/     Ethereum 的P2P模块
    |── params    Ethereum 的一些参数的配置，例如: bootnode的enode地址
    |── bootnodes.go  bootnode的enode地址 like: aws的一些节点，azure的一些节点，Ethereum Foundation的节点和 Rinkeby测试网的节点
@@ -70,9 +80,9 @@ trie/    Ethereum 中至关重要的数据结构 Merkle Patrica Trie(MPT)的实�
 
 ### 前奏: Geth Console
 
-当我们想要部署一个Ethereum节点的时候，最直接的方式就是下载官方提供的发行版的geth程序。Geth是一个基于CLI的应用，启动Geth和调用Geth的功能性API需要使用对应的指令来操作。Geth提供了一个相对友好的console来方便用户调用各种指令。当我第一次阅读Ethereum的文档的时候，我曾经有过这样的疑问，为什么Geth是由Go语言编写的，但是在官方文档中的Web3的API却是基于Javascript的调用？
+当我们想要部署一个Ethereum节点的时候，最直接的方式就是下载官方提供的发行版的geth客户端程序。`geth`是一个基于CLI的应用，启动`geth`和调用`geth`的功能性API需要使用对应的指令来操作。`geth`提供了一个相对友好的console来方便用户调用各种指令。当我第一次阅读Ethereum的文档的时候，我曾经有过这样的疑问，为什么`geth`是由Go语言编写的，但是在官方文档中的Web3的API却是基于Javascript的调用？
 
-这是因为Geth内置了一个Javascript的解释器:å*Goja* (interpreter)，来作为用户与Geth交互的CLI Console。我们可以在`console/console.go`中找到它的定义。
+这是因为`geth`内置了一个Javascript的解释器:å*Goja* (interpreter)，来作为用户与`geth`交互的CLI Console。我们可以在`console/console.go`中找到它的定义。
 
 <!-- /*Goja is an implementation of ECMAScript 5.1 in Pure GO*/ -->
 
