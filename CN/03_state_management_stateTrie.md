@@ -10,7 +10,7 @@ Trie结构是Ethereum中用于管理数据的基本数据结构，它被广泛�
 
 从调用关系上看`Trie`是最底层的核心结构，它用于之间负责StateObject数据的保存，以及提供相应的CURD函数。它的定义在trie/trie.go文件中。
 
-Secure Trie结构本质上是对Trie的一层封装。它具体的CURD操作的实现都是通过`Trie`中定义的函数来执行的。它的定义在`trie/secure_trie.go`文件中。目前StateDB中的使用的Trie是经过封装之后的Secure Trie。这个Trie也就是我们常说的World State Trie，它是唯一的一个全局Trie结构。与Trie不同的是，Secure Trie要求新加入的Key-Value pair中的Key的数据都是Sha过的。这是为了方式恶意的构造Key来增加MPT的高度。
+Secure Trie结构本质上是对Trie的一层封装。它具体的CURD操作的实现都是通过`Trie`中定义的函数来执行的。它的定义在`trie/secure_trie.go`文件中。目前StateDB中的使用的Trie是经过封装之后的Secure Trie。这个Trie也就是我们常说的World State Trie，它是唯一的一个全局Trie结构。与Trie不同的是，Secure Trie要求新加入的Key-Value pair中的Key的数据都是Sha过的。这是为了防止恶意的构造Key来增加MPT的高度。
 
 ```go
 type SecureTrie struct {
