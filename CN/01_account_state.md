@@ -2,11 +2,11 @@
 
 ## 概述
 
-我们常常听到这样一个说法，"Ethereum和Bitcoin最大的不同之一是二者使用管理链上数据的模型不同。其中，而Bitcoin是基于UTXO模型的Blockchain/Ledger系统，Ethereum是基于Account模型的系统"。那么，这个另辟蹊径的Account模型究竟不同在何处呢？在本文中我们来探索一下以太坊中的基本数据单元(Metadata)之一的Account。
+我们常常听到这样一个说法，"Ethereum 和 Bitcoin 最大的不同之一是二者使用链上数据模型不同。其中，Bitcoin 是基于 UTXO 模型的 Blockchain/Ledger 系统，Ethereum是基于 Account/State 模型的系统"。那么，这个另辟蹊径的 Account/State 模型究竟不同在何处呢？在本文，我们就来探索一下以太坊中的基本数据单元(Metadata)之一的`Account`。
 
-简单的来说，Ethereum依赖于一种*基于交易的状态机模型*(Transaction-based State Machine)。其中，状态(State)表示了某一实例(instance)在*某一时刻*下的值(value)。在以太坊中，State对应的基本数据结构，称为StateObject。当StateObject的值发生了变化时，我们称为*状态转移*。在Ethereum的运行模型中，StateObject所包含的数据会因为Transaction的执行引发数据更新/删除/创建，引发状态转移，我们说：StateObject的状态从当前的State转移到另一个State。
+简单的来说，Ethereum 的运行是一种*基于交易的状态机模型*(Transaction-based State Machine)。整个系统由若干的账户组成 (Account)，类似于银行账户。状态(State)反应了某一账户(Account)在*某一时刻*下的值(value)。在以太坊中，State 对应的基本数据结构，称为 StateObject。当 StateObject 的值发生了变化时，我们称为*状态转移*。在 Ethereum 的运行模型中，StateObject 所包含的数据会因为 Transaction 的执行引发数据更新/删除/创建，引发状态转移，我们说：StateObject 的状态从当前的 State 转移到另一个 State。
 
-在Ethereum中，承载StateObject的具体实例就是Ethereum中的Account。通常，我们提到的State具体指的就是Account在某个时刻的包含的数据的值。
+在 Ethereum 中，承载 StateObject 的具体实例就是 Ethereum 中的 Account。通常，我们提到的 State 具体指的就是 Account 在某个时刻的包含的数据的值。
 
 - Account --> StateObject
 - State   --> The value/data of the Account
@@ -15,20 +15,21 @@
 
 ### EOA
 
-外部账户(EOA)是由用户直接控制的账户，负责签名并发起交易(Transaction)。用户通过Account的私钥来保证对账户数据的控制权。
+外部账户(EOA)是由用户直接控制的账户，负责签名并发起交易(Transaction)。用户通过Account 的私钥来保证对账户数据的控制权。
 
-合约账户(Contract)，简称为合约，是由外部账户通过Transaction创建。合约账户，保存了**不可篡改的图灵完备的代码段**，以及保存一些**持久化的数据**。这些代码段使用专用语言书写(Like: Solidity)，并通常提供一些对外部访问API接口函数。这些API接口可以通过Transaction，或者通过本地/第三方提供的RPC服务来调用。这种模式构成了目前的DApp生态圈的基础。
+合约账户(Contract)，简称为合约，是由外部账户通过Transaction创建的。合约账户，保存了**不可篡改的图灵完备的代码段**，以及一些**持久化的数据变量**。这些代码使用专用的图灵完备的编程语言编写(Solidity)，并通常提供一些对外部访问 API 接口函数。这些 API 接口函数可以通过构造 Transaction，或者通过本地/第三方提供的节点 RPC 服务来调用。这种模式构成了目前的 DApp 生态的基础。
 
-通常，合约中的函数用于计算以及查询或修改合约中的持久化数据。我们经常看到这样的描述"**一旦被记录到区块链上数据不可被修改**，或者**不可篡改的智能合约**"。现在我们知道这种描述是不准确。针对一个链上的智能合约，不可修改/篡改的部分是合约中的代码段，或说是合约中的*函数逻辑*/*代码逻辑是*不可以被修改/篡改的。而链上合约中的持久化的数据是可以通过调用代码段中的函数进行数据操作的(CURD)，包括修改和删除，具体取决于合约函数中的代码逻辑。
+通常，合约中的函数用于计算以及查询或修改合约中的持久化数据。我们经常看到这样的描述"**一旦被记录到区块链上数据不可被修改**，或者**不可篡改的智能合约**"。现在我们知道这种笼统的描述其实是不准确。针对一个链上的智能合约，不可修改/篡改的部分是合约中的代码段，或说合约中的*函数逻辑*/*代码逻辑是*不可以被修改/篡改的。而合约中的**持久化的数据变量**是可以通过调用代码段中的函数进行数据操作的(CURD)。具体的操作方式取决于合约函数中的代码逻辑。
 
-根据*合约中函数是否会修改合约中持久化的变量*，合约中的函数可以分为两种，只读函数和写函数。
-如果用户**只**希望查询某些合约中的持久化数据，而不对数据进行修改的话，那么用户只需要调用相关的只读函数。调用只读函数不需要通过构造一个Transaction来查询数据。用户可以通过直接调用本地数据或者第三方提供的数据，来调用对应的函数。如果用户需要对合约中的数据进行更新，那么他就要构造一个Transaction来请求合约中相对应的鞋函数。注意，当用户通过构造Transaction的方式来调用合约中的函数时，每个Transaction只能调用一个合约中的一个API函数。
+根据*合约中函数是否会修改合约中持久化的变量*，合约中的函数可以分为两种: *只读函数*和*写函数*。如果用户**只**希望查询某些合约中的持久化数据，而不对数据进行修改的话，那么用户只需要调用相关的只读函数。调用只读函数不需要通过构造一个 Transaction 来查询数据。用户可以通过直接调用本地节点或者第三方节点提供的 RPC 接口来直接调用对应的合约中的*只读函数*。如果用户需要对合约中的数据进行更新，那么他就要构造一个Transaction 来调用合约中相对应的*写函数*。注意，每个 Transaction 每次调用一个合约中的一个*写函数*。因为，如果想在链上实现复杂的逻辑，需要将*写函数*接口化，在其中调用更多的逻辑。
 
-对于如何编写合约，以及Ethereum如何解析Transaction并调用对应的合约中API的，我们会在后面的文章中详细的进行解析。
+对于如何编写合约，以及 Ethereum 的执行层如何解析 Transaction 并调用对应的合约中函数的，我们会在后面的文章中详细的进行解析。
 
 ## StateObject, Account, Contract
 
-在实际代码中，这两种Account都是由`stateObject`这一数据结构定义的。`stateObject`的相关代码位于*core/state/state_object.go*文件中，隶属于*package state*。我们摘录了`stateObject`的结构代码，如下所示。通过下面的代码，我们可以观察到，`stateObject`是由小写字母开头。根据go语言的特性，我们可以知道这个结构主要用于package内部数据操作，并不对外暴露。
+### 概述
+
+在实际代码中，这两种 Account 都是由`stateObject`这一数据结构定义的。`stateObject`的相关代码位于*core/state/state_object.go*文件中，隶属于*package state*。我们摘录了`stateObject`的结构代码，如下所示。通过下面的代码，我们可以观察到，`stateObject`是由小写字母开头。根据 go 语言的特性，我们可以知道这个结构主要用于 package 内部数据操作，并不对外暴露。
 
 ```go
   type stateObject struct {
@@ -59,7 +60,7 @@
 
 ### Address
 
-在`stateObject`这一结构体中，开头的两个成员变量为`address`以及address的哈希值`addrHash`。`address`是common.Address类型，`addrHash`是common.Hash类型，它们分别对应了一个20字节长度的byte数组和一个32字节长度的byte数组。关于这两种数据类型的定义如下所示。
+在`stateObject`这一结构体中，开头的两个成员变量为`address`以及 address 的哈希值`addrHash`。`address`是common.Address类型，`addrHash`是common.Hash类型，它们分别对应了一个**20字节**长的byte类型数组和一个32字节长的byte类型数组。关于这两种数据类型的定义如下所示。
 
 ```go
 // Lengths of hashes and addresses in bytes.
@@ -75,11 +76,11 @@ type Address [AddressLength]byte
 type Hash [HashLength]byte
 ```
 
-在Ethereum中，每个Account都拥有独一无二的地址。Address作为每个Account的身份信息，类似于现实生活中的身份证，它与用户信息时刻绑定而且不能被修改。
+在Ethereum中，每个 Account 都拥有独一无二的地址。Address作为每个 Account 的身份信息，类似于现实生活中的身份证，它与用户信息时刻绑定而且不能被修改。
 
 ### data and StateAccount
 
-继续向下探索，我们会遇到成员变量data，它是一个`types.StateAccount`类型的变量。在上面的分析中我们提到，`stateObject`这种类型只对Package State这个内部使用。所以相应的，Package State也为外部Package API提供了与Account相关的数据类型"State Account"。在上面的代码中我们就可以看到，"State Account"对应了State Object中"data Account"成员变量。State Account的具体数据结构的被定义在"core/types/state_account.go"文件中(~~在之前的版本中Account的代码位于core/account.go~~)，其定义如下所示。
+继续向下探索，我们会遇到成员变量 `data`，它是一个`types.StateAccount`类型的变量。在上面的分析中我们提到，`stateObject`这种类型只对 Package State 这个内部使用。所以相应的，Package State也为外部Package API提供了与Account相关的数据类型"State Account"。在上面的代码中我们就可以看到，"State Account"对应了State Object中" data Account" 成员变量。State Account的具体数据结构的被定义在"core/types/state_account.go"文件中(~~在之前的版本中Account的代码位于core/account.go~~)，其定义如下所示。
 
 ```go
 // Account is the Ethereum consensus representation of accounts.
@@ -94,60 +95,93 @@ type StateAccount struct {
 
 其中的包含四个变量为:
 
-- Nonce 表示该账户发送的交易序号，随着账户发送的交易数量的增加而单调增加。每次发送一个交易，Nonce的值就会加1。
-- Balance 表示该账户的余额。这里的余额指的是链上的Global/Native Token Ether。
-- Root 表示当前账户的下Storage层的 Merkle Patricia Trie的Root。EOA账户这个部分为空值。
-- CodeHash是该账户的Contract代码的哈希值。EOA账户这个部分为空值。
+- Nonce 表示该账户发送的交易序号，随着账户发送的交易数量的增加而单调增加。每次发送一个交易，Nonce 的值就会加1。
+- Balance 表示该账户的余额。这里的余额指的是链上的 Native Token Ether (以太)。
+- Root 表示当前账户的下 Storage 层的 Merkle Patricia Trie的 Root。这里的存储层是为了管理合约中持久化变量准备的。对于 EOA账户这个部分为空值。
+- CodeHash是该账户的Contract代码的哈希值。同样的，这个变量是用于保存合约账户中的代码的 hash ，EOA账户这个部分为空值。
 
 ### db
 
-上述的几个成员变量基本覆盖了Account主工作流相关的全部成员变量。那么我们继续向下看，会遇到`db`和`dbErr`这两个成员变量。db这个变量保存了一个StateDB类型的指针。这是为了方便调用StateDB相关的API对Account所对应的stateObject进行操作。StateDB本质上是Ethereum用于管理stateObject信息的而抽象出来的内存数据库。所有的Account数据的更新，检索都会使用StateDB提供的API。关于StateDB的具体实现，功能，以及如何与更底层(leveldb)进行结合的，我们会在之后的文章中进行详细描述。
+上述的几个成员变量基本覆盖了 Account 主生命周期相关的全部成员变量。那么我们继续向下看，会遇到`db`和`dbErr`这两个成员变量。db这个变量保存了一个 `StateDB` 类型的指针。这是为了方便调用 `StateDB` 相关的API对Account所对应的 `stateObject` 进行操作。StateDB本质上是用于管理`stateObject`信息的而抽象出来的内存数据库。所有的Account 数据的更新，检索都会使用 StateDB 提供的API。关于 StateDB 的具体实现，功能，以及如何与更底层物理存储层(leveldb)进行结合的，我们会在之后的文章中进行详细描述。
 
 ### Cache
 
-对于剩下的成员变量，它们的主要用于内存Cache。trie用于保存Contract中的持久化存储的数据，code用于缓存contract中的代码段到内存中，它是一个byte数组。剩下的四个Storage字段主要在执行Transaction的时候缓存Contract合约修改的持久化数据，比如dirtyStorage就用于缓存在Block被Finalize之前，Transaction所修改的合约中的持久化存储数据。对于外部账户，由于没有代码字段，所以对应stateObject对象中的code字段，以及四个Storage类型的字段对应的变量的值都为空(originStorage, pendingStorage, dirtyStorage, fakeStorage)。
+对于剩下的成员变量，它们的主要用于内存Cache。trie用于保存和管理合约账户中的持久化变量存储的数据，code用于缓存合约中的代码段到内存中，它是一个byte数组。剩下的四个Storage 字段主要在执行 Transaction 的时候缓存合约修改的持久化数据，比如dirtyStorage 就用于缓存在 Block 被 Finalize 之前，Transaction所修改的合约中的持久化存储数据。对于外部账户，由于没有代码字段，所以对应 stateObject 对象中的code 字段，以及四个 Storage 类型的字段对应的变量的值都为空(originStorage, pendingStorage, dirtyStorage, fakeStorage)。
 
-从调用关系上看，这四个缓存变量的调用关系是originStorage --> dirtyStorage--> pendingStorage。关于Contract的Storage层的详细信息，我们会在后面部分进行详细的描述。
+从调用关系上看，这四个缓存变量的修改顺序是: originStorage --> dirtyStorage--> pendingStorage。关于合于中的 Storage 层的详细信息，我们会在后面部分进行详细的描述。
 
 ## 深入Account
 
-### Private Key & Public Kay & Address
+### 谁掌握了你的账户
 
-#### 账户安全的问题
+我们经常会在各种科技网站/自媒体上看到这样的说法，"用户在区块链系统中保存的Cryptocurrency/Token，除了用户自己，不存在第三方可以不经过用户的允许转走你的财富"。这个说法基本是正确的。目前，用户账户里的由链级别定义的 Crypto/Token，或者称为原生货币(Native Token)，比如Ether，Bitcoin，BNB(Only in BSC)，是没办法被第三方在不被批准的情况下转走的。这是因为链级别上的所有数据的修改都要执行由用户私钥(Private Key)签名的Transaction。因此，只要用户保管好自己账户的私钥(Private Key)，保证其没有被第三方知晓，就没有人可以转走你链上的财富。
 
-我们经常会在各种科技网站，自媒体上听到这样的说法，"用户在区块链系统中保存的Cryptocurrency/Token，除了用户自己，不存在一个中心化的第三方可以不经过用户的允许转走你的财富"。这个说法基本是正确的。目前，用户账户里的由链级别定义Crypto，或者称为原生货币(Native Token)，比如Ether，Bitcoin，BNB(Only in BSC)，是没办法被第三方在不被批准的情况下转走的。这是因为链级别上的所有数据的修改都要经过用户私钥(Private Key)签名的Transaction。只要用户保管好自己账户的私钥(Private Key)，保证其没有被第三方知晓，就没有人可以转走你链上的财富。
+我们说上述说法是基本正确，而不是完全正确。原因有两个。首先，用户的链上数据安全是基于当前Ethereum使用的密码学工具足够保证：不存在第三方可以在**有限的时间**内在**不知道用户私钥的前提**下获取到用户的私钥信息来伪造签名交易。当然这个安全保证前提是当今Ethereum使用的密码学工具的强度足够大，没有计算机可以在有限的时间内hack出用户的私钥信息。在量子计算机出现之前，目前Ethereum和其他Blockchain使用的密码学工具的强度都是足够安全的。这也是为什么很多新的区块链项目在研究抗量子计算机密码体系的原因。第二点原因是，当今很多的所谓的Crypto/Token并不是链级别的代币，而是保存在合约中持久化变量中的数据，比如 ERC-20 Token 和NFT对应的 ERC-721 的Token。由于这部分的Token都是基于合约代码生成和维护的，所以这部分Token的安全依赖于合约本身的安全。如果合约本身的代码是有问题的，存在后门或者漏洞，比如存在给第三方任意提取其他账户下Token的漏洞。那么即使用户的私钥信息没有泄漏，合约中的Token仍然可以被第三方获取到。由于合约的代码段在链上是不可修改的，因此合约代码的安全性是极其重要的。目前有很多研究人员，技术团队在进行合约审计方面的工作，来保证上传的合约代码是安全的。随着Layer-2技术和一些跨链技术的发展，用户持有的`Token`，在很多情况下不是我们上面提到的安全的 Naive Token，而是 ERC-20 甚至只是其他合约中的简单数值记录。这种类型的资产的安全性是远低于低于layer-1上的 Native Toke n的。用户在持有这类资产的时候需要小心。这里我们推荐阅读 Jay Freeman 所分析的关于一个热门Layer-2系统Optimism上的由于非Naive Token造成的[任意提取漏洞](https://www.saurik.com/optimism.html)。
 
-我们说上述说法是基本正确，而不是完全正确的原因有两个。首先，用户的链上数据安全是基于当前Ethereum使用的密码学工具足够保证：不存在第三方可以在**有限的时间**内在**不知道用户私钥的前提**下获取到用户的私钥信息来伪造签名交易。当然这个安全保证前提是当今Ethereum使用的密码学工具的强度足够大，没有计算机可以在有限的时间内hack出用户的私钥信息。在量子计算机出现之前，目前Ethereum和其他Blockchain使用的密码学工具的强度都是足够安全的。这也是为什么很多新的区块链项目在研究抗量子计算机密码体系的原因。第二点原因是，当今很多的所谓的Crypto/Token并不是链级别的数据，而是在链上合约中存储的数据，比如ERC-20 Token和NFT对应的ERC-721的Token。由于这部分的Token都是基于合约代码生成和维护的，所以这部分Token的安全依赖于合约本身的安全。如果合约本身的代码是有问题的，存在后门或者漏洞，比如存在给第三方任意提取其他账户下Token的漏洞，那么即使用户的私钥信息没有泄漏，合约中的Token仍然可以被第三方获取到。由于合约的代码段在链上是不可修改的，合约代码的安全性是极其重要的。所以，有很多研究人员，技术团队在进行合约审计方面的工作，来保证上传的合约代码是安全的。此外随着Layer-2技术和一些跨链技术的发展，用户持有的“Token”，在很多情况下不是我们上面提到的安全的Naive Token，而是ERC-20甚至只是其他合约中的简单数值记录。这种类型的资产的安全性是低于layer-1上的Native Token的。用户在持有这类资产的时候需要小心。这里我们推荐阅读Jay Freeman所分析的关于一个热门Layer-2系统Optimism上的由于非Naive Token造成的[任意提取漏洞](https://www.saurik.com/optimism.html)。
+### Account Generation
 
-#### Account Generation
+首先，EOA账户的创建分为本地创建和链上注册两个部分。当我们使用诸如 Metamask 等钱包工具创建账户的时候，在区块链上并没有同步注册账户信息。链上账户的创建和管理都是通过`StateDB`模块来操作的，因此我们将`geth`中账户管理部分的代码整合到`StateDB`模块章节来一起讲述。而合约账户，或者说智能合约的创建是需要通过 EOA 账户构造特定的交易生成的。关于这部分的细节我们也放在之后的章节中进行解析。
 
-下面我们简单讲述，在Ethereum中一个账户的私钥和地址是如何产生的。
+下面我们简单分析一下，如何在本地创建一个 EOA 账户的。
 
-- 首先我们通过随机得到一个长度64位account的私钥。这个私钥就是平时需要用户激活钱包时需要的记录，一旦这个私钥暴露了，钱包也将不再安全。
+总的来说，创建新账户的依赖的入口函数`NewAccount`位于 `accounts/keystore/keystore.go`文件中。函数有一个string类型的passphrase参数。注意，这个参数仅用于加密本地保存私钥的Keystore文件，与生成账户的私钥，地址的生成都无关。
+
+```go
+// passphrase 参数用于本地加密
+func (ks *KeyStore) NewAccount(passphrase string) (accounts.Account, error) {
+//生成account的函数
+ _, account, err := storeNewKey(ks.storage, crand.Reader, passphrase)
+ if err != nil {
+  return accounts.Account{}, err
+ }
+ // Add the account to the cache immediately rather
+ // than waiting for file system notifications to pick it up.
+ ks.cache.add(account)
+ ks.refreshWallets()
+ return account, nil
+}
+```
+
+上述代码段中，最核心的调用是`storeNewKey`函数。在`storeNewKey`函数中，首先就调用了`newKey`函数，该函数的主要功能就是生成一个账户需要的私钥和公钥对。而`newKey`函数的核心是调用了生成椭圆曲线加密对相关的函数`ecdsa.GenerateKey`。
+
+```go
+func newKey(rand io.Reader) (*Key, error) {
+ privateKeyECDSA, err := ecdsa.GenerateKey(crypto.S256(), rand)
+ if err != nil {
+  return nil, err
+ }
+ return newKeyFromECDSA(privateKeyECDSA), nil
+}
+
+```
+
+这部分的代码位于`crypto/ecdsa.go`文件中。由于这一部分涉及到了大量的椭圆曲线加密的知识，与以太坊的主要业务关系不大，因此对于这部分的内容，我们仅简述主要流程，对于数学具体原理在此我们不进行详细说明，感兴趣的读者可以自行搜索。值得注意的时候，在整个流程中，首先生成的是账户的私钥，而账户对应的地址，是基于该私钥在椭圆曲线上对用的公钥值，经过哈希计算得到的。
+
+- 首先，我们在创建一个新的 EOA 账户的时候，我们首先会通过`GenerateKey`函数随机的得到一串私钥，它是一个 32bytes长的变量，通常表现为64位16进制数。这个私钥就是平时需要用户激活钱包时，发送交易时的门禁卡，一旦这个私钥暴露了，钱包也将不再安全。
   - 64个16进制位，256bit，32字节
     `var AlicePrivateKey = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232032"`
 
-- 在得到私钥后，我们使用私钥来计算公钥和account的地址。基于上述私钥，我们使用ECDSA算法，选择spec256k1曲线进行计算。通过将私钥带入到所选择的椭圆曲线中，计算出点的坐标即是公钥。以太坊和比特币使用了同样的spec256k1曲线，在实际的代码中，我们也可以看到在crypto中，go-Ethereum直接调用了比特币的代码。
+- 在得到私钥后，我们使用私钥来计算公钥和地址地址。基于上述私钥，我们使用ECDSA算法，选择spec256k1曲线进行计算。通过将私钥带入到所选择的椭圆曲线中，计算出点的坐标即是公钥。以太坊和比特币使用了同样的spec256k1曲线，在实际的代码中，我们也可以看到在 go-Ethereum 直接调用了比特币的 secp256k1 的C语言代码。
     `ecdsaSK, err := crypto.ToECDSA(privateKey)`
-
-- 对私钥进行椭圆加密之后，我们可以得到64bytes的数，它是由两个32bytes的数构成，这两个数代表了spec256k1曲线上某个点的XY值。
+- 对私钥进行椭圆加密之后，我们可以得到一个 64bytes 的数，它是由两个 32bytes 的数构成，这两个数代表了spec256k1曲线上某个点的XY值。
     `ecdsaPK := ecdsaSK.PublicKey`
-- 以太坊的地址，是基于上述公钥(ecdsaSK.PublicKey)的 [Keccak-256算法] 之后的后20个字节，并且用0x开头。
+- 以太坊的地址，是基于上述公钥(ecdsaSK.PublicKey)进行 **Keccak-256算法** 计算之后哈希值的后20个字节，用0x开头表示。
   - Keccak-256是SHA-3（Secure Hash Algorithm 3）标准下的一种哈希算法
     `addr := crypto.PubkeyToAddress(ecdsaSK.PublicKey)`
 
 #### Signature & Verification
 
+<!-- TODO: 这里写的不好，需要再改改 -->
+
 - Hash（m,R）*X +R = S* P
-- P是椭圆曲线函数的基点(base point) 可以理解为一个P是一个在曲线C上的一个order 为n的加法循环群的生成元. n为质数。
+- P是椭圆曲线函数的基点(base point) 可以理解为一个P是一个在曲线C上的一个order 为n的加法循环群的生成元，n是一个大质数。
 - R = r * P (r 是个随机数，并不告知verifier)
-- 以太坊签名校验的核心思想是:首先基于上面得到的ECDSA下的私钥ecdsaSK对数据msg进行签名(sign)得到msgSig.
+- 以太坊签名校验的核心思想是:首先基于上面得到的ECDSA下的私钥ecdsaSK对数据 msg 进行签名(sign)得到msgSig.
     `sig, err := crypto.Sign(msg[:], ecdsaSK)`
     `msgSig := decodeHex(hex.EncodeToString(sig))`
-
-- 然后基于msg和msgSig可以反推出来签名的公钥（用于生成账户地址的公钥ecdsaPK）。
+- 然后基于 msg 和 msgSig 可以反推出来签名的公钥（用于生成账户地址的公钥ecdsaPK）。
     `recoveredPub, err := crypto.Ecrecover(msg[:],msgSig)`
-- 通过反推出来的公钥得到发送者的地址，并与当前txn的发送者在ECDSA下的pk进行对比。
+- 通过反推出来的公钥可以得到发送者的地址，并与当前交易的发送者在 ECDSA 下的pk进行对比。
     `crypto.VerifySignature(testPk, msg[:], msgSig[:len(msgSig)-1])`
 - 这套体系的安全性保证在于，即使知道了公钥ecdsaPk/ecdsaSK.PublicKey也难以推测出 ecdsaSK以及生成他的privateKey。
 
@@ -167,6 +201,8 @@ type StateAccount struct {
 
 ### Contract Storage (合约存储)
 
+<!-- TODO: 这部分未来会整合到EVM章节中 -->
+
 [在文章的开头](#general Background)我们提到，在外部账户对应的stateObject结构体的实例中，有四个Storage类型的变量是空值。那显然的，这四个变量是为Contract类型的账户准备的。
 
 在*state_object.go*文件的开头部分(41行左右)，我们可以找到Storage类型的定义。具体如下所示。
@@ -175,7 +211,7 @@ type StateAccount struct {
 type Storage map[common.Hash]common.Hash
 ```
 
-我们可以看到，*Storage*是一个key和value都是`common.Hash`类型的map结构。common.Hash类型，则对应了一个长度为32bytes的byte类型数组。这个类型在go-ethereum中被大量使用，通常用于表示32字节长度的数据，比如Keccak256函数的哈希值。在之后的旅程中，我们也会经常看到它的身影，它的定义在common.type.go文件中。
+我们可以看到，*Storage*是一个 key 和 value 都是`common.Hash`类型的 map 结构，common.Hash 类型，则对应了一个长度为 32bytes 的 byte类型数组。这个类型在go-ethereum中被大量使用，通常用于表示32字节长度的数据，比如 Keccak256 函数的哈希值。在之后的旅程中，我们也会经常看到它的身影，它的定义在`common.type.go`文件中。
 
 ```go
 // HashLength is the expected length of the hash
@@ -184,18 +220,18 @@ HashLength = 32
 type Hash [HashLength]byte
 ```
 
-从功能层面讲，外部账户(EOA)与合约账户(Contract)不同的点在于，外部账户并没有维护自己的代码(codeHash)以及额外的Storage层。相比与外部账户，合约账户额外保存了一个存储层(Storage)用于存储合约代码中持久化的变量的数据。在上文中我们提到，StateObject中的声明的四个Storage类型的变量，就是作为Contract Storage层的内存缓存。
+从功能层面讲，外部账户(EOA)与合约账户(Contract)不同的点在于: 外部账户并没有维护自己的代码(codeHash)以及额外的Storage层。相比与外部账户，合约账户额外保存了一个存储层(Storage)用于存储合约代码中持久化的变量的数据。在上文中我们提到，StateObject中的声明的四个 Storage 类型的变量，就是作为 Contract Storage 层的内存缓存。
 
-在Ethereum中，每个合约都维护了自己的*独立*的Storage空间，我们称为Storage层。Storage层的基本组成单元称为槽 (Slot)，若干个Slot按照*Stack*的方式集合在一起构造成了Storage层。每个Slot的大小是256 bits，也就是最多保存32 bytes的数据。作为基本的存储单元，Slot管理的方式与内存或者HDD中的基本单元的管理方式类似，通过地址索引的方式被上层函数访问。Slot的地址索引的长度同样是32 bytes(256 bits)，寻址空间从 0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个Contract的Storage层最多可以保存$2^{256} - 1$个Slot。也就说在理论状态下，一个Contract可以最多保存$(2^{256} - 1)$ bytes的数据，这是个相当大的数字。Contract同样使用MPT来管理Storage 层的Slot。值得注意的是，Storage层的数据并不会被打包进入Block中。唯一与Chain内数据相关的是，Storage Trie的根数据被保存在StateAccount结构体中的Root变量中(它是一个32bytes长的byte数组)。当某个Contract的Storage层的数据发生变化时，根据骨牌效应，向上传导到World State Root的值发生变化，从而影响到Chain数据。目前，Storage层的数据读取和修改是在执行相关Transaction的时候，通过EVM调用两个专用的指令*OpSload*和*OpSstore*触发。
+在Ethereum中，每个合约都维护了自己的*独立*的 Storage 空间，我们称为 Storage 层。Storage 层的基本组成单元称为槽 (Slot)，若干个Slot按照*Stack*的方式集合在一起构造成了 Storage 层。每个Slot的大小是 256 bits，也就是最多保存32 bytes的数据。作为基本的存储单元，Slot管理的方式与内存或者HDD中的基本单元的管理方式类似，通过地址索引的方式被上层函数访问。Slot的地址索引的长度同样是32 bytes(256 bits)，寻址空间从 0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个Contract的Storage层最多可以保存$2^{256} - 1$个 Slot。也就说在理论状态下，一个Contract可以最多保存$(2^{256} - 1)$ bytes的数据，这是个相当大的数字。Contract同样使用 MPT 来管理 Storage 层的Slot。值得注意的是，Storage层的数据并不会被打包进入 Block 中。正如我们之前提到的，管理合约账户中 Storage 层 Storage Trie 的根数据被保存在 StateAccount 结构体中的 Root 变量中(它是一个32bytes长的byte数组)。当某个Contract的Storage层的数据发生变化时，根据骨牌效应，向上传导到整个的World State Root的值发生变化，从而影响到Chain链上数据。目前，Storage 层的数据读取和修改是在执行相关Transaction的时候，通过EVM调用两个专用的指令*OpSload*和*OpSstore*触发。
 
-我们知道目前Ethereum中的大部分合约都通过Solidity语言编写。Solidity做为强类型的图灵完备的语言，支持多种类型的变量。总的来说，根据变量的长度性质，Ethereum中的持久化的变量可以分为定长的变量和不定长度的变量两种。定长的变量有常见的单变量类型，比如 uint256。不定长的变量包括了由若干单变量组成的Array，以及KV形式的Map类型。
+我们知道目前Ethereum中的大部分合约都通过 Solidity 语言编写。Solidity 做为强类型的图灵完备的语言，支持多种类型的变量。总的来说，根据变量的长度性质，Ethereum中的持久化的变量可以分为定长的变量和不定长度的变量两种。定长的变量有常见的单变量类型，比如 uint256。不定长的变量包括了由若干单变量组成的Array，以及KV形式的Map类型。
 
-根据上面的介绍，我们了解到对Contract Storage层的访问是通过Slot的地址来进行的。请读者先思考下面的几个问题:
+根据上面的介绍，我们了解到对 Contract Storage 层的访问是通过 Slot 的地址来进行的。请读者先思考下面的几个问题:
 
-- **如何给定一个包含若干持久化存储变量的Solidity的合约，EVM是怎么给其包含的变量分配存储空间的呢？**
-- 怎么保证Contract Storage的一致性读写的？(怎么保证每个合约的验证者和执行者都能获取到相同的数据？)
+- **如何给定一个包含若干持久化存储变量的 Solidity 的合约，EVM 是怎么给其包含的变量分配存储空间的呢？**
+- 怎么保证 Contract Storage 的一致性读写的？(怎么保证每个合约的验证者和执行者都能获取到相同的数据？)
 
-我们将通过下面的一些实例来展示，在Ethereum中，Contract是如何保存持久化变量的，以及保证所有的参与者都能一致性读写的Contract中的数据的。
+我们将通过下面的一些实例来展示，在 Ethereum 中，Contract 是如何保存持久化变量的，以及保证所有的参与者都能一致性读写的 Contract 中的数据的。
 
 ### Contract Storage Example One
 
@@ -307,7 +343,7 @@ contract Storage {
 }
 ```
 
-同样我们还是构造Transaction来调用合约中的stores函数。此时我们可以在Storage 层观察到不一样的结果。我们发现number2这个变量的值被存储在了第一个Slot中（Key:"0x0000000000000000000000000000000000000000000000000000000000000000"），而number这个变量的值北存储在了第三个Slot中 (Key:"0x0000000000000000000000000000000000000000000000000000000000000002")。
+同样我们还是构造 Transaction 来调用合约中的`stores`函数。此时我们可以在 Storage 层观察到不一样的结果。我们发现number2这个变量的值被存储在了第一个 Slot 中（Key:"0x0000000000000000000000000000000000000000000000000000000000000000"），而number这个变量的值北存储在了第三个Slot中 (Key:"0x0000000000000000000000000000000000000000000000000000000000000002")。
 
 ```json
 {
@@ -386,9 +422,9 @@ contract Storage {
 
 ### Account Storage Example Four
 
-在Solidity中，有一类特殊的变量类型**Address**，通常用于表示账户的地址信息。例如在ERC-20合约中，用户拥有的token信息是被存储在一个(address->uint)的map结构中。在这个map中，key就是Address类型的，它表示了用户实际的address。目前Address的大小为160bits(20bytes)，并不足以填满一整个Slot。因此当Address作为value单独存储在的时候，它并不会排他的独占用一个Slot。我们使用下面的例子来说明。
+在 Solidity 中，有一类特殊的变量类型**Address**，通常用于表示账户的地址信息。例如在ERC-20合约中，用户拥有的token信息是被存储在一个(address->uint)的map结构中。在这个map中，key就是 Address 类型的，它表示了用户实际的 address 。目前Address的大小为160bits(20bytes)，并不足以填满一整个 Slot。因此当Address作为value单独存储在的时候，它并不会排他的独占用一个Slot。我们使用下面的例子来说明。
 
-在下面的示例中，我们声明了三个变量，分别是number(uint256)，addr(address)，以及isTrue(bool)。我们知道，在以太坊中Address类型变量的长度是20 bytes，所以一个Address类型的变量是没办法填满整个的Slot(32 bytes)的。同时，布尔类型在以太坊中只需要一个bit(0 or 1)的空间. 因此，我们构造transaction并调用函数storeaddr来给这三个变量赋值，函数的input参数是一个uint256的值，一个address类型的值，分别为{1, “0xb6186d3a3D32232BB21E87A33a4E176853a49d12”}。
+在下面的示例中，我们声明了三个变量，分别是number(uint256)，addr(address)，以及isTrue(bool)。我们知道，在以太坊中Address类型变量的长度是20 bytes，所以一个Address类型的变量是没办法填满整个的Slot(32 bytes)的。同时，布尔类型在以太坊中只需要一个bit(0 or 1)的空间. 因此，我们构造transaction并调用函数 storeaddr 来给这三个变量赋值，函数的input参数是一个uint256的值，一个address类型的值，分别为{1, “0xb6186d3a3D32232BB21E87A33a4E176853a49d12”}。
 
 ```solidity
 // SPDX-License-Identifier: GPL-3.0
@@ -493,7 +529,7 @@ contract Storage {
 }
 ```
 
-为了验证上面的说法，我们使用go语言编写了一段代码，来调用相关的库来验证一下上面的结论。对于 balances["hsy"]，它被分配的Slot的位置可以由下面的代码求得。读者可以阅读/使用[示例代码](../example/account/main.go)进行尝试。这里的k1是一个整形实数，代表了Slot的在storage层的位置(Position)。
+为了验证上面的说法，我们使用 go 语言编写了一段代码，来调用相关的库来验证一下上面的结论。对于 balances["hsy"]，它被分配的Slot的位置可以由下面的代码求得。读者可以阅读/使用[示例代码](../example/account/main.go)进行尝试。这里的k1是一个整形实数，代表了Slot的在storage层的位置(Position)。
 
 ```go
 k1 := solsha3.SoliditySHA3([]byte("hsy"), solsha3.Uint256(big.NewInt(int64(1))))
