@@ -4,7 +4,7 @@
 
 - Title: Understanding Ethereum: Starting with go-ethereum Source Code｜理解以太坊: Go-Ethereum 源码剖析
 - Subject: Ethereum Source Code Analysis | 以太坊源码剖析
-- Author: Siyuan Han
+- Author: [Siyuan Han](https://home.cse.ust.hk/~shanaj/)
 - Go-Ethereum Version: v1.10.25 (Post-Merge)
 - Updated date: 2022-09
 - Contact: [Twitter](https://twitter.com/cyodyssey) & Wechat(hsyodyssey)

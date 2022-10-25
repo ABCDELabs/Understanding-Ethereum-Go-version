@@ -9,7 +9,7 @@
 
 `geth`是以太坊基金会基于 Go 语言开发以太坊的官方客户端，它实现了 Ethereum 协议(黄皮书)中所有需要的实现的功能模块。我们可以通过启动 `geth` 来运行一个 Ethereum 的节点。 `go-ethereum`是包含了geth客户端代码和以及编译 geth 所需要的其他代码在内的一个完整的代码库。在本系列中我们会通过深入go-ethereum代码库，从High-level的API接口出发，沿着 Ethereum 主 Workflow，逐一的理解 Ethereum 具体实现的细节。
 
-为了方便区分，在接下来的文章中，我们用`geth`来表示 Geth 的客户端程序，用go-ethereum(`Geth`)来表示 go-ethereum 的代码库。
+为了方便区分，在接下来的文章中，我们用`geth`来表示 Geth 客户端程序，用go-ethereum(`Geth`)来表示 go-ethereum 的代码库。
 
 总结的来说:
 
@@ -62,6 +62,7 @@ console/
    |── console.go  Geth Web3 控制台的入口
 ethdb/    Ethereum 本地存储的相关实现, 包括leveldb的调用
    |── leveldb/   Go-Ethereum使用的与 Bitcoin Core version一样的Leveldb作为本机存储用的数据库
+internal/ 一些内部使用的工具库的集合，比如在测试用例中模拟 cmd 的工具。在构建 Ethereum 生态相关的工具时值得注意这个文件夹。
 miner/
    |── miner.go   矿工模块的实现。
    |── worker.go  Block generation 的实现，包括打包 transaction，计算合法的Block
