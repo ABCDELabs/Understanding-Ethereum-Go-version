@@ -1,5 +1,7 @@
 # State Management (2) : World State Trie and Storage Trie
 
+写在前面: 在最新的 `geth` 代码库中，`SecureTrie` 已经被重命名为了 `StateTrie`，并且代码功能也进行了调整。因此，为了避免歧义，我们在这里提醒读者 **StateTrie 就是之前的 SecureTrie**。读者在阅读其他的文档时，如果遇到了 `SecureTrie`, 可以将其理解为 `StateTrie`。
+
 ## Trie in brief
 
 Trie结构是Ethereum中用于管理数据的基本数据结构，它被广泛的运用在Ethereum里的多个模块中，包括管理全局的World State Trie，管理Contract中持久化存储Key-Value 对的Storage Trie，以及每个Block中的Transaction Trie 和 Receipt Trie。
@@ -13,15 +15,16 @@ Trie结构是Ethereum中用于管理数据的基本数据结构，它被广泛�
 Secure Trie结构本质上是对Trie的一层封装。它具体的CURD操作的实现都是通过`Trie`中定义的函数来执行的。它的定义在`trie/secure_trie.go`文件中。目前StateDB中的使用的Trie是经过封装之后的Secure Trie。这个Trie也就是我们常说的World State Trie，它是唯一的一个全局Trie结构。与Trie不同的是，Secure Trie要求新加入的Key-Value pair中的Key的数据都是Sha过的。这是为了方式恶意的构造Key来增加MPT的高度。
 
 ```go
-type SecureTrie struct {
-  trie             Trie
-  hashKeyBuf       [common.HashLength]byte
-  secKeyCache      map[string][]byte
-  secKeyCacheOwner *SecureTrie // Pointer to self, replace the key cache on mismatch
+type StateTrie struct {
+ trie             Trie
+ preimages        *preimageStore
+ hashKeyBuf       [common.HashLength]byte
+ secKeyCache      map[string][]byte
+ secKeyCacheOwner *StateTrie // Pointer to self, replace the key cache on mismatch
 }
 ```
 
-不管是Secure Trie还是Trie，他们的创建的前提是:更下层的db的实例已经创建成功了，否则就会报错。
+不管是Secure Trie还是Trie，他们的创建的前提是: 更下层的db的实例已经创建成功了，否则就会报错。
 
 值得注意的是一个关键函数Prove的实现，并不在这两个Trie的定义文件中，而是位于`trie/proof.go`文件中。
 
