@@ -25,26 +25,28 @@ Blockchain 这一概念，最早由中本聪在**比特币白皮书**提出，�
 
 #### 本书的写作目的
 
-一个热门的技术是否热门的标志之一是: 是否有不同视角的作者，在不同的技术发展阶段记录下来的文档资料。目前，对于学习者，不管是探究以加密货币导向（Crypto-based）的Bitcoin, 还是了解致力于实现通用Web3.0框架（General-Purpose）的 Ethereum，社区中有丰厚的high-level的角度的技术文档来讲述它们的基础概念和设计的思想。比如，技术社区有非常多的资料来讲述什么是梅克尔树 (Merkle Hash Tree)，什么是梅克尔帕特里夏树 (Merkle Patricia Trie)，什么是有向无环图 (Directed acyclic Graph); BFT (Byzantine Fault Tolerance)和 PoW (Proof-Of-Work) 共识算法算法的区别; 以及介绍Blockchain系统为什么可以抵抗双花攻击 (Double-Spending)，或者为什么Ethereum会遇到 DAO Attack (Decentralized autonomous organization) 等具体问题。
+一个热门的技术是否热门的标志之一是: 是否有不同视角的作者，在不同的技术发展阶段记录下来的文档资料。目前，对于学习者，不管是探究以加密货币导向（Crypto-based）的Bitcoin, 还是了解致力于实现通用Web3.0框架（General-Purpose）的 Ethereum，社区中有丰厚的 high-level 的角度的技术文档来讲述它们的基础概念和设计的思想。比如，技术社区有非常多的资料来讲述什么是梅克尔树 (Merkle Hash Tree)，什么是梅克尔帕特里夏树 (Merkle Patricia Trie)，什么是有向无环图 (Directed acyclic Graph); BFT (Byzantine Fault Tolerance)和 PoW (Proof-Of-Work) 共识算法算法的区别; 以及介绍Blockchain系统为什么可以抵抗双花攻击 (Double-Spending)，或者为什么Ethereum会遇到 DAO Attack (Decentralized autonomous organization) 等具体问题。
 
-但是，现有的资料往往对工程实现的细节往往介绍的不够清晰。对于研究人员和开发人员来说，只了解关键组件的实现细节，或者高度抽象的系统工作流，并不代表着搞清楚Blockchain的**工作原理**。反而很容易在一些关键细节上一头雾水，似懂非懂。比如，当我们谈到Blockchain系统中Transaction的生命周期时，在文档中经常会提到，“Miner节点批量地从自己维护的Transaction pool中选择一些Transaction并打包成一个新的Block中”。那么究竟miner是怎么从网络中获取到Transaction？又是基于什么样的策略从Transaction pool中选取**多少**Transaction？最终按照又按照什么样的Order把transaction打包进区块链中的呢？如何打包成功的Block是怎么交互给其他节点呢？在我学习的过程中，尝试去搜索了一下，发现鲜有文章从*整体*的系统工作流的角度出发，以**细粒度**的视角对区块链系统中的具体的实现*细节*进行解析。与数据库系统(Database Management System)相似，Blockchain系统同样是一个包含网络层，业务逻辑层，任务解析层，存储层的复杂数据管理系统。对它研究同样需要从系统的实现细节出发，从宏观到微观的了解每个执行逻辑的工作流，才能彻底理解和掌握这门技术的秘密。
+但是，现有的资料往往对工程实现的细节往往介绍的不够清晰。对于研究人员和开发人员来说，只了解关键组件的实现细节，或者高度抽象的系统工作流，并不代表着搞清楚 Blockchain 的**工作原理**。反而很容易在一些关键细节上一头雾水，似懂非懂。比如，当我们谈到Blockchain 系统中 Transaction 的生命周期时，在文档中经常会提到，“Miner节点批量地从自己维护的Transaction pool中选择一些Transaction并打包成一个新的 Block 中”。那么究竟 miner 是怎么从网络中获取到Transaction？又是基于什么样的策略从Transaction pool 中选取**多少**Transaction？最终按照又按照什么样的 Order 把 Transaction 打包进区块链中的呢？如何打包成功的 Block 是怎么交互给其他节点呢？在我学习的过程中，尝试去搜索了一下，发现鲜有文章从*整体*的系统工作流的角度出发，以**细粒度**的视角对区块链系统中的具体的实现*细节*进行解析。与数据库系统(Database Management System)相似，Blockchain 系统同样是一个包含网络层，业务逻辑层，任务解析层，存储层的复杂数据管理系统。对它研究同样需要从系统的实现细节出发，从宏观到微观的了解每个执行逻辑的工作流，才能彻底理解和掌握这门技术的秘密。
 
-本系列文章作为我在博士期间学习/研究的记录，将会从 Ethereum 中具体业务的工作的视角出发，在源码的层面，细粒度的解析以太坊系统中各个模块的实现的细节，以及背后的蕴含的技术和设计思想。同时，在阅读源代码中发现的问题也可以会提交Pr来贡献社区。本系列基于的代码库是Go-ethereum version 1.10.*(after merge)版本。Go-ethereum是以太坊协议的Go语言实现版本，目前由以太坊基金会维护。目前除了Go-ethereum之外，Ethereum 还有C++, Python，Java, Rust等基于其他语言实现的版本。相比于其他的由社区维护的版本，Go-ethereum的用户数量最多，开发人员最多，版本更新最频繁，issues 的发现和处理都较快。其他语言的Ethereum实现版本因为用户与开发人员的数量相对较少，更新频率相对较低，隐藏问题出现的可能性更高。因此我们选择从 Go-ethereum 代码库作为我们的主要学习资料。
+本系列文章作为我在博士期间学习/研究的记录，将会从 Ethereum 中具体业务的工作的视角出发，在源码的层面，细粒度的解析以太坊系统中各个模块的实现的细节，以及背后的蕴含的技术和设计思想。同时，在阅读源代码中发现的问题也可以会提交Pr来贡献社区。本系列基于的代码库是 Go-ethereum version 1.10.*(after merge)版本。Go-ethereum是以太坊协议的 Go 语言实现版本，目前由以太坊基金会维护。目前除了 Go-ethereum 之外，Ethereum 还有C++, Python，Java, Rust等基于其他语言实现的版本。相比于其他的由社区维护的版本，Go-ethereum 的用户数量最多，开发人员最多，版本更新最频繁，issues 的发现和处理都较快。其他语言的Ethereum实现版本因为用户与开发人员的数量相对较少，更新频率相对较低，隐藏问题出现的可能性更高。因此我们选择从 Go-ethereum 代码库作为我们的主要学习资料。
+
+在合并之后，以太坊信标链和原有的主链进行了合并。原有的主链节点 (Go-ethereum 节点) 进行了功能缩减，放弃了共识相关的功能，仅作为执行层继续在以太坊的生态中发挥至关重要的作用。同时，交易的执行，状态的维护，数据的存储等基本功能还是由执行层进行维护。因此，作为开发和研究人员，了解 Go-ethereum 代码库仍然是十分有意义的。
 
 ### 我们为什么要阅读区块链系统的源代码？
 
-1. 关于以太坊细节实现的文档资料相对较少。由于Ethereum进行了多次的更新，一些源代码解析的文章中采用的代码已经经历了多次的修改。同时，不少文章在分析细节的时候，浅尝辄止，对一些关键问题没有解析到位。比如，*很多的科普文章都提到，在打包新的Block的时候，miner负责把a batch of transactions从transaction pool中打包到新的block中*。那么我们希望读者思考如下的几个问题：
-    - Miner是基于什么样策略从Transaction Pool中选择Transaction呢？
-    - 被选择的Transactions又是以怎样的顺序(Order)被打包到区块中的呢？
-    - 在执行Transaction的EVM是怎么计算gas used，从而限定Block中Transaction的数量的呢?
-    - 剩余的gas又是怎么返还给Transaction Proposer的呢？
-    - EVM是怎么解释Contract的Message Call并执行的呢？
-    - 在执行Transaction中是哪个模块，是怎样去修改Contract中的持久化变量呢？
-    - Smart Contract中的持久化变量又是以什么样的形式存储？在什么地方的呢？
-    - 当新的Block更新到Blockchain中时，World State又是何时怎样更新的呢？
-    - 哪些数据常驻内存，哪些数据又需要保存在Disk中呢？
+1. 关于以太坊细节实现的文档资料相对较少。由于 Ethereum 进行了多次设计上的更新，一些源代码解析的文章中采用的代码已经经历了多次的修改。同时，不少文章在分析细节的时候，浅尝辄止，对一些关键问题没有解析到位。比如，*很多的科普文章都提到，在打包新的Block的时候，miner负责把a batch of transactions从transaction pool中打包到新的block中*。那么我们希望读者思考如下的几个问题：
+    - Miner 是基于什么样策略从 Transaction Pool 中选择 Transaction 呢？
+    - 被选择的 Transactions 又是以怎样的顺序(Order)被打包到区块中的呢？
+    - 在执行 Transaction 的 EVM 是怎么计算 gas used，从而限定 Block 中Transaction 的数量的呢?
+    - 剩余的 gas 又是怎么返还给 Transaction Proposer 的呢？
+    - EVM 是怎么解释 Contract 的 Message Call 并执行的呢？
+    - 在执行 Transaction 中是哪个模块，是怎样去修改 Contract 中的持久化变量呢？
+    - Smart Contract 中的持久化变量又是以什么样的形式存储？在什么地方的呢？
+    - 当新的 Block 更新到 Blockchain 中时，World State 又是何时怎样更新的呢？
+    - 哪些数据常驻内存，哪些数据又需要保存在 Disk 中呢？
   
-2. 目前的Blockchain系统并没有像数据库系统(DBMS)那样统一的形成系统性的方法论。在Ethereum中每个不同的模块中都集成了大量的细节。从源码的角度出发可以了解到很多容易被忽视的细节。简单的说，一个完整的区块链系统至少包含以下的模块:
+2. 目前的 Blockchain 系统并没有像数据库系统(DBMS)那样统一的形成系统性的方法论。在 Ethereum 中每个不同的模块中都集成了大量的细节。从源码的角度出发可以了解到很多容易被忽视的细节。简单的说，一个完整的区块链系统至少包含以下的模块:
     - 密码学模块: 加解密，签名，安全hash，Mining
     - 网络模块: P2P节点通信
     - 分布式共识模块: PoW, BFT，PoA
@@ -53,7 +55,7 @@ Blockchain 这一概念，最早由中本聪在**比特币白皮书**提出，�
     - Log日志模块
     - etc.
 
-而在具体实现中，由于设计理念，以及go语言的特性(没有继承派生关系)，Go-ethereum中的模块之间相互调用关系相对复杂。因此，只有通过阅读源码的方式才能更好理解不同模块之间的调用关系，以及业务的workflow中执行流程/细节。
+而在具体实现中，由于设计理念，以及 go 语言的特性(没有继承派生关系)，Go-ethereum中的模块之间相互调用关系相对复杂。因此，只有通过阅读源码的方式才能更好理解不同模块之间的调用关系，以及业务的 workflow 中执行流程/细节。
 
 -----------------------------------------------------------
 
@@ -132,20 +134,19 @@ Blockchain 这一概念，最早由中本聪在**比特币白皮书**提出，�
 
 ## Some Details
 
-- 以太坊是基于State状态机模型的区块链系统，交易的结果会直接更新到账户的状态上。因此，Miner在生成新的区块的时候，会直接调用EVM中增加余额的函数，添加区块奖励给自己。因此，与Bitcoin不同的是，Ethereum的区块中，并没有额外增加Coinbase的transaction。
-- 在core/transaction.go 中, transaction的数据结构是包含了一个time.Time类型的成员变量的。在后续创建一个新的Transaction的newTransaction函数中，只使用Local time(`time.now()`)对Transaction.time进行初始化。
-- uncle block中打包的transaction 不会被更新到包含该叔块的主链区块中。
+- 以太坊是基于 State 状态机模型的区块链系统，交易的结果会直接更新到账户的状态上。因此，Miner 在生成新的区块的时候，会直接调用 EVM 中增加余额的函数，添加区块奖励给自己。因此，与 Bitcoin 不同的是，Ethereum 的区块中，并没有额外增加 Coinbase 的transaction。
+- 在core/transaction.go 中, transaction的数据结构是包含了一个time.Time类型的成员变量的。在后续创建一个新的 Transaction 的 newTransaction 函数中，只使用Local time(`time.now()`)对Transaction.time进行初始化。
+- uncle block 中打包的 transaction 不会被更新到包含该叔块的主链区块中。
 - 不同的合约中的数据会混合的保存在底层的同一个LevelDB instance中。
-- LevelDB中保存的KV-Pair是MPT的Node信息，包括State Trie和Storage Trie。
+- LevelDB 中保存的 KV-Pair 是 MPT 的 Node 信息，包括 State Trie 和Storage Trie。
 - 在以太坊更新数据的工作流中，通常先调用`Finalise`函数，然后执行`Commit`函数。
-
 
 ### Blockchain System (BCS) VS Database Management System (DBMS)
 
 Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑。
 
-- Blockchain系统同样也从Transaction作为基本操作的载体，包含一个Parser模块，Transaction Executor模块，和一个Storage管理模块。
-
+- Blockchain 系统同样也从 Transaction 作为基本操作的载体。Transaction 的执行是一个原子化的操作，只有成功和失败两种状态。
+  
 ## 关键函数
 
 ```go

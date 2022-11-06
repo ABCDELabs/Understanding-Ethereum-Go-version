@@ -538,7 +538,7 @@ k1 := solsha3.SoliditySHA3([]byte("hsy"), solsha3.Uint256(big.NewInt(int64(1))))
 fmt.Printf("Test the Solidity Map storage Key1:         0x%x\n", k1)
 ```
 
-// TODO: The wallet part. Not sure in this section or another section.
+<--TODO: The wallet part. Not sure in this section or another section. -->
 
 ## Wallet
 

@@ -7,7 +7,7 @@
 
 ## 什么是 geth？
 
-`geth`是以太坊基金会基于 Go 语言开发以太坊的官方客户端，它实现了 Ethereum 协议(黄皮书)中所有需要的实现的功能模块。我们可以通过启动 `geth` 来运行一个 Ethereum 的节点。 `go-ethereum`是包含了geth客户端代码和以及编译 geth 所需要的其他代码在内的一个完整的代码库。在本系列中我们会通过深入go-ethereum代码库，从High-level的API接口出发，沿着 Ethereum 主 Workflow，逐一的理解 Ethereum 具体实现的细节。
+`geth`是以太坊基金会基于 Go 语言开发以太坊的官方客户端，它实现了 Ethereum 协议(黄皮书)中所有需要的实现的功能模块。我们可以通过启动 `geth` 来运行一个 Ethereum 的节点。在以太坊 Merge 之后，`geth` 作为节点的执行层继续在以太坊生态中发挥重要的作用。 `go-ethereum`是包含了 `geth` 客户端代码和以及编译 `geth` 所需要的其他代码在内的一个完整的代码库。在本系列中我们会通过深入 go-ethereum 代码库，从High-level 的 API 接口出发，沿着 Ethereum 主 Workflow，逐一的理解 Ethereum 具体实现的细节。
 
 为了方便区分，在接下来的文章中，我们用`geth`来表示 Geth 客户端程序，用go-ethereum(`Geth`)来表示 go-ethereum 的代码库。
 
@@ -18,7 +18,7 @@
 
 ### go-ethereum Codebase 结构
 
-为了更好的从整体工作流的角度来理解 Ethereum，根据主要的业务功能，我们可以把`go-ethereum`划分成如下几个模块。
+为了更好的从整体工作流的角度来理解 Ethereum，根据主要的业务功能，我们可以把 `go-ethereum` 划分成如下几个模块。
 
 - Geth Client 模块
 - Core 数据结构模块
@@ -35,12 +35,12 @@
   - LevelDB 调用
 - ...
 
-目前，go-ethereum代码库中的主要目录结构如下所示:
+目前，go-ethereum 代码库中的主要目录结构如下所示:
 
 ```
 cmd/ 以太坊基金会官方开发的一些 Command-line 程序。该目录下的每个子目录都是一个单独运行的 CLI 程序。
    |── clef/ 以太坊官方推出的账户管理程序.
-   |── geth/ `geth`客户端，以太坊官方的节点客户端。
+   |── geth/ 以太坊官方的节点客户端。
 core/   以太坊核心模块，包括核心数据结构，statedb，EVM等算法实现
    |── rawdb/ db相关函数的高层封装(在ethdb和更底层的leveldb之上的封装)
    |── state/
@@ -53,6 +53,7 @@ core/   以太坊核心模块，包括核心数据结构，statedb，EVM等算�
       |── receipt.go  以太坊交易收据的实现，用于记录以太坊 Transaction 执行的结果
    |── vm/            以太坊的核心中核心 EVM 相关的一些的数据结构的定义。
       |── instructions.go   EVM 指令的具体的定义，核心中的核心中的核心文件。
+      |── logger.go   用于追踪 EVM 执行交易过程的日志接口的定义。具体的实现在eth/tracers/logger/logger.go 文件中。
    |── genesis.go     创世区块相关的函数。每个 geth 客户端/以太坊节点初始化的都需要调用这个模块。
    |── tx_pool.go     Transaction Pool 的实现。
 consensus/
@@ -71,7 +72,7 @@ p2p/     Ethereum 的P2P模块
    |── bootnodes.go  bootnode的enode地址 like: aws的一些节点，azure的一些节点，Ethereum Foundation的节点和 Rinkeby测试网的节点
 rlp/     RLP的Encode与Decode的相关
 rpc/     Ethereum RPC客户端的实现
-les/     Ethereum light client的实现
+les/     Ethereum light client 轻节点的实现
 trie/    Ethereum 中至关重要的数据结构 Merkle Patrica Trie(MPT) 的实现
    |── committer.go    Trie向Memory Database提交数据的工具函数。
    |── database.go     Memory Database，是Trie数据和Disk Database提交的中间层。同时还实现了Trie剪枝的功能。**非常重要**
