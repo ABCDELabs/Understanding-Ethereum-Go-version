@@ -42,9 +42,13 @@ cmd/ 以太坊基金会官方开发的一些 Command-line 程序。该目录下�
    |── clef/ 以太坊官方推出的账户管理程序.
    |── geth/ 以太坊官方的节点客户端。
 core/   以太坊核心模块，包括核心数据结构，statedb，EVM等算法实现
-   |── rawdb/ db相关函数的高层封装(在ethdb和更底层的leveldb之上的封装)
+   |── rawdb/ db 相关函数的高层封装(在ethdb和更底层的leveldb之上的封装)
+      ├──accessors_state.go 从 Disk Level 读取/写入与 State 相关的数据结构。
    |── state/
-       ├──statedb.go  StateDB 是管理以太坊 World State 最核心的代码，用于管理链上所有的 State 相关操作。
+      ├──statedb.go  StateDB 是管理以太坊 World State 最核心的代码，用于管理链上所有的 State 相关操作。
+   |── txpool        Transaction Pool 相关的代码。
+      |── txpool.go  Transaction Pool 的具体实现。
+consensus/
    |── types/  以太坊中最核心的数据结构
       |── block.go   以太坊 Block 的的数据结构定义与相关函数实现
       |── bloom9.go  以太坊使用的一个 Bloom Filter 的实现
@@ -55,13 +59,11 @@ core/   以太坊核心模块，包括核心数据结构，statedb，EVM等算�
       |── instructions.go   EVM 指令的具体的定义，核心中的核心中的核心文件。
       |── logger.go   用于追踪 EVM 执行交易过程的日志接口的定义。具体的实现在eth/tracers/logger/logger.go 文件中。
    |── genesis.go     创世区块相关的函数。每个 geth 客户端/以太坊节点初始化的都需要调用这个模块。
-   |── tx_pool.go     Transaction Pool 的实现。
-consensus/
    |── consensus.go   共识相关的参数设定，包括 Block Reward 的数量。
 console/
    |── bridge.go
    |── console.go  Geth Web3 控制台的入口
-ethdb/    Ethereum 本地存储的相关实现, 包括leveldb的调用
+ethdb/    Ethereum 本地存储的相关实现, 包括 leveldb 的调用
    |── leveldb/   Go-Ethereum使用的与 Bitcoin Core version一样的Leveldb作为本机存储用的数据库
 internal/ 一些内部使用的工具库的集合，比如在测试用例中模拟 cmd 的工具。在构建 Ethereum 生态相关的工具时值得注意这个文件夹。
 miner/
@@ -69,15 +71,15 @@ miner/
    |── worker.go  Block generation 的实现，包括打包 transaction，计算合法的Block
 p2p/     Ethereum 的P2P模块
    |── params    Ethereum 的一些参数的配置，例如: bootnode的enode地址
-   |── bootnodes.go  bootnode的enode地址 like: aws的一些节点，azure的一些节点，Ethereum Foundation的节点和 Rinkeby测试网的节点
-rlp/     RLP的Encode与Decode的相关
+   |── bootnodes.go  bootnode 的 enode 地址 like: aws 的一些节点，azure 的一些节点，Ethereum Foundation 的节点和 Rinkeby 测试网的节点
+rlp/     RLP的 Encode与 Decode的相关
 rpc/     Ethereum RPC客户端的实现
 les/     Ethereum light client 轻节点的实现
 trie/    Ethereum 中至关重要的数据结构 Merkle Patrica Trie(MPT) 的实现
-   |── committer.go    Trie向Memory Database提交数据的工具函数。
-   |── database.go     Memory Database，是Trie数据和Disk Database提交的中间层。同时还实现了Trie剪枝的功能。**非常重要**
+   |── committer.go    Trie向Memory Database 提交数据的工具函数。
+   |── database.go     Memory Database，是Trie数据和 Disk Database 提交的中间层。同时还实现了Trie剪枝的功能。**非常重要**
    |── node.go         MPT中的节点的定义以及相关的函数。
-   |── secure_trie.go  基于Trie的封装的Trie结构。与trie中的函数功能相同，不过secure_trie中的key是经过hashKey()函数hash过的，无法通过路径获得原始的key值
+   |── secure_trie.go  基于 Trie 的封装的结构。与 trie 中的函数功能相同，不过secure_trie中的 key 是经过hashKey()函数hash过的，无法通过路径获得原始的 key值 
    |── stack_trie.go   Block中使用的Transaction/Receipt Trie的实现
    |── trie.go         MPT具体功能的函数实现。
  ```

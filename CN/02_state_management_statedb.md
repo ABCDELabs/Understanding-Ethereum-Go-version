@@ -1,10 +1,10 @@
 # State Management (1) : StateDB
 
-写在前面: 在最新的 `geth` 代码库中，`SecureTrie` 已经被重命名为了 `StateTrie`，并且代码功能也进行了调整。因此，为了避免歧义，我们在这里提醒读者 **StateTrie 就是之前的 SecureTrie**。读者在阅读其他的文档时，如果遇到了 `SecureTrie`, 可以将其理解为 `StateTrie`。
+写在前面: 在最新的 `geth` 代码库中，`SecureTrie` 已经被重命名为了 `StateTrie`，相关的代码功能也进行了些许调整。因此，为了避免歧义，我们在这里提醒读者 **StateTrie 就是之前的 SecureTrie**。读者在阅读其他的文档时，如果遇到了 `SecureTrie`, 可以将其理解为 `StateTrie`。
 
 ## General
 
-在本文中，我们剖析一下Ethereum State 管理模块中最重要的几个数据结构，StateDB, Trie，StateTrie，以及 StackTrie。我们讲通过分析Ethereum中的主workflow的方式来深入理解这三个数据结构的使用场景，以及设计上的不同。
+在本文中，我们剖析一下 Ethereum State 管理模块中最重要的几个数据结构，StateDB, Trie，StateTrie，以及 StackTrie。我们讲通过分析Ethereum中的主workflow的方式来深入理解这三个数据结构的使用场景，以及设计上的不同。
 
 首先，StateDB是这三个数据结构中最高层的封装，它是直接提供了与StateObject (Account，Contract)相关的 CURD 的接口给其他的模块，比如：
 
@@ -21,7 +21,7 @@
  statedb.Database().TrieDB().Commit(root, true, nil)
 ```
 
-具体World State的更新顺序是:
+具体 World State 的更新顺序是:
 
 ```mermaid
 flowchart LR

@@ -1,18 +1,18 @@
 # State Management (2) : World State Trie and Storage Trie
 
-写在前面: 在最新的 `geth` 代码库中，`SecureTrie` 已经被重命名为了 `StateTrie`，并且代码功能也进行了调整。因此，为了避免歧义，我们在这里提醒读者 **StateTrie 就是之前的 SecureTrie**。读者在阅读其他的文档时，如果遇到了 `SecureTrie`, 可以将其理解为 `StateTrie`。
+写在前面: 在最新的 `geth` 代码库中，`SecureTrie` 已经被重命名为了 `StateTrie`，相关的代码功能也进行了些许调整。因此，为了避免歧义，我们在这里提醒读者 **StateTrie 就是之前的 SecureTrie**。读者在阅读其他的文档时，如果遇到了 `SecureTrie`, 可以将其理解为 `StateTrie`。
 
 ## Trie in brief
 
-Trie结构是Ethereum中用于管理数据的基本数据结构，它被广泛的运用在Ethereum里的多个模块中，包括管理全局的World State Trie，管理Contract中持久化存储Key-Value 对的Storage Trie，以及每个Block中的Transaction Trie 和 Receipt Trie。
+Trie 结构是 Ethereum 中用于管理数据的基本数据结构，它被广泛的运用在Ethereum 里的多个模块中，包括管理全局的 World State Trie，管理 Contract中持久化存储的Storage Trie，以及每个 Block 中的与交易相关的 Transaction Trie 和 Receipt Trie。
 
-在以太坊的体系中，广义上的Trie的指的是Merkel Patricia Trie(MPT)这种数据结构。在实际的实现中，根据业务功能的不同，在go-ethereum中一共实现了三种不同的MPT的instance，分别是，`Trie`，`Secure Trie`以及`Stack Trie`.
+在以太坊的体系中，广义上的 Trie 的指的是 Merkel Patricia Trie(MPT)这种数据结构。在实际的实现中，根据业务功能的不同，在 go-ethereum 中一共实现了三种不同的MPT的instance，分别是，`Trie`，`State Trie`(`Secure Trie`) 以及`Stack Trie`.
 
 <!-- 这些Trie在具体实现上的不同点在于，Transaction Trie本质上并没有使用Trie来管理Transaction的数据，而是依赖于MPT的根来快速验证，具体可以参考core/types/hashing.go/DeriveSha()函数来了解Transaction Trie 的root是如何产生的，这里的Trie使用的是StackTrie。在本文中，我们主要研究的对象是与全局World State Trie有关的结构。 -->
 
-从调用关系上看`Trie`是最底层的核心结构，它用于之间负责StateObject数据的保存，以及提供相应的CURD函数。它的定义在trie/trie.go文件中。
+从调用关系上看 `Trie` 是最底层的核心结构，它用于之间负责 StateObject 数据的保存，以及提供相应的 CURD 函数。它的定义在trie/trie.go文件中。
 
-Secure Trie结构本质上是对Trie的一层封装。它具体的CURD操作的实现都是通过`Trie`中定义的函数来执行的。它的定义在`trie/secure_trie.go`文件中。目前StateDB中的使用的Trie是经过封装之后的Secure Trie。这个Trie也就是我们常说的World State Trie，它是唯一的一个全局Trie结构。与Trie不同的是，Secure Trie要求新加入的Key-Value pair中的Key的数据都是Sha过的。这是为了方式恶意的构造Key来增加MPT的高度。
+State Trie 结构本质上是对 Trie 的一层封装。它具体的CURD操作的实现都是通过`Trie`中定义的函数来执行的。它的定义在`trie/secure_trie.go`文件中。目前StateDB中的使用的Trie是经过封装之后的 State Trie。这个 Trie 也就是我们常说的World State Trie，它是唯一的一个全局 Trie 结构。与 Trie 不同的是，Secure Trie要求新加入的Key-Value pair中的Key 的数据都是Sha过的。这是为了方式恶意的构造Key来增加MPT的高度。
 
 ```go
 type StateTrie struct {
