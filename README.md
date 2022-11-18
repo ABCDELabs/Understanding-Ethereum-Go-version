@@ -81,7 +81,7 @@ Blockchain 这一概念，最早由中本聪在**比特币白皮书**提出，�
 - [14_Signer: 如何保证Transaction的合法性]
 - [15_节点的调用 RPC and IPC](CN/15_rpc_ipc.md)
 
-### PART THREE - Advanced Topics~P
+### PART THREE - Advanced Topics
 
 - [20_结合BFT Consensus 解决拜占庭将军问题]
 - [21_从Plasma到Rollup](CN/21_rollup.md)
