@@ -145,12 +145,15 @@ Blockchain 作为支撑 Bitcoin 结算的分布式账本技术，最早由中本
 - 不同的合约中的数据会混合的保存在底层的同一个LevelDB instance中。
 - LevelDB 中保存的 KV-Pair 是 MPT 的 Node 信息，包括 State Trie 和Storage Trie。
 - 在以太坊更新数据的工作流中，通常先调用`Finalise`函数，然后执行`Commit`函数。
+- Ethereum 客户端的升级流程：通常，Ethereum 社区会首先讨论 EIP(Ethereum Improvement Proposal)。在取得共识之后，各个以太坊客户端团队会按照 EIP 中的设计，实现对应的功能。
+  - 因此，我们需要关注一些重点功能对应的 EIP 文档，以及社区对其的讨论，例如 [EIP-1559](https://eips.ethereum.org/EIPS/eip-1559)，[EIP-4844](https://eips.ethereum.org/EIPS/eip-4844)，[EIP-4895](https://eips.ethereum.org/EIPS/eip-4895)。
+  - 一个 EIP 开发并合并到 Geth 代码库的例子: EIP-1153 transient storage opcodes, [[EIP]](https://eips.ethereum.org/EIPS/eip-1153), 对应的[[PR]](https://github.com/ethereumjs/ethereumjs-monorepo/pull/1768)。
 
-### Blockchain System (BCS) VS Database Management System (DBMS)
+<!-- ### Blockchain System (BCS) VS Database Management System (DBMS)
 
-Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑。
+Blockchain 系统在设计层面借鉴了很多数据库系统中的设计逻辑，例如:
 
-- Blockchain 系统同样也从 Transaction 作为基本操作的载体。Transaction 的执行是一个原子化的操作，只有成功和失败两种状态。当区块中的 Transaction 执行失败时，系统会回滚到交易执行前的状态。
+- Blockchain 系统同样也使用 Transaction 作为基本操作的载体。Transaction 的执行是一个原子化的操作，只有成功和失败两种状态。当区块中的 Transaction 执行失败时，系统会回滚到交易执行前的状态。 -->
   
 ## 关键函数
 
