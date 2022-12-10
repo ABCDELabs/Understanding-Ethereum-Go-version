@@ -19,17 +19,17 @@
 
 Blockchain 作为支撑 Bitcoin 结算的分布式账本技术，最早由中本聪在**比特币白皮书**提出，至今已经过了十几年。在这十几年中，随着加密货币价格的飞涨，区块链社区的参与人数不断的增加，大量的来自不同背景专业人士给 Blockchain 这一概念源源不断的注入新的想法。随着新的思想持续的涌入，区块链技术的边界不断的拓展，逐渐成为了融合了*数据库*，*分布式系统*，*密码学*，*点对点网络*，*编译原理*，*静态软件分析*，*众包*，*经济学*，*货币金融学*，*社会学*等多个学科知识的一个全新技术领域。在源源不断的新技术催化下，Blockchain 也逐渐从小众的去中心化技术社区逐渐走向了主流社会的舞台，至今仍是当下**最热度最高**，**技术迭代最快**，**最能引起社会讨论**的技术话题之一。在 Blockchain 原生的 decentralized 的思想的影响下，市面上绝大多数的 Blockchain 系统都已经开源，并以开源的形式持续在 Github 上维护。这就为我们提供了一种的极好的学习 Blockchain 技术的方式: 结合文档，基于的 Blockchain 系统的源代码，理解和学习系统的设计思想和实现原理。
 
-#### 为什么要研究以太坊的原理
+#### 为什么要研究以太坊& Go-Ethereum 的原理
 
-从基础建设的角度看，随着网络基础建设的不断完善，网络带宽增加和通信延迟下降的趋势将会持续。同时，伴随着存储技术和分布式算法的不断发展，未来系统的运行效率在持续的提高，逐渐逼近硬件极限。这对构建大规模去中心化应用带来更大的确定性。在未来的是五到十年内，云端服务/去中心化系统的性能以及覆盖场景一定还会有很大的提升。未来云技术世界会是两极分化的。一极是以大型云计算公司（i.e, Google，MS，Oracle，Snowflake，and Alibaba）为代表的中心化服务商。另一极就是以 Blockchain 技术作为核心的去中心化的世界。在这个世界中，Ethereum 及其生态系统是当之无愧的领头羊。Ethereum 作为通用型 Public Chain 中的翘楚取得了巨大的成功，成功的构建了稳定强大的生态系统。Ethereum 及其生态吸引到了一大批世界上最优秀的工程师和研究人员的持续的输出。不断的将新思想，新理念，新技术引入到 Ethereum 及其生态中，并且持续的引领整个 Blockchain 生态系统发展。从计算机技术的发展史上看，优秀的平台化的开源项目，例如 Linux，Android，拥有有强大的生命力。Go-Ethereum 作为 Ethereum 其优秀的开源实现，已经被广泛的订制，来适应不同的私有/联盟/Layer-2的场景(e.g., Quorum, Binance Smart Chain, [Scroll](https://scroll.io/) ,Optimism)。因此，想要研究好 Ethereum 的原理以及其设计思想，理解 Go-Ethereum 的设计和实现是至关重要的。
+从基础建设的角度看，随着网络基础建设的不断完善，网络带宽增加和通信延迟下降的趋势将会持续。伴随着存储技术和分布式算法的不断发展，未来软件系统的运行效率将会持续的提高，并且逐渐逼近硬件设备的性能极限。这些技术的发展对构建大规模去中心化应用带来更大的确定性。在未来的五到十年内，云端服务/去中心化系统的性能以及覆盖场景一定还会有很大的提升。未来的技术世界会是两极分化的。一极是以大型科技公司（i.e, Google，MS，Oracle，Snowflake，and Alibaba）为代表的中心化服务商。另一极就是以 Blockchain 技术作为核心的去中心化的世界。在这个世界中，Ethereum 及其生态系统是当之无愧的领头羊。Ethereum 作为通用型 Public Chain 中的翘楚构建了稳定强大的生态系统。Ethereum 及其生态吸引到了一大批世界上最优秀的工程师和研究人员的持续的输出。不断的将新思想，新理念，新技术引入到 Ethereum 及其生态中，并且持续的引领整个 Blockchain 生态系统发展。从计算机技术的发展史上看，优秀的平台化的开源项目，例如 Linux，Android，拥有强大的生命力。由于这类项目的代码经过时间的验证，会有源源不断的开发人员基于这些项目的代码库来开发全新的应用。Go-Ethereum 作为 Ethereum 的优秀稳健的开源实现，目前已经被广泛的订制，被应用在了多种私有/联盟/Layer-2的场景中(e.g., Quorum, Binance Smart Chain, [Scroll](https://scroll.io/), Arbitrum , Optimism)。值得注意的是，不管是那种场景，Ethereum 的相关代码总是位于系统的核心中的核心位置。因此，作为开发人员/研究人员理解 Ethereum 的设计和实现是至关重要的。
 
 #### 本书的写作目的
 
-一个热门的技术是否热门的标志之一是: 是否有不同视角的作者，在不同的技术发展阶段记录下来的文档资料。目前，对于学习者，不管是探究以加密货币导向（Crypto-based）的Bitcoin, 还是了解致力于实现通用Web3.0框架（General-Purpose）的 Ethereum，社区中有丰厚的 high-level 的角度的技术文档来讲述它们的基础概念和设计的思想。比如，技术社区有非常多的资料来讲述什么是梅克尔树 (Merkle Hash Tree)，什么是梅克尔帕特里夏树 (Merkle Patricia Trie)，什么是有向无环图 (Directed acyclic Graph); BFT (Byzantine Fault Tolerance)和 PoW (Proof-Of-Work) 共识算法算法的区别; 以及介绍Blockchain系统为什么可以抵抗双花攻击 (Double-Spending)，或者为什么Ethereum会遇到 DAO Attack (Decentralized autonomous organization) 等具体问题。
+一个热门的技术是否热门的标志之一是: 是否有不同视角的作者，在不同的技术发展阶段记录下来的文档资料。目前，对于学习者，不管是探究以加密货币导向（Crypto-based）的Bitcoin, 还是了解致力于实现通用 Web3 框架（General-Purpose）的 Ethereum，社区中有丰厚的 high-level 的角度的技术文档来讲述它们的基础概念和设计的思想。比如，技术社区有非常多的资料来讲述什么是梅克尔树 (Merkle Hash Tree)，什么是梅克尔帕特里夏树 (Merkle Patricia Trie)，什么是有向无环图 (Directed acyclic Graph); BFT (Byzantine Fault Tolerance)和 PoW (Proof-Of-Work) 共识算法算法的区别; 以及介绍Blockchain系统为什么可以抵抗双花攻击 (Double-Spending)，或者为什么Ethereum会遇到 DAO Attack (Decentralized autonomous organization) 等具体问题。
 
 但是，现有的资料往往对工程实现的细节往往介绍的不够清晰。对于研究人员和开发人员来说，只了解关键组件的实现细节，或者高度抽象的系统工作流，并不代表着搞清楚 Blockchain 的**工作原理**。反而很容易在一些关键细节上一头雾水，似懂非懂。比如，当我们谈到 Ethereum 中 Transaction 的生命周期时，翻阅文档时经常会看到类似的说法，“Miner 节点批量地从自己维护的 Transaction pool 中选择一些 Transaction 并打包成一个新的 Block 中”。那么究竟 Miner 是怎么从网络中获取到 Transaction？又是基于什么样的策略从 Transaction pool 中选取**多少** Transaction？最终按照又按照什么样的 Order 把 Transaction 打包进区块链中的呢？如何打包成功的 Block 是怎么交互给其他节点呢？我尝试去搜索了大量的文档，发现鲜有文章详细的解释了上述的问题。因此，我们需要一些文章从*整体*的系统工作流的角度出发，以**细粒度**的视角对区块链系统中的具体的实现*细节*进行解析。与数据库系统(Database Management System)相似，Blockchain 系统同样是一个包含网络层，业务逻辑层，任务解析层，存储层的复杂数据管理系统。对它研究同样需要从系统的实现细节出发，从宏观到微观的了解每个执行逻辑的工作流，才能彻底理解和掌握这门技术的秘密。
 
-本系列文章作为我在博士期间学习/研究的记录，将会从 Ethereum 中具体业务的工作的视角出发，在源码的层面，细粒度的解析以太坊系统中各个模块的实现的细节，以及背后的蕴含的技术和设计思想。同时，在阅读源代码中发现的问题也可以会提交Pr来贡献社区。本系列基于的代码库是 Go-ethereum version 1.10.*(post-merge)版本。Go-ethereum是以太坊协议的 Go 语言实现版本，目前由以太坊基金会维护。目前除了 Go-ethereum 之外，Ethereum 还有C++, Python，Java, Rust等基于其他语言实现的版本。相比于其他的由社区维护的版本，Go-ethereum 的用户数量最多，开发人员最多，版本更新最频繁，issues 的发现和处理都较快。其他语言的 Ethereum实现版本因为用户与开发人员的数量相对较少，更新频率相对较低，隐藏问题出现的可能性更高。同时 Go 语言语法简单，容易阅读。对于没有 Go语言开发经验的读者，仍然可以快速的理解代码功能。因此我们选择从 Go-ethereum 代码库作为我们的主要学习资料。
+本系列文章作为我在博士期间学习/研究的记录，将会从 Ethereum 中具体业务的工作的视角出发，在源码的层面，细粒度的解析以太坊系统中各个模块的实现的细节，以及背后的蕴含的技术和设计思想。同时，在阅读源代码中发现的问题也可以会提交 Pr 来贡献社区。本系列基于的代码库是 Go-ethereum version 1.10.*(post-merge)版本。Go-ethereum是以太坊协议的 Go 语言实现版本，目前由以太坊基金会维护。目前除了 Go-ethereum 之外，Ethereum 还有C++, Python，Java, Rust 等基于其他语言实现的版本。相比于其他的由社区维护的版本，Go-ethereum 的用户数量最多，开发人员最多，版本更新最频繁，issues 的发现和处理都较快。其他语言的 Ethereum实现版本因为用户与开发人员的数量相对较少，更新频率相对较低，隐藏问题出现的可能性更高。同时 Go 语言语法简单，容易阅读。对于没有 Go 语言开发经验的读者，仍然可以快速的理解代码功能。因此我们选择从 Go-ethereum 代码库作为我们的主要学习资料。
 
 在合并之后，以太坊信标链和原有的主链进行了合并。原有的主链节点 (Go-ethereum 节点) 进行了功能缩减，放弃了共识相关的功能，仅作为执行层继续在以太坊的生态中发挥至关重要的作用。同时，交易的执行，状态的维护，数据的存储等基本功能还是由执行层进行维护。因此，作为开发和研究人员，了解 Go-ethereum 代码库仍然是十分有意义的。
 
@@ -75,10 +75,10 @@ Blockchain 作为支撑 Bitcoin 结算的分布式账本技术，最早由中本
 ### PART TWO - General Source Code Analysis: Lower-level Services
 
 - [10_State数据优化: Batch and Pruning]
-- [11_Blockchain的数据是如何持久化的: Leveldb in Practice]
+- [11_Blockchain 的数据是如何持久化的: Leveldb in Practice]
 - [12_当I/O变成瓶颈: Caching in Practice]
-- [13_深入EVM: 设计与实现]
-- [14_Signer: 如何保证Transaction的合法性]
+- [13_深入 EVM: 设计与实现]
+- [14_Signer: 如何保证 Transaction 的合法性]
 - [15_节点的调用 RPC and IPC](CN/15_rpc_ipc.md)
 
 ### PART THREE - Advanced Topics
@@ -106,8 +106,9 @@ Blockchain 作为支撑 Bitcoin 结算的分布式账本技术，最早由中本
 - [41_Ethereum System Tunning]
 - [42_go-ethereum的开发思想]
 - [43_Metrics in Ethereum]
-- [44_Golang & Ethereum]
-- [45_Looking Forward to the Ethereum2.0]
+- [44_Merge](CN/44_merge.md)
+- [45_Scroll](CN/45_scroll.md)
+- [46_Arbitrum](CN/46_arbitrum.md)
 
 -----------------------------------------------------------
 
