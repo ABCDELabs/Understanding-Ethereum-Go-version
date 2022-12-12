@@ -140,12 +140,12 @@ Blockchain 作为支撑 Bitcoin 结算的分布式账本技术，最早由中本
 
 ## Some Details
 
-- 以太坊是基于 State 状态机模型的区块链系统，交易的结果会直接更新到账户的状态上。因此，在 Miner 在生成新的区块的时候，会直接调用 EVM 中增加余额的函数，添加区块奖励给自己。因此，与 Bitcoin 不同的是，Ethereum 的区块中，并没有额外增加 Coinbase 的transaction。
-- 在 core/transaction.go 中, transaction 的数据结构是包含了一个time.Time类型的成员变量的。在后续创建一个新的 Transaction 的 newTransaction 函数中，只使用Local time(`time.now()`)对Transaction.time进行初始化。
-- uncle block 中打包的 transaction 不会被更新到包含该叔块的主链区块中。
-- 不同的合约中的数据会混合的保存在底层的同一个LevelDB instance中。
-- LevelDB 中保存的 KV-Pair 是 MPT 的 Node 信息，包括 State Trie 和Storage Trie。
-- 在以太坊更新数据的工作流中，通常先调用`Finalise`函数，然后执行`Commit`函数。
+- 以太坊是基于 State 状态机模型的区块链系统，交易的结果会直接更新到账户的状态上。因此，在 Miner 在生成新的区块的时候，会直接调用 EVM 中增加余额的函数，添加区块奖励给自己。因此，与 Bitcoin 不同的是，Ethereum 的区块中，并没有额外增加 Coinbase 的 transaction。
+- 在 core/transaction.go 中, transaction 数据结构的定义中包含了一个 time.Time 类型的成员变量的。在后续创建一个新的 Transaction 的 newTransaction 函数中，只使用 Local time(`time.now()`)对 Transaction.time 进行初始化。
+- 被打包到 Uncle block 中的 transaction 不会被更新到包含该叔块的主链区块中。
+- 不同的合约中的数据会混合的保存在底层的同一个 LevelDB instance 中。
+- LevelDB 中保存的 KV-Pair 是 MPT 的 Node 信息，包括 State Trie 和 Storage Trie。
+- 在以太坊更新数据的工作流中，通常先调用 `Finalise` 函数，然后执行`Commit`函数。
 - Ethereum 客户端的升级流程：通常，Ethereum 社区会首先讨论 EIP(Ethereum Improvement Proposal)。在取得共识之后，各个以太坊客户端团队会按照 EIP 中的设计，实现对应的功能。
   - 因此，我们需要关注一些重点功能对应的 EIP 文档，以及社区对其的讨论，例如 [EIP-1559](https://eips.ethereum.org/EIPS/eip-1559)，[EIP-4844](https://eips.ethereum.org/EIPS/eip-4844)，[EIP-4895](https://eips.ethereum.org/EIPS/eip-4895)。
   - 一个 EIP 开发并合并到 Geth 代码库的例子: EIP-1153 transient storage opcodes, [[EIP]](https://eips.ethereum.org/EIPS/eip-1153), 对应的[[PR]](https://github.com/ethereumjs/ethereumjs-monorepo/pull/1768)。

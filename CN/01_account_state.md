@@ -161,12 +161,12 @@ func newKey(rand io.Reader) (*Key, error) {
   - 64个16进制位，256bit，32字节
     `var AlicePrivateKey = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232032"`
 
-- 在得到私钥后，我们使用私钥来计算公钥和地址地址。基于上述私钥，我们使用ECDSA算法，选择spec256k1曲线进行计算。通过将私钥带入到所选择的椭圆曲线中，计算出点的坐标即是公钥。以太坊和比特币使用了同样的spec256k1曲线，在实际的代码中，我们也可以看到在 go-Ethereum 直接调用了比特币的 secp256k1 的C语言代码。
+- 在得到私钥后，我们使用私钥来计算公钥和地址地址。基于上述私钥，我们使用 ECDSA 算法，选择spec256k1曲线进行计算。通过将私钥带入到所选择的椭圆曲线中，计算出点的坐标即是公钥。以太坊和比特币使用了同样的spec256k1曲线，在实际的代码中，我们也可以看到在 go-Ethereum 直接调用了比特币的 secp256k1 的C语言代码。
     `ecdsaSK, err := crypto.ToECDSA(privateKey)`
-- 对私钥进行椭圆加密之后，我们可以得到一个 64bytes 的数，它是由两个 32bytes 的数构成，这两个数代表了spec256k1曲线上某个点的XY值。
+- 对私钥进行椭圆加密之后，我们可以得到一个 64bytes 的数，它是由两个 32bytes 的数构成，这两个数代表了 spec256k1 曲线上某个点的 XY 坐标值。
     `ecdsaPK := ecdsaSK.PublicKey`
 - 以太坊的地址，是基于上述公钥(ecdsaSK.PublicKey)进行 **Keccak-256算法** 计算之后哈希值的后20个字节，用0x开头表示。
-  - Keccak-256是SHA-3（Secure Hash Algorithm 3）标准下的一种哈希算法
+  - Keccak-256 是 SHA-3（Secure Hash Algorithm 3）标准下的一种哈希算法
     `addr := crypto.PubkeyToAddress(ecdsaSK.PublicKey)`
 
 #### Signature & Verification
@@ -176,7 +176,7 @@ func newKey(rand io.Reader) (*Key, error) {
 - Hash（m,R）*X +R = S* P
 - P是椭圆曲线函数的基点(base point) 可以理解为一个 P 是一个在曲线 C 上的一个 order 为n的加法循环群的生成元，n 是一个大质数。
 - R = r * P (r 是个随机数，并不告知verifier)
-- 以太坊签名校验的核心思想是:首先基于上面得到的ECDSA下的私钥ecdsaSK对数据 msg 进行签名(sign)得到msgSig.
+- 以太坊签名校验的核心思想是:首先基于上面得到的ECDSA 下的私钥 ecdsaSK对数据 msg 进行签名 (sign) 得到 msgSig.
     `sig, err := crypto.Sign(msg[:], ecdsaSK)`
     `msgSig := decodeHex(hex.EncodeToString(sig))`
 - 然后基于 msg 和 msgSig 可以反推出来签名的公钥（用于生成账户地址的公钥ecdsaPK）。
