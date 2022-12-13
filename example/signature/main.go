@@ -33,7 +33,7 @@ func main() {
 	fmt.Println("Account Private key is: ", hex.EncodeToString(privateKey))
 	fmt.Println("-----------------Original-----------------------")
 	fmt.Println("[Original ECDSA] Account Public key is:  ", hex.EncodeToString(crypto.FromECDSAPub(&ecdsaSK.PublicKey)))
-	fmt.Println("[Original ECDSA] Account Public key is:  ", hex.EncodeToString(crypto.CompressPubkey(&ecdsaSK.PublicKey)))
+	fmt.Println("[Original ECDSA] Account Compressed Public key is:  ", hex.EncodeToString(crypto.CompressPubkey(&ecdsaSK.PublicKey)))
 
 	// Sign the Data
 	sig, err := crypto.Sign(msg[:], ecdsaSK)
