@@ -21,15 +21,15 @@ Blockchain 作为支撑 Bitcoin 结算的分布式账本技术，最早由中本
 
 #### 为什么要研究以太坊& Go-Ethereum 的原理
 
-从基础建设的角度看，随着网络基础建设的不断完善，网络带宽增加和通信延迟下降的趋势将会持续。伴随着存储技术和分布式算法的不断发展，未来软件系统的运行效率将会持续的提高，并且逐渐逼近硬件设备的性能极限。这些技术的发展对构建大规模去中心化应用带来更大的确定性。在未来的五到十年内，云端服务/去中心化系统的性能以及覆盖场景一定还会有很大的提升。未来的技术世界会是两极分化的。一极是以大型科技公司（i.e, Google，MS，Oracle，Snowflake，and Alibaba）为代表的中心化服务商。另一极就是以 Blockchain 技术作为核心的去中心化的世界。在这个世界中，Ethereum 及其生态系统是当之无愧的领头羊。Ethereum 作为通用型 Public Chain 中的翘楚构建了稳定强大的生态系统。Ethereum 及其生态吸引到了一大批世界上最优秀的工程师和研究人员的持续的输出。不断的将新思想，新理念，新技术引入到 Ethereum 及其生态中，并且持续的引领整个 Blockchain 生态系统发展。从计算机技术的发展史上看，优秀的平台化的开源项目，例如 Linux，Android，拥有强大的生命力。由于这类项目的代码经过时间的验证，会有源源不断的开发人员基于这些项目的代码库来开发全新的应用。Go-Ethereum 作为 Ethereum 的优秀稳健的开源实现，目前已经被广泛的订制，被应用在了多种私有/联盟/Layer-2的场景中(e.g., Quorum, Binance Smart Chain, [Scroll](https://scroll.io/), Arbitrum , Optimism)。值得注意的是，不管是那种场景，Ethereum 的相关代码总是位于系统的核心中的核心位置。因此，作为开发人员/研究人员理解 Ethereum 的设计和实现是至关重要的。
+从基础建设的角度看，随着网络基础建设的不断完善，网络带宽增加和通信延迟下降的趋势将会持续。伴随着存储技术和分布式算法的不断发展，未来软件系统的运行效率将会持续的提高，并且逐渐逼近硬件设备的性能极限。这些技术的发展对构建大规模去中心化应用带来更大的确定性。在未来的五到十年内，云端服务/去中心化系统的性能以及覆盖场景一定还会有很大的提升。未来的技术世界会是两极分化的。一极是以大型科技公司（i.e, Google，MS，Oracle，Snowflake，and Alibaba）为代表的中心化服务商。另一极就是以 Blockchain 技术作为核心的去中心化的世界。在这个世界中，Ethereum 及其生态系统是当之无愧的领头羊。Ethereum 作为通用型 Public Chain 中的翘楚构建了稳定强大的生态系统。Ethereum 及其生态吸引到了一大批世界上最优秀的工程师和研究人员的持续的输出。不断的将新思想，新理念，新技术引入到 Ethereum 及其生态中，并且持续的引领整个 Blockchain 生态系统发展。从计算机技术的发展史上看，优秀的平台化的开源项目，例如 Linux，Android，拥有强大的生命力。由于这类项目的代码经过时间的验证，会有源源不断的开发人员基于这些项目的代码库来开发全新的应用。Go-Ethereum 作为 Ethereum 的优秀稳健的开源实现，目前已经被广泛的订制，被应用在了多种私有/联盟/Layer-2的场景中(e.g., Quorum, Binance Smart Chain, [Scroll](https://scroll.io/), Arbitrum , Optimism)。值得注意的是，不管是哪种场景，Ethereum 的相关代码总是位于系统的核心中的核心位置。因此，作为开发人员/研究人员理解 Ethereum 的设计和实现是至关重要的。
 
 #### 本书的写作目的
 
 一个热门的技术是否热门的标志之一是: 是否有不同视角的作者，在不同的技术发展阶段记录下来的文档资料。目前，对于学习者，不管是探究以加密货币导向（Crypto-based）的Bitcoin, 还是了解致力于实现通用 Web3 框架（General-Purpose）的 Ethereum，社区中有丰厚的 high-level 的角度的技术文档来讲述它们的基础概念和设计的思想。比如，技术社区有非常多的资料来讲述什么是梅克尔树 (Merkle Hash Tree)，什么是梅克尔帕特里夏树 (Merkle Patricia Trie)，什么是有向无环图 (Directed acyclic Graph); BFT (Byzantine Fault Tolerance)和 PoW (Proof-Of-Work) 共识算法算法的区别; 以及介绍Blockchain系统为什么可以抵抗双花攻击 (Double-Spending)，或者为什么Ethereum会遇到 DAO Attack (Decentralized autonomous organization) 等具体问题。
 
-但是，现有的资料往往对工程实现的细节往往介绍的不够清晰。对于研究人员和开发人员来说，只了解关键组件的实现细节，或者高度抽象的系统工作流，并不代表着搞清楚 Blockchain 的**工作原理**。反而很容易在一些关键细节上一头雾水，似懂非懂。比如，当我们谈到 Ethereum 中 Transaction 的生命周期时，翻阅文档时经常会看到类似的说法，“Miner 节点批量地从自己维护的 Transaction pool 中选择一些 Transaction 并打包成一个新的 Block 中”。那么究竟 Miner 是怎么从网络中获取到 Transaction？又是基于什么样的策略从 Transaction pool 中选取**多少** Transaction？最终按照又按照什么样的 Order 把 Transaction 打包进区块链中的呢？如何打包成功的 Block 是怎么交互给其他节点呢？我尝试去搜索了大量的文档，发现鲜有文章详细的解释了上述的问题。因此，我们需要一些文章从*整体*的系统工作流的角度出发，以**细粒度**的视角对区块链系统中的具体的实现*细节*进行解析。与数据库系统(Database Management System)相似，Blockchain 系统同样是一个包含网络层，业务逻辑层，任务解析层，存储层的复杂数据管理系统。对它研究同样需要从系统的实现细节出发，从宏观到微观的了解每个执行逻辑的工作流，才能彻底理解和掌握这门技术的秘密。
+但是，现有的资料往往对工程实现的细节往往介绍的不够清晰。对于研究人员和开发人员来说，只了解关键组件的实现细节，或者高度抽象的系统工作流，并不代表着搞清楚 Blockchain 的**工作原理**。反而很容易在一些关键细节上一头雾水，似懂非懂。比如，当我们谈到 Ethereum 中 Transaction 的生命周期时，翻阅文档时经常会看到类似的说法，“Miner 节点批量地从自己维护的 Transaction pool 中选择一些 Transaction 并打包成一个新的 Block 中”。那么究竟 Miner 是怎么从网络中获取到 Transaction？又是基于什么样的策略从 Transaction pool 中选取**多少** Transaction？最终又按照什么样的 Order 把 Transaction 打包进区块链中的呢？如何打包成功的 Block 是怎么交互给其他节点呢？我尝试去搜索了大量的文档，发现鲜有文章详细的解释了上述的问题。因此，我们需要一些文章从*整体*的系统工作流的角度出发，以**细粒度**的视角对区块链系统中的具体的实现*细节*进行解析。与数据库系统(Database Management System)相似，Blockchain 系统同样是一个包含网络层，业务逻辑层，任务解析层，存储层的复杂数据管理系统。对它研究同样需要从系统的实现细节出发，从宏观到微观的了解每个执行逻辑的工作流，才能彻底理解和掌握这门技术的秘密。
 
-本系列文章作为我在博士期间学习/研究的记录，将会从 Ethereum 中具体业务的工作的视角出发，在源码的层面，细粒度的解析以太坊系统中各个模块的实现的细节，以及背后的蕴含的技术和设计思想。同时，在阅读源代码中发现的问题也可以会提交 Pr 来贡献社区。本系列基于的代码库是 Go-ethereum version 1.10.*(post-merge)版本。Go-ethereum是以太坊协议的 Go 语言实现版本，目前由以太坊基金会维护。目前除了 Go-ethereum 之外，Ethereum 还有C++, Python，Java, Rust 等基于其他语言实现的版本。相比于其他的由社区维护的版本，Go-ethereum 的用户数量最多，开发人员最多，版本更新最频繁，issues 的发现和处理都较快。其他语言的 Ethereum实现版本因为用户与开发人员的数量相对较少，更新频率相对较低，隐藏问题出现的可能性更高。同时 Go 语言语法简单，容易阅读。对于没有 Go 语言开发经验的读者，仍然可以快速的理解代码功能。因此我们选择从 Go-ethereum 代码库作为我们的主要学习资料。
+本系列文章作为我在博士期间学习/研究的记录，将会从 Ethereum 中具体业务的工作的视角出发，在源码的层面，细粒度地解析以太坊系统中各个模块的实现的细节，以及背后的蕴含的技术和设计思想。同时，在阅读源代码中发现的问题也可以提交 Pr 来贡献社区。本系列基于的代码库是 Go-ethereum version 1.10.*(post-merge)版本。Go-ethereum是以太坊协议的 Go 语言实现版本，目前由以太坊基金会维护。目前除了 Go-ethereum 之外，Ethereum 还有C++, Python，Java, Rust 等基于其他语言实现的版本。相比于其他的由社区维护的版本，Go-ethereum 的用户数量最多，开发人员最多，版本更新最频繁，issues 的发现和处理都较快。其他语言的 Ethereum实现版本因为用户与开发人员的数量相对较少，更新频率相对较低，隐藏问题出现的可能性更高。同时 Go 语言语法简单，容易阅读。对于没有 Go 语言开发经验的读者，仍然可以快速的理解代码功能。因此我们选择从 Go-ethereum 代码库作为我们的主要学习资料。
 
 在合并之后，以太坊信标链和原有的主链进行了合并。原有的主链节点 (Go-ethereum 节点) 进行了功能缩减，放弃了共识相关的功能，仅作为执行层继续在以太坊的生态中发挥至关重要的作用。同时，交易的执行，状态的维护，数据的存储等基本功能还是由执行层进行维护。因此，作为开发和研究人员，了解 Go-ethereum 代码库仍然是十分有意义的。
 
@@ -41,9 +41,9 @@ Blockchain 作为支撑 Bitcoin 结算的分布式账本技术，最早由中本
     - 在执行 Transaction 的 EVM 是怎么计算 gas used，从而限定 Block 中Transaction 的数量的呢?
     - 剩余的 gas 又是怎么返还给 Transaction Proposer 的呢？
     - EVM 是怎么解释 Contract 的 Message Call 并执行的呢？
-    - 在执行 Transaction 中是哪个模块，是怎样去修改 Contract 中的持久化变量呢？
-    - Smart Contract 中的持久化变量又是以什么样的形式存储？在什么地方的呢？
-    - 当新的 Block 更新到 Blockchain 中时，World State 又是何时怎样更新的呢？
+    - 在执行 Transaction 中，是哪个模块，又是怎样去修改 Contract 中持久化变量的呢？
+    - Smart Contract 中的持久化变量是以什么样的形式存储？又是存储在什么地方的呢？
+    - 当新的 Block 更新到 Blockchain 中时，World State 又是在什么时机，以什么方式更新的呢？
     - 哪些数据常驻内存，哪些数据又需要保存在 Disk 中呢？
   
 2. 目前的 Blockchain 系统并没有像数据库系统(DBMS)那样统一的形成系统性的方法论。在 Ethereum 中每个不同的模块中都集成了大量的细节。从源码的角度出发可以了解到很多容易被忽视的细节。简单的说，一个完整的区块链系统至少包含以下的模块:
@@ -140,8 +140,8 @@ Blockchain 作为支撑 Bitcoin 结算的分布式账本技术，最早由中本
 
 ## Some Details
 
-- 以太坊是基于 State 状态机模型的区块链系统，交易的结果会直接更新到账户的状态上。因此，在 Miner 在生成新的区块的时候，会直接调用 EVM 中增加余额的函数，添加区块奖励给自己。因此，与 Bitcoin 不同的是，Ethereum 的区块中，并没有额外增加 Coinbase 的 transaction。
-- 在 core/transaction.go 中, transaction 数据结构的定义中包含了一个 time.Time 类型的成员变量的。在后续创建一个新的 Transaction 的 newTransaction 函数中，只使用 Local time(`time.now()`)对 Transaction.time 进行初始化。
+- 以太坊是基于 State 状态机模型的区块链系统，交易的结果会直接更新到账户的状态上。因此，在 Miner 生成新的区块的时候，会直接调用 EVM 中增加余额的函数，添加区块奖励给自己。因此，与 Bitcoin 不同的是，Ethereum 的区块中，并没有额外增加 Coinbase 的 transaction。
+- 在 core/transaction.go 中, transaction 数据结构的定义中包含了一个 time.Time 类型的成员变量。在后续创建一个新的 Transaction 的 newTransaction 函数中，只使用 Local time(`time.now()`)对 Transaction.time 进行初始化。
 - 被打包到 Uncle block 中的 transaction 不会被更新到包含该叔块的主链区块中。
 - 不同的合约中的数据会混合的保存在底层的同一个 LevelDB instance 中。
 - LevelDB 中保存的 KV-Pair 是 MPT 的 Node 信息，包括 State Trie 和 Storage Trie。
