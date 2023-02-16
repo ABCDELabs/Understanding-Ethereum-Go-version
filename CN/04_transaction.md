@@ -164,7 +164,7 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
     for{
     .....
         // params.TxGas表示了transaction 需要的最少的Gas的数量
-        // w.current.gasPool.Gas()可以获取当前block剩余可以用的Gas的Quota，如果剩余的Gas足以开启一个新的Tx，那么循环结束
+        // w.current.gasPool.Gas()可以获取当前block剩余可以用的Gas的Quota，如果剩余的Gas不足以开启一个新的Tx，那么循环结束
         if w.current.gasPool.Gas() < params.TxGas {
             log.Trace("Not enough gas for further transactions", "have", w.current.gasPool, "want", params.TxGas)break
     }
