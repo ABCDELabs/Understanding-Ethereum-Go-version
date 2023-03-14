@@ -8,6 +8,7 @@
 - Go-Ethereum Version: v1.10.25 (Post-Merge)
 - Updated date: 2022-11
 - Contact: [Twitter](https://twitter.com/cyodyssey) & Wechat(hsyodyssey)
+- ACK: My Wife & The great Scroll team and ABCDE Capital
 
 -----------------------------------------------------------
 
