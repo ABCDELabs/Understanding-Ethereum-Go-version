@@ -144,9 +144,9 @@ func geth(ctx *cli.Context) error {
 
 `prepare()` 函数的实现就在当前的`main.go`文件中。它主要用于设置一些节点初始化需要的配置。比如，我们在节点启动时看到的这句话: *Starting Geth on Ethereum mainnet...* 就是在`prepare()`函数中被打印出来的。
 
-`makeFullNode()`函数的实现位于`cmd/geth/config.go`文件中。它会将Geth启动时的命令的上下文加载到配置中，并生成`stack`和`backend`这两个实例。其中`stack`是一个Node 类型的实例，它是通过`makeFullNode()`函数调用`makeConfigNode()`函数来生成。`Node` 是 geth 生命周期中最顶级的实例，它负责管理节点中的P2P Server, Http Server, database 等业务无关的高级抽象。关于 Node 类型的定义位于`node/node.go`文件中。
+`makeFullNode()`函数的实现位于`cmd/geth/config.go`文件中。它会将Geth启动时的命令的上下文加载到配置中，并生成`stack`和`backend`这两个实例。其中`stack`是一个 Node 类型的实例，它是通过`makeFullNode()`函数调用`makeConfigNode()`函数来生成。`Node` 是 geth 生命周期中最顶级的实例，它负责管理节点中的P2P Server, Http Server, database 等业务无关的高级抽象。关于 Node 类型的定义位于`node/node.go`文件中。
 
-`backend`实例是指的是具体 Ethereum Client 的功能性实例。它是一个 `Ethereum` 类型的实例，负责提供更为具体的以太坊的功能性Service, 负责与以太坊业务直接相关的抽象，比如管理Blockchain，共识算法等具体模块。它根据上下文的配置信息在调用`utils.RegisterEthService()`函数生成。在`utils.RegisterEthService()`函数中，首先会根据当前的config来判断需要生成的Ethereum backend的类型，是light node backend还是full node backend。我们可以在`eth/backend/new()`函数和`les/client.go/new()`中找到这两种 Ethereum backend 的实例是如何初始化的。Ethereum backend的实例定义了一些更底层的配置，比如chainid，链使用的共识算法的类型等。这两种后端服务的一个典型的区别是 light node backend 不能启动Mining服务。在`utils.RegisterEthService()`函数的最后，调用了`Nodes.RegisterAPIs()`函数，将刚刚生成的backend实例注册到`stack`实例中。
+`backend`实例是指的是具体 Ethereum Client 的功能性实例。它是一个 `Ethereum` 类型的实例，负责提供更为具体的以太坊的功能性 Service, 负责与以太坊业务直接相关的抽象，比如管理 Blockchain，共识算法等具体模块。它根据上下文的配置信息在调用`utils.RegisterEthService()`函数生成。在`utils.RegisterEthService()`函数中，首先会根据当前的config来判断需要生成的Ethereum backend的类型，是light node backend还是full node backend。我们可以在`eth/backend/new()`函数和`les/client.go/new()`中找到这两种 Ethereum backend 的实例是如何初始化的。Ethereum backend 的实例定义了一些更底层的配置，比如c hainid，链使用的共识算法的类型等。这两种后端服务的一个典型的区别是 light node backend 不能启动Mining服务。在`utils.RegisterEthService()`函数的最后，调用了`Nodes.RegisterAPIs()`函数，将刚刚生成的backend实例注册到 `stack` 实例中。
 
 ```go
  eth := &Ethereum{
@@ -206,7 +206,7 @@ type Node struct {
 
 #### Node的关闭
 
-在前面我们提到，整个程序的主线程因为调用了`stack.Wait()`而进入了阻塞状态。我们可以看到 Node 结构中声明了一个叫做`stop`的channel。由于这个 Channel 一直没有被赋值，所以整个 geth 的主进程才进入了阻塞状态，持续并发的执行其他的业务协程。
+在前面我们提到，整个程序的主线程因为调用了 `stack.Wait()` 而进入了阻塞状态。我们可以看到 Node 结构中声明了一个叫做`stop`的 channel。由于这个 Channel 一直没有被赋值，所以整个 geth 的主进程才进入了阻塞状态，持续并发的执行其他的业务协程。
 
 ```go
 // Wait blocks until the node is closed.
@@ -215,9 +215,9 @@ func (n *Node) Wait() {
 }
 ```
 
-当`n.stop`这个Channel被赋予值的时候，geth函数就会停止当前的阻塞状态，并开始执行相应的一系列的资源释放的操作。这个地方的写法还是非常有意思的，值得我们参考。我们为读者编写了一个简单的示例:如何使用Channel来管理Go程序的生命周期。
+当`n.stop`这个Channel被赋予值的时候，geth函数就会停止当前的阻塞状态，并开始执行相应的一系列的资源释放的操作。这个地方的写法还是非常有意思的，值得我们参考。我们为读者编写了一个简单的示例:如何使用 Channel 来管理 Go 程序的生命周期。
 
-值得注意的是，在目前的go-ethereum的codebase中，并没有直接通过给`stop`这个channel赋值方式来结束主进程的阻塞状态，而是使用一种更简洁粗暴的方式: 调用close函数直接关闭Channel。我们可以在`node.doClose()`找到相关的实现。`close`是go语言的原生函数，用于关闭 Channel 时使用。
+值得注意的是，在目前的 go-ethereum 的 codebase 中，并没有直接通过给`stop`这个 channel 赋值方式来结束主进程的阻塞状态，而是使用一种更简洁粗暴的方式: 调用 close 函数直接关闭 Channel。我们可以在`node.doClose()`找到相关的实现。`close`是go语言的原生函数，用于关闭 Channel 时使用。
 
 ```go
 // doClose releases resources acquired by New(), collecting errors.
@@ -258,7 +258,7 @@ func (n *Node) doClose(errs []error) error {
 
 ### Ethereum API Backend
 
-我们可以在`eth/backend.go`中找到`Ethereum`这个结构体的定义。这个结构体包含的成员变量以及接收的方法实现了一个Ethereum full node所需要的全部功能和数据结构。我们可以在下面的代码定义中看到，Ethereum结构体中包含了`TxPool`，`Blockchain`，`consensus.Engine`，`miner`等最核心的几个数据结构作为成员变量，我们会在后面的章节中详细的讲述这些核心数据结构的主要功能，以及它们的实现的方法。
+我们可以在 `eth/backend.go` 中找到 `Ethereum` 这个结构体的定义。这个结构体包含的成员变量以及接收的方法实现了一个 Ethereum full node 所需要的全部功能和数据结构。我们可以在下面的代码定义中看到，Ethereum结构体中包含了`TxPool`，`Blockchain`，`consensus.Engine`，`miner`等最核心的几个数据结构作为成员变量，我们会在后面的章节中详细的讲述这些核心数据结构的主要功能，以及它们的实现的方法。
 
 ```go
 // Ethereum implements the Ethereum full node service.
@@ -320,9 +320,9 @@ func (s *Ethereum) StartMining(threads int) error {
 }
 ```
 
-这里我们额外关注一下`handler`这个成员变量。`handler`的定义在`eth/handler.go`中。
+这里我们额外关注一下 `handler` 这个成员变量。`handler` 的定义在 `eth/handler.go` 中。
 
-我们从从宏观角度来看，一个节点的主工作流需要: 1.从网络中获取/同步Transaction和Block的数据 2. 将网络中获取到Block添加到Blockchain中。而`handler`就维护了backend中同步/请求数据的实例，比如`downloader.Downloader`，`fetcher.TxFetcher`。关于这些成员变量的具体实现，我们会在后续的文章中详细介绍。
+我们从从宏观角度来看，一个节点的主工作流需要: 1.从网络中获取/同步 Transaction 和 Block 的数据 2. 将网络中获取到 Block 添加到 Blockchain 中。而 `handler` 就维护了 backend 中同步/请求数据的实例，比如`downloader.Downloader`，`fetcher.TxFetcher`。关于这些成员变量的具体实现，我们会在后续的文章中详细介绍。
 
 ```go
 type handler struct {
