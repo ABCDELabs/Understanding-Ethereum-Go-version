@@ -108,7 +108,25 @@ type StateAccount struct {
 
 对于剩下的成员变量，它们的主要用于内存Cache。trie用于保存和管理合约账户中的持久化变量存储的数据，code用于缓存合约中的代码段到内存中，它是一个byte数组。剩下的四个Storage 字段主要在执行 Transaction 的时候缓存合约修改的持久化数据，比如dirtyStorage 就用于缓存在 Block 被 Finalize 之前，Transaction所修改的合约中的持久化存储数据。对于外部账户，由于没有代码字段，所以对应 stateObject 对象中的code 字段，以及四个 Storage 类型的字段对应的变量的值都为空(originStorage, pendingStorage, dirtyStorage, fakeStorage)。
 
-从调用关系上看，这四个缓存变量的修改顺序是: originStorage --> dirtyStorage--> pendingStorage。关于合于中的 Storage 层的详细信息，我们会在后面部分进行详细的描述。
+定义：
+fakeStorage（假存储）：用于在测试环境下模拟以太坊账户的状态存储，主要用于在测试环境中模拟以太坊账户的状态存储，避免直接对实际状态树进行操作，提高测试的可重复性和可控性。
+
+originStorage（原始存储）：指的是初始的状态数据存储，即在节点启动时从磁盘加载的状态数据。这些数据存储在一个叫做“trie”的数据结构中，用于记录所有账户的当前状态（例如，账户余额、合约代码等）。该数据结构的内容是只读的，无法被修改。
+
+pendingStorage（待处理存储）：指的是在当前区块链状态下，在内存中被修改的状态数据。当一个新的交易被提交到节点进行处理时，其中可能会涉及到账户状态的更改。在这种情况下，节点会将这些更改记录在“pendingStorage”中，而不是直接修改“originStorage”。这是因为如果交易被确认无效，那么这些更改应该被撤销，不应该影响到原始存储。
+
+dirtyStorage（脏存储）：指的是已经被修改，但尚未写入磁盘的状态数据。当节点处理完一批交易后，会将其中涉及到的状态更改写入到“dirtyStorage”中，然后在适当的时候将其写入磁盘中。这样做的好处是避免频繁地写入磁盘，从而提高性能。
+
+在以太坊账户对象中，originStorage 存储的是账户状态的原始值，即账户在状态树中的当前值；pendingStorage 存储的是账户状态的临时更改值，即已经提交但还未写入状态树的更改；dirtyStorage 存储的是账户状态的未提交更改，即在当前交易中已经发生的更改。
+
+执行流程：
+在交易处理过程中，每当需要对账户状态进行更改时，会先将更改存储在 dirtyStorage 中。如果此时需要读取账户状态的值，则会从 originStorage 中读取，而不是从 dirtyStorage 中读取，以避免读取到未提交更改的数据。
+
+当交易处理完毕并确认无误后，会将 dirtyStorage 中的所有更改存储到 pendingStorage 中，表示这些更改已经提交，但还未写入到状态树中。这个过程称为 finalise，会清空 dirtyStorage 中的所有数据。
+
+最后，当交易被写入区块链后，会将 pendingStorage 中的所有更改写入到状态树中，并清空 pendingStorage 中的所有数据，以更新账户状态的当前值。
+
+从调用关系上看，这三个缓存变量的修改顺序是: dirtyStorage--> pendingStorage --> originStorage。
 
 ## 深入Account
 
