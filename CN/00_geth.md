@@ -205,7 +205,7 @@ type Backend interface {
 }
 ```
 
-我们可以发现 `ethapi.Backend` 接口主要对外提供了: 1. Genreal Ethereum APIs, 例如 `ChainD(), AccountManager()`; 2.  Blockchain 相关的 APIs, 例如链上数据的查询(Block & Transaction), `CurrentHeader(), BlockByNumber(), GetTransaction()`; 3. Transaction Pool 相关的APIs, 例如发送交易到本节点的 Transaction Pool, 以及查询交易池中的 Transactions, `GetPoolTransaction`。
+我们可以发现 `ethapi.Backend` 接口主要对外提供了: 1. General Ethereum APIs, 这些 General APIs 对外提供了查询区块链节点管理对象的接口，例如 `ChainDb()` 返回当前节点的 DB 实例, `AccountManager()`; 2.  Blockchain 相关的 APIs, 例如链上数据的查询(Block & Transaction), `CurrentHeader(), BlockByNumber(), GetTransaction()`; 3. Transaction Pool 相关的APIs, 例如发送交易到本节点的 Transaction Pool, 以及查询交易池中的 Transactions, `GetPoolTransaction`。
 
 目前 Geth 代码库中，有两个 `ethapi.Backend` 接口的实现，分别是: 1. 位于 `eth\api_backend` 中的 `EthAPIBackend`; 2. 位于 `les\api_backend` 的 `LesApiBackend`; 顾名思义，`EthAPIBackend` 提供了针对全节点的 Backend API 服务, 而 `LesApiBackend` 提供了轻节点的 Backend API 服务。总结的来说，如果读者想定制一些新的 RPC API，可以在 `ethapi.Backend` 接口中定义函数，并给 `EthAPIBackend` 添加具体的实现。
 
@@ -215,6 +215,7 @@ type Backend interface {
 
 `Ethereum` 实例根据上下文的配置信息在调用 `utils.RegisterEthService()` 函数生成。在`utils.RegisterEthService()`函数中，首先会根据当前的config来判断需要生成的Ethereum backend 的类型，是 light node backend 还是 full node backend。我们可以在 `eth/backend/new()` 函数和 `les/client.go/new()` 中找到这两种 Ethereum backend 的实例是如何初始化的。Ethereum backend 的实例定义了一些更底层的配置，比如chainid，链使用的共识算法的类型等。这两种后端服务的一个典型的区别是 light node backend 不能启动 Mining 服务。在 `utils.RegisterEthService()` 函数的最后，调用了 `Nodes.RegisterAPIs()` 函数，将刚刚生成的 backend 实例注册到 `stack` 实例中。
 
+总结的说，`api_backend` 主要是用于对外提供查询，或者与后端功能性生命周期无关的函数，`Ethereum` 这类的节点层的后端，主要用于管理/控制节点后端的生命周期。
 
 最后一个关键函数，`startNode()` 的作用是正式的启动一个以太坊执行层的节点。它通过调用 `utils.StartNode()` 函数来触发 `Node.Start()` 函数来启动`Stack`实例(Node)。在 `Node.Start()` 函数中，会遍历 `Node.lifecycles` 中注册的后端实例，并启动它们。此外，在 `startNode()` 函数中，还是调用了`unlockAccounts()` 函数，并将解锁的钱包注册到 `stack` 中，以及通过 `stack.Attach()` 函数创建了与 local Geth 交互的 RPClient 模块。
 
