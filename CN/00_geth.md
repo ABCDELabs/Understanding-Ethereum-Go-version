@@ -223,7 +223,7 @@ type Backend interface {
 
 ### Node
 
-正如我们前面提到的，Node 类型在 geth 的生命周期性中属于顶级实例，它负责作为与外部通信的高级抽象模块的管理员，比如管理 rpc server，http server，Web Socket，以及P2P Server外部接口。同时，Node中维护了节点运行所需要的后端的实例和服务 (`lifecycles  []Lifecycle`)，例如我们上面提到的负责具体 Service 的`Ethereum` 类型。
+正如我们前面提到的，Node 类型在 geth 的生命周期性中属于顶级实例，它负责作为与外部通信的高级抽象模块的管理员，比如管理 rpc server，http server，Web Socket，以及 P2P Server外 部接口。同时，Node 中维护了节点运行所需要的后端的实例和服务 (`lifecycles  []Lifecycle`)，例如我们上面提到的负责具体 Service 的`Ethereum` 类型。
 
 ```go
 // Node is a container on which services can be registered.
@@ -266,7 +266,7 @@ func (n *Node) Wait() {
 
 当 `n.stop` 这个 Channel 被赋予值的时候，`geth` 主函数就会停止当前的阻塞状态，并开始执行相应的一系列的资源释放的操作。这个地方的写法还是非常有意思的，值得我们参考。我们为读者编写了一个简单的示例:如何使用 Channel 来管理 Go 程序的生命周期。
 
-值得注意的是，在目前的 go-ethereum 的 codebase 中，并没有直接通过给 `stop` 这个 channel 赋值方式来结束主进程的阻塞状态，而是使用一种更简洁粗暴的方式: 调用 `close()` 函数直接关闭 Channel。我们可以在 `node.doClose()` 找到相关的实现。`close()` 是go语言的原生函数，用于关闭 Channel 时使用。
+值得注意的是，在目前的 go-ethereum 的 codebase 中，并没有直接通过给 `stop` 这个 channel 赋值方式来结束主进程的阻塞状态，而是使用一种更简洁粗暴的方式: 调用 `close()` 函数直接关闭 Channel。我们可以在 `node.doClose()` 找到相关的实现。`close()` 是 go 语言的原生函数，用于关闭 Channel 时使用。
 
 ```go
 // doClose releases resources acquired by New(), collecting errors.

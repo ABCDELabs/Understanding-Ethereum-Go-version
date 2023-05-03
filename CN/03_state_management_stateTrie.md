@@ -1,6 +1,5 @@
 # State Management (2) : World State Trie and Storage Trie
 
-写在前面: 在最新的 `geth` 代码库中，`SecureTrie` 已经被重命名为了 `StateTrie`，相关的代码功能也进行了些许调整。因此，为了避免歧义，我们在这里提醒读者 **StateTrie 就是之前的 SecureTrie**。读者在阅读其他的文档时，如果遇到了 `SecureTrie`, 可以将其理解为 `StateTrie`。
 
 ## Trie in brief
 

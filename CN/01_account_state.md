@@ -2,7 +2,7 @@
 
 ## 概述
 
-我们常常听到这样一个说法，"Ethereum 和 Bitcoin 最大的不同之一是二者使用链上数据模型不同。其中，Bitcoin 是基于 UTXO 模型的 Blockchain/Ledger 系统，Ethereum是基于 Account/State 模型的系统"。那么，这个另辟蹊径的 Account/State 模型究竟不同在何处呢？在本文，我们就来探索一下以太坊中的基本数据单元(Metadata)之一的`Account`。
+我们常常听到这样一个说法，"Ethereum 和 Bitcoin 最大的不同之一是二者使用链上数据模型不同。其中，Bitcoin 是基于 UTXO 模型的 Blockchain/Ledger 系统，Ethereum是基于 Account/State 模型的系统"。那么，这个另辟蹊径的 Account/State 模型究竟不同在何处呢？在本文，我们就来探索一下以太坊中的基本数据单元(Metadata)之一的 `Account`。
 
 简单的来说，Ethereum 的运行是一种*基于交易的状态机模型*(Transaction-based State Machine)。整个系统由若干的账户组成 (Account)，类似于银行账户。状态(State)反应了某一账户(Account)在*某一时刻*下的值(value)。在以太坊中，State 对应的基本数据结构，称为 StateObject。当 StateObject 的值发生了变化时，我们称为*状态转移*。在 Ethereum 的运行模型中，StateObject 所包含的数据会因为 Transaction 的执行引发数据更新/删除/创建，引发状态转移，我们说：StateObject 的状态从当前的 State 转移到另一个 State。
 
@@ -11,17 +11,17 @@
 - Account --> StateObject
 - State   --> The value/data of the Account
 
-总的来说, Account (账户)是参与链上交易(Transaction)的基本角色，是Ethereum状态机模型中的基本单位，承担了链上交易的发起者以及接收者的角色。目前，在以太坊中，有两种类型的Account，分别是外部账户(EOA)以及合约账户(Contract)。
+总的来说, Account (账户) 是参与链上交易 (Transaction)的基本角色，是 Ethereum 状态机模型中的基本单位，承担了链上交易的发起者以及接收者的角色。目前，在以太坊中，有两种类型的 Account，分别是外部账户(EOA)以及合约账户(Contract)。
 
 ### EOA
 
-外部账户(EOA)是由用户直接控制的账户，负责签名并发起交易(Transaction)。用户通过Account 的私钥来保证对账户数据的控制权。
+外部账户(EOA)是由用户直接控制的账户，负责签名并发起交易(Transaction)。用户通过控制 Account 的私钥来保证对账户数据的控制权。
 
-合约账户(Contract)，简称为合约，是由外部账户通过Transaction创建的。合约账户，保存了**不可篡改的图灵完备的代码段**，以及一些**持久化的数据变量**。这些代码使用专用的图灵完备的编程语言编写(Solidity)，并通常提供一些对外部访问 API 接口函数。这些 API 接口函数可以通过构造 Transaction，或者通过本地/第三方提供的节点 RPC 服务来调用。这种模式构成了目前的 DApp 生态的基础。
+合约账户(Contract)，简称为合约，是由外部账户通过 Transaction 创建的。合约账户保存了**不可篡改的图灵完备的代码段**，以及一些**持久化的数据变量**。这些代码使用专用的图灵完备的编程语言编写(Solidity)，并通常提供一些对外部访问 API 接口函数。这些 API 接口函数可以通过构造 Transaction，或者通过本地/第三方提供的节点 RPC 服务来调用。这种模式构成了目前的 DApp 生态的基础。
 
 通常，合约中的函数用于计算以及查询或修改合约中的持久化数据。我们经常看到这样的描述"**一旦被记录到区块链上数据不可被修改**，或者**不可篡改的智能合约**"。现在我们知道这种笼统的描述其实是不准确。针对一个链上的智能合约，不可修改/篡改的部分是合约中的代码段，或说合约中的*函数逻辑*/*代码逻辑是*不可以被修改/篡改的。而合约中的**持久化的数据变量**是可以通过调用代码段中的函数进行数据操作的(CURD)。具体的操作方式取决于合约函数中的代码逻辑。
 
-根据*合约中函数是否会修改合约中持久化的变量*，合约中的函数可以分为两种: *只读函数*和*写函数*。如果用户**只**希望查询某些合约中的持久化数据，而不对数据进行修改的话，那么用户只需要调用相关的只读函数。调用只读函数不需要通过构造一个 Transaction 来查询数据。用户可以通过直接调用本地节点或者第三方节点提供的 RPC 接口来直接调用对应的合约中的*只读函数*。如果用户需要对合约中的数据进行更新，那么他就要构造一个Transaction 来调用合约中相对应的*写函数*。注意，每个 Transaction 每次调用一个合约中的一个*写函数*。因为，如果想在链上实现复杂的逻辑，需要将*写函数*接口化，在其中调用更多的逻辑。
+根据*合约中函数是否会修改合约中持久化的变量*，合约中的函数可以分为两种: *只读函数*和*写函数*。如果用户**只**希望查询某些合约中的持久化数据，而不对数据进行修改的话，那么用户只需要调用相关的只读函数。调用只读函数不需要通过构造一个 Transaction 来查询数据。用户可以通过直接调用本地节点或者第三方节点提供的 RPC 接口来直接调用对应的合约中的*只读函数*。如果用户需要对合约中的数据进行更新，那么他就要构造一个 Transaction 来调用合约中相对应的*写函数*。注意，每个 Transaction 每次调用一个合约中的一个*写函数*。因为，如果想在链上实现复杂的逻辑，需要将*写函数*接口化，在其中调用更多的逻辑。
 
 对于如何编写合约，以及 Ethereum 的执行层如何解析 Transaction 并调用对应的合约中函数的，我们会在后面的文章中详细的进行解析。
 
@@ -183,7 +183,7 @@ func newKey(rand io.Reader) (*Key, error) {
     `recoveredPub, err := crypto.Ecrecover(msg[:],msgSig)`
 - 通过反推出来的公钥可以得到发送者的地址，并与当前交易的发送者在 ECDSA 下的pk进行对比。
     `crypto.VerifySignature(testPk, msg[:], msgSig[:len(msgSig)-1])`
-- 这套体系的安全性保证在于，即使知道了公钥ecdsaPk/ecdsaSK.PublicKey也难以推测出 ecdsaSK以及生成他的privateKey。
+- 这套体系的安全性保证在于，即使知道了公钥 ecdsaPk/ecdsaSK.PublicKey也难以推测出 ecdsaSK以及生成他的 privateKey。
 
 #### ECDSA & spec256k1曲线
 
