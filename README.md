@@ -12,9 +12,9 @@
 
 -----------------------------------------------------------
 
-## 前言 (Preface)
+## 前言 
 
-### 写作背景
+### 基本背景
 
 #### 时代的弄潮儿: Blockchain
 
@@ -26,14 +26,14 @@ Blockchain 最早作为支撑 Bitcoin 结算的分布式账本技术，由中本
 
 #### 本书的写作目的
 
-一个热门的技术是否热门的标志之一是: 是否有不同视角的作者，在不同的技术发展阶段记录下来的文档资料。目前，对于学习者，不管是探究以加密货币导向（Crypto-based）的Bitcoin, 还是了解致力于实现通用 Web3 框架（General-Purpose）的 Ethereum，社区中有丰厚的从基础概念的角度的出发的技术文档来讲述它们的基础概念和设计的思想。比如，技术社区有非常多的资料来讲述什么是梅克尔树 (Merkle Hash Tree)，什么是梅克尔帕特里夏树 (Merkle Patricia Trie)，什么是有向无环图 (Directed acyclic Graph); BFT (Byzantine Fault Tolerance)和 PoW (Proof-Of-Work) 共识算法算法的区别; 以及介绍Blockchain系统为什么可以抵抗双花攻击 (Double-Spending)，或者为什么Ethereum会遇到 DAO Attack (Decentralized autonomous organization) 等具体问题。
+一个热门的技术是否热门的标志之一是: 是否有不同视角的作者，在不同的技术发展阶段记录下来的文档资料。目前，对于学习者，不管是探究以加密货币导向（Crypto-based）的 Bitcoin, 还是了解致力于实现通用 Web3 框架（General-Purpose）的 Ethereum，社区中有丰厚的从基础概念的角度的出发的技术文档来讲述它们的基础概念和设计的思想。比如，技术社区有非常多的资料来讲述什么是梅克尔树 (Merkle Hash Tree)，什么是梅克尔帕特里夏树 (Merkle Patricia Trie)，什么是有向无环图 (Directed acyclic Graph); BFT (Byzantine Fault Tolerance)和 PoW (Proof-Of-Work) 共识算法算法的区别; 以及介绍Blockchain系统为什么可以抵抗双花攻击 (Double-Spending)，或者为什么Ethereum会遇到 DAO Attack (Decentralized autonomous organization) 等具体问题。
 
 但是，现有的资料往往对工程实现的细节介绍的不够清晰。对于研究人员和开发人员来说，只了解关键组件的实现细节，或者高度抽象的系统工作流，并不代表着搞清楚 Blockchain 的**工作原理**。反而很容易在一些关键细节上一头雾水，似懂非懂。比如，当我们谈到 Ethereum 中 Transaction 的生命周期时，翻阅文档时经常会看到类似的说法，“Miner 节点批量地从自己维护的 Transaction pool 中选择一些 Transaction 并打包成一个新的 Block 中”。那么究竟 Miner 是怎么从网络中获取到 Transaction？又是基于什么样的策略从 Transaction pool 中选取**多少** Transaction？最终又按照什么样的 Order 把 Transaction 打包进区块中的呢？打包成功的 Block 是怎么交互/传播给其他节点呢？我搜索了大量的文档，发现鲜有文章详细的解释了上述的问题。因此，社区需要一些文章从*整体*的系统工作流的角度出发，以**细粒度**的视角对区块链系统中的具体的实现*细节*进行解析。与数据库系统(Database Management System)相似，Blockchain 系统同样是一个包含网络层，业务逻辑层，任务解析层，存储层的复杂数据管理系统。对它研究同样需要从系统的实现细节出发，从宏观到微观的了解每个执行逻辑的工作流，才能彻底理解和掌握这门技术的秘密。
 
 
-本系列文章作为我在博士期间学习/研究的记录，将会从 Ethereum 执行层中具体业务的工作的视角出发，在源码的层面，细粒度地解析以太坊系统中各个模块的实现的细节，以及背后的蕴含的技术和设计思想。同时，在阅读源代码中发现的问题也可以提交 Pr 来贡献社区。Go-ethereum是以太坊协议的 Go 语言实现版本，目前由以太坊基金会维护。目前除了 Go-ethereum 之外，Ethereum 还有C++, Python，Java, Rust 等基于其他语言实现的版本。由于 Go-ethereum 的代码库在持续的更新，源码分析的文档很难持续追踪最新的代码库。因此，本系列文档目前选择基于 Go-ethereum version 1.10.*(post-merge)版本首先进行编写。相比于其他的由社区维护的版本，Go-ethereum 的用户数量最多，开发人员最多，版本更新最频繁，issues 的发现和处理都较快。其他语言的 Ethereum 实现版本因为用户与开发人员的数量相对较少，更新频率相对较低，隐藏问题出现的可能性更高。同时 Go 语言语法简单，容易阅读。对于没有 Go 语言开发经验的读者，仍然可以快速的理解代码逻辑。因此我们选择从 Go-ethereum 代码库作为我们的主要学习资料。
+本系列文章将会从 Ethereum 执行层中具体业务的工作的视角出发，在源码的层面，细粒度地解析以太坊系统中各个模块的实现的细节，以及背后的蕴含的技术和设计思想。Go-ethereum 是以太坊协议的 Go 语言实现版本，目前由以太坊基金会维护。目前除了 Go-ethereum 之外，Ethereum 还有C++, Python，Java, Rust 等基于其他语言实现的版本。由于 Go-ethereum 的代码库在持续的更新，源码分析的文档很难持续追踪最新的代码库。因此，本系列文档目前选择基于 Go-ethereum version 1.10.*(post-merge) 版本首先进行编写。相比于其他的由社区维护的版本，Go-ethereum 的用户数量最多，开发人员最多，版本更新最频繁，issues 的发现和处理都较快。其他语言的 Ethereum 实现版本因为用户与开发人员的数量相对较少，更新频率相对较低，隐藏问题出现的可能性更高。同时 Go 语言语法简单，容易阅读。对于没有 Go 语言开发经验的读者，仍然可以快速的理解代码逻辑。因此我们选择从 Go-ethereum 代码库作为我们的主要学习资料。
 
-在合并(Merge)之后，以太坊信标链和原有的主链进行了合并。原有的主链节点 (Go-ethereum 节点) 进行了功能缩减，放弃了共识相关的功能，仅作为执行层继续在以太坊的生态中发挥至关重要的作用。例如，交易的执行，状态的维护，数据的存储等基本功能还是由执行层进行维护。因此，作为开发和研究人员，了解 Go-ethereum 代码库仍然是十分有意义的。
+在合并 (Merge)之后，以太坊信标链和原有的主链进行了合并。原有的主链节点 (Go-ethereum 节点) 进行了功能缩减，放弃了共识相关的功能，仅作为执行层继续在以太坊的生态中发挥至关重要的作用。例如，交易的执行，状态的维护，数据的存储等基本功能还是由执行层进行维护。因此，作为开发和研究人员，了解 Go-ethereum 代码库仍然是十分有意义的。
 
 ### 我们为什么要阅读区块链系统的源代码？
 
@@ -72,21 +72,19 @@ Blockchain 最早作为支撑 Bitcoin 结算的分布式账本技术，由中本
 - [03_State Management ii: World State Trie and Storage Trie](CN/03_state_management_stateTrie.md)
 - [WIP] [04_Basic data strucutre: Transaction | 一个Transaction的生老病死](CN/04_transaction.md)
 - [WIP] [05_Basic data strucutre: Block | 从Block到Blockchain](CN/05_block_blockchain.md)
-- [WIP] [06_一个网吧老板是怎么用闲置的电脑进行挖矿的]
-- [WIP] [07_How nodes connect to others](CN/07_p2p_net_node_sync.md)
-- [WIP] [08_Get transactions and blocks from peers](CN/08_sync.md)
-- [WIP] [09_Transaction Pool](CN/09_txpool.md)
+- [WIP] [06_Get transactions and blocks from peers](CN/06_sync.md)
+- [WIP] [07_Transaction Pool](CN/07_txpool.md)
 
-### PART TWO - General Source Code Analysis: Lower-level Services
+### PART TWO - Advanced Topics: Lower-level Services
 
-- [10_State数据优化: Batch and Pruning]
+- [10_State 数据优化: Batch and Pruning]
 - [11_Blockchain 的数据是如何持久化的: Leveldb in Practice]
 - [12_当I/O变成瓶颈: Caching in Practice]
 - [WIP] [13_深入 EVM: 设计与实现](CN/13_evm.md)
 - [14_Signer: 如何保证 Transaction 的合法性]
 - [WIP] [15_节点的调用 RPC and IPC](CN/15_rpc.md)
 
-### PART THREE - Advanced Topics
+### PART THREE - Beyond Ethereum: Techs in Blockchain
 
 - [20_结合BFT Consensus 解决拜占庭将军问题]
 - [WIP] [21_从Plasma到Rollup](CN/21_rollup.md)
@@ -101,25 +99,26 @@ Blockchain 最早作为支撑 Bitcoin 结算的分布式账本技术，由中本
 
 - [WIP] [30_使用geth构建一个私有网络](CN/30_geth_private_network.md)
 - [WIP] [31_如何编写Solidity语言](CN/31_solidity_in_practice.md)
-- [32_使用预言机(Oracle)构建随机化的DApp]
+- [32_Oracle in Practice]
 - [33_Query On Ethereum Data]
-- [34_layer2 in Practice]
+- [WIP] [34_Metrics in Ethereum](CN/34_metrics.md)
+- [35_Merge](CN/44_merge.md)
+- [WIP] [36_Scroll](CN/45_scroll.md)
+- [WIP] [37_Arbitrum](CN/46_arbitrum.md)
 
 ### PART FIVE - APPENDIX
 
 - [40_FQA](#tips)
 - [41_Ethereum System Tunning]
-- [42_go-ethereum的开发思想]
-- [43_Metrics in Ethereum]
-- [44_Merge](CN/44_merge.md)
-- [WIP] [45_Scroll](CN/45_scroll.md)
-- [WIP] [46_Arbitrum](CN/46_arbitrum.md)
+- [Deprecated] ~~[怎么用闲置的电脑进行挖矿 | mining]~~
+
+
 
 -----------------------------------------------------------
 
-## How to measure the level of understanding of a system？
+## 如何衡量对一个系统的理解程度？
 
-如何衡量对一个系统的理解程度?
+阅读源代码是一种漫长的修行。为了方便自检修行的结果，我们将对一个系统的理解程度划分为下面四个等级。
 
 - Level 4: 掌握（Mastering）
   - 在完全理解的基础上，可以设计并编写一个全新的系统

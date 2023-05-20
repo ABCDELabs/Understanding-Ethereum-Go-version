@@ -1,4 +1,4 @@
-# [Chapter_00] 万物的起点: Geth Start
+# 万物的起点: Geth Start
 
 本章概要:
 
@@ -8,9 +8,9 @@
 
 ## 什么是 geth？
 
-`geth` 是以太坊基金会基于 Go 语言开发以太坊的官方客户端，它实现了 Ethereum 协议(黄皮书)中所有需要的实现的功能模块。我们可以通过启动 `geth` 来运行一个 Ethereum 的节点。在以太坊 Merge 之后，`geth` 作为节点的执行层继续在以太坊生态中发挥重要的作用。 `go-ethereum`是包含了 `geth` 客户端代码和以及编译 `geth` 所需要的其他代码在内的一个完整的代码库。在本系列中我们会通过深入 go-ethereum 代码库，从High-level 的 API 接口出发，沿着 Ethereum 主 Workflow，逐一的理解 Ethereum 具体实现的细节。
+`geth` 是以太坊基金会基于 Go 语言开发以太坊的官方客户端，它实现了 Ethereum 协议(黄皮书)中所有需要的实现的功能模块。我们可以通过启动 `geth` 来运行一个 Ethereum 的节点。在以太坊 Merge 之后，`geth` 作为节点的执行层继续在以太坊生态中发挥重要的作用。 `go-ethereum`是包含了 `geth` 客户端代码和以及编译 `geth` 所需要的其他代码在内的一个完整的代码库。在本系列中我们会通过深入 go-ethereum 代码库，从 High-level 的 API 接口出发，沿着 Ethereum 主 Workflow，逐一的理解 Ethereum 具体实现的细节。
 
-为了方便区分，在接下来的文章中，我们用 `geth` 来表示 Geth 客户端程序，用 go-ethereum (`Geth`)来表示 go-ethereum 的代码库。
+为了方便区分，在接下来的文章中，我们用 `geth` 来表示 go-ethereum 客户端程序，用 `GETH` 来表示 go-ethereum 的代码库。
 
 总结的来说:
 
@@ -91,11 +91,11 @@ trie/    Ethereum 中至关重要的数据结构 Merkle Patrica Trie(MPT) 的实
    |── trie.go         MPT 具体功能的函数实现。
  ```
 
-## Geth Start
+## Geth 节点是如何启动的
 
 ### 前奏: Geth Console
 
-当我们想要部署一个 Ethereum 节点的时候，最直接的方式就是下载官方提供的发行版的 geth 客户端程序。`geth`是一个基于 CLI 的应用，启动`geth`和调用 `geth` 的功能性 API 需要使用对应的指令来操作。`geth` 提供了一个相对友好的 console 来方便用户调用各种指令。当我第一次阅读 Ethereum 的文档的时候，我曾经有过这样的疑问，为什么`geth`是由 Go 语言编写的，但是在官方文档中的 Web3 的API却是基于 Javascript 的调用？
+当我们想要部署一个 Ethereum 节点的时候，最直接的方式就是下载官方提供的发行版的 geth 客户端程序。`geth`是一个基于 CLI 的应用，启动 `geth` 和 调用 `geth` 的功能性 API 需要使用对应的指令来操作。`geth` 提供了一个相对友好的 console 来方便用户调用各种指令。当我第一次阅读 Ethereum 的文档的时候，我曾经有过这样的疑问，为什么`geth`是由 Go 语言编写的，但是在官方文档中的 Web3 的API却是基于 Javascript 的调用？
 
 这是因为 `geth` 内置了一个 Javascript 的解释器: *Goja* (interpreter)，来作为用户与 `geth` 交互的 CLI Console。我们可以在`console/console.go` 中找到它的定义。
 
@@ -116,7 +116,7 @@ type Console struct {
 }
 ```
 
-### geth 节点是如何启动的
+### geth 节点的启动流程
 
 了解 Ethereum，我们首先要了解 Ethereum 客户端 Geth 是怎么运行的。 geth 程序的启动点位于 `cmd/geth/main.go/main()` 函数处，如下所示。
 
@@ -253,7 +253,7 @@ type Node struct {
 }
 ```
 
-#### Node的关闭
+#### Node 的关闭
 
 在前面我们提到，整个程序的主线程因为调用了 `stack.Wait()` 而进入了阻塞状态。我们可以看到 Node 结构中声明了一个叫做 `stop` 的 channel。由于这个 Channel 一直没有被赋值，所以整个 geth 的主进程才进入了阻塞状态，持续并发的执行其他的业务协程。
 
@@ -397,7 +397,7 @@ type handler struct {
 }
 ```
 
-到此，我们就介绍了 geth 及其所需要的基本模块是如何启动的和关闭的。我们在接下来将视角转入到各个模块中，从更细粒度的角度深入探索 Ethereum 的具体实现。
+到此，我们就介绍了 `geth` 及其所需要的基本模块是如何启动的和关闭的。我们在接下来将视角转入到各个模块中，从更细粒度的角度深入探索 Ethereum 的具体实现。
 
 ### Related Terms
 
@@ -406,7 +406,7 @@ type handler struct {
 
 ### Appendix
 
-这里补充一个Go语言的语法知识: **类型断言**。在`Ethereum.StartMining()`函数中，出现了`if c, ok := s.engine.(*clique.Clique); ok`的写法。这中写法是Golang中的语法糖，称为类型断言。具体的语法是`value, ok := element.(T)`，它的含义是如果`element`是`T`类型的话，那么ok等于`True`, `value`等于`element`的值。在`if c, ok := s.engine.(*clique.Clique); ok`语句中，就是在判断`s.engine`的是否为`*clique.Clique`类型。
+这里补充一个Go语言的语法知识: **类型断言**。在`Ethereum.StartMining()`函数中，出现了`if c, ok := s.engine.(*clique.Clique); ok` 的写法。这中写法是 Golang 中的语法糖，称为类型断言。具体的语法是 `value, ok := element.(T)`，它的含义是如果 `element` 是 `T` 类型的话，那么ok等于`True`, `value` 等于 `element` 的值。在 `if c, ok := s.engine.(*clique.Clique); ok` 语句中，就是在判断 `s.engine` 的是否为 `*clique.Clique` 类型。
 
 ```go
   var cli *clique.Clique
@@ -418,3 +418,7 @@ type handler struct {
    }
   }
 ```
+
+## 总结
+
+在本章节中，我们简述了 Go-Ethereum 中启动和关闭 Node 工作流。感兴趣的读者可以继续阅读源代码来深入理解这个模块。
