@@ -1,7 +1,7 @@
-# State Management (2) : World State Trie and Storage Trie
+# 状态管理二: World State Trie and Storage Trie
 
 
-## Trie in brief
+## Trie 概述
 
 Trie 结构是 Ethereum 中用于管理数据的基本数据结构，它被广泛的运用在Ethereum 里的多个模块中，包括管理全局的 World State Trie，管理 Contract中持久化存储的Storage Trie，以及每个 Block 中的与交易相关的 Transaction Trie 和 Receipt Trie。
 
@@ -27,11 +27,11 @@ type StateTrie struct {
 
 值得注意的是一个关键函数Prove的实现，并不在这两个Trie的定义文件中，而是位于`trie/proof.go`文件中。
 
-## Trie Operations
+## Trie 运用
 
-### Read Operation
+### Read Operation：读写行动
 
-### Insert
+### Insert：插入
 
 ```go
 func (t *Trie) insert(n node, prefix, key []byte, value node) (bool, node, error) {
@@ -104,7 +104,7 @@ func (t *Trie) insert(n node, prefix, key []byte, value node) (bool, node, error
 }
 ```
 
-这里有一个关于go语言的知识。我们可以观察到insert函数的第一个参数是一个变量名为n的node类型的变量。有趣的是，在switch语句中我们看到了一个这样的写法.
+这里有一个关于go语言的知识：我们可以观察到insert函数的第一个参数是一个变量名为n的node类型的变量。有趣的是，在switch语句中我们看到了一个这样的写法：
 
 ```go
 switch n := n.(type)
@@ -112,11 +112,11 @@ switch n := n.(type)
 
 显然语句两端的*n*的含义并不相同。这种写法在go中是合法的。
 
-### Update
+### Update：更新
 
-### Delete
+### Delete：删除
 
-### Finalize And Commit and Commit to Disk
+### Finalize And Commit to Disk：存储到硬盘
 
 - 在leveldb中保存的是Trie中的节点。
 - <hash, node.rlprawdata>
@@ -184,11 +184,11 @@ func (v *BlockValidator) ValidateState(block *types.Block, statedb *state.StateD
   
   我们从三个粒度层面来看待State Trie更新的问题。
 
-- Block 层。
+- Block 层：
     在一个新的Block Insert到Blockchain的过程中，State Trie可能会发生多次的更新。比如，在每次Transaction被执行之后，`IntermediateRoot`函数都会被调用。同时，更新后的 State Trie的Root值，会被写入到Transaction对应的Receipt中。请注意，在调用`IntermediateRoot`函数时，更新后的值在此时并没有被立刻写入到Disk Database中。此时的State Trie Root只是基于内存中的数据计算出来的。真正的Trie数据写盘，需要等到`trieDB.Commit`函数的执行。
-- Transaction 层。
+- Transaction 层：
     如上面提到的，在每次Transaction执行完成后，系统都会调用一次StateDB的`IntermediateRoot`函数，来更新State Trie。并且会将更新后的Trie的Root Hash写入到该Transaction对应的Receipt中。这里提一下关于`IntermediateRoot`函数细节。在IntermediateRoot`函数调用时，会首先更新被修改的Contract的Storage Trie的Root。
-- Instruction 层。
+- Instruction 层：
     执行Contract的Instruction，并不会直接的引发State Trie的更新。比如，我们知道，EVM指令`OpSstore`会修改Contract中的持久化存储。这个指令调用了StateDB中的`SetState`函数，并最终调用了对应的StateObject中的`setState`函数。StateObject中的`setState` 函数并没有直接对Contract的Storage Trie进行更新，而是将修改的存储对象保存在了StateObject中的*dirtyStorage* 中(*dirtyStorage*是用于缓存Storage Slot数据的Key-Value Map). Storage Trie的更新是由更上层的函数调用所触发的，比如`IntermediateRoot`函数，以及`StateDB.Commit`函数。
 
 ## Reference

@@ -1,4 +1,4 @@
-# State Data Optimization
+# State Data Optimization：状态数据的优化
 
 在之前的文章中我们提到了，State Trie/Storage Trie中的数据的写盘是依赖于`trie/database.go`这个文件中提供的函数。这个文件同样起到了Trie结构优化的作用
 

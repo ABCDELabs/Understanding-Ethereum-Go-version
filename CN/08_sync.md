@@ -2,11 +2,11 @@
 
 像哲学家一样思考：数据结构/实例/对象/变量是从哪里来，又要到哪里去呢？
 
-## General
+## 概述
 
  在前面的章节中，我们已经讨论了在以太坊中 Transactions 是从 Transaction Pool 中，被 Validator/Miner 们验证打包，最终被保存在区块链中。那么，接下来的问题是，Transaction 是怎么被进入到 Transaction Pool 中的呢？基于同样的思考方式，那么一个刚刚在某个节点被打包好的 Block，它又将怎么传输到区块链网络中的其他节点那里，并最终实现 Blockchain 长度是一致的呢？在本章中，我们就来探索一下，节点是如何发送和接收 Transaction 和 Block 的。
 
-## How Geth syncing Transactions
+## How Geth syncs Transactions：同步交易状态
 
 在前面的章节中，我们曾经提到，Geth 节点中最顶级的对象是 Node 类型，负责节点最高级别生命周期相关的操作，例如节点的启动以及关闭，节点数据库的打开和关闭，启动RPC监听。而更具体的管理业务生命周期(lifecycle)的函数，都是由后端 Service 实例 `Ethereum` 和 `LesEthereum` 来实现的。
 
@@ -45,4 +45,4 @@ type Ethereum struct {
 根据交易的来源，交易池中的交易可以分为 Local Transaction 和 Remote Transaction 两种。
 
 
-## How Geth syncing Blocks
+## How Geth syncs Blocks：同步区块状态
