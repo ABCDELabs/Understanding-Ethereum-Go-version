@@ -1,4 +1,4 @@
-# Transaction: 一个Transaction的生老病死
+# Transaction: 一个交易的生老病死
 
 ## 概述
 
@@ -323,7 +323,7 @@ commitTransactions --> commitTransaction --> ApplyTransaction --> applyTransacti
 ![Transaction Execution stack Flow](../figs/04/tx_exec_calls.png)
 
 
-## [Validator] 验证节点是如何执行Transaction来更新World State
+## [Validator] 验证节点如何执行Transaction并更新World State
 
 而对于不参与Mining的节点，他们执行Block中Transaction的入口是在core/blockchain.go中的InsertChain()函数。InsertChain函数通过调用内部函数insertChain，对调用中的core/state_processor.go中的Process()函数。Process函数的核心在于循环遍历Block中的Transaction，调用上述的applyTransaction函数。从这里开始更底层的调用关系就与Mining Workflow中的调用关系相同。
 
@@ -373,7 +373,7 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 }
 ```
 
-## Background of State-based Blockchain
+## State-based Blockchain：基于状态的区块链
 
 - State-based Blockchain 的数据主要由两部分的数据管理模块组成：World State 和 Blockchain。
 - State Object是系统中基于K-V结构的基础数据元素。在Ethereum中，State Object是Account。
@@ -387,7 +387,7 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 
 [EIP2718]: https://eips.ethereum.org/EIPS/eip-2718
 
-## Read Transaction from Database
+## Read Transaction from Database：从数据库读取交易
 
 当我们想要通过Transaction的Hash查询一个Transaction具体的数据的时候，上层的API会调用`eth/api_backend.go`中的`GetTransaction()`函数，并最终调用了`core/rawdb/accessors_indexes.go`中的`ReadTransaction()`函数来查询。
 

@@ -1,8 +1,8 @@
-# Mining
+# Mining：挖矿
 
-## Block Reward
+## Block Reward：区块奖励
 
-## How to Seal Block
+## How to Seal Block：结算区块
 
 其中一个关键的函数是`miner/worker.go`中的`fillTransactions()`函数。这个函数会从transaction pool中的Pending的transactions选取若干的交易并且将他们按照Gas Price和Nonce的顺序进行排序形成新的tx set并传递给`commitTransactions()`函数。在`fillTransactions()`函数会首先处理Local Pool中的交易，然后再处理从网络中接受到的远程交易。
 

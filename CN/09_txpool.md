@@ -1,6 +1,6 @@
 # Transaction Pool
 
-## General 
+## 概述
 
 交易可以分为 Local Transaction 和 Remote Transaction 两种。通过节点提供的 RPC 传入的交易，被划分为 Local Transaction，通过 P2P 网络传给节点的交易被划分为 Remote Transaction。
 
