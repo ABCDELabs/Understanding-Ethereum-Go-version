@@ -6,7 +6,7 @@
  2. `geth` 客户端/节点是如何启动的。
  3. 如何修改/添加 `geth` 对外的APIs。
 
-## 什么是 geth？
+## geth 是什么？
 
 `geth` 是以太坊基金会基于 Go 语言开发以太坊的官方客户端，它实现了 Ethereum 协议(黄皮书)中所有需要的实现的功能模块。我们可以通过启动 `geth` 来运行一个 Ethereum 的节点。在以太坊 Merge 之后，`geth` 作为节点的执行层继续在以太坊生态中发挥重要的作用。 `go-ethereum`是包含了 `geth` 客户端代码和以及编译 `geth` 所需要的其他代码在内的一个完整的代码库。在本系列中我们会通过深入 go-ethereum 代码库，从 High-level 的 API 接口出发，沿着 Ethereum 主 Workflow，逐一的理解 Ethereum 具体实现的细节。
 
@@ -17,7 +17,7 @@
 1. 基于 `go-ethereum` 代码库中的代码，我们可以编译出 `geth` 客户端程序。
 2. 通过运行 `geth` 客户端程序我们可以启动一个 Ethereum 的节点。
 
-### go-ethereum Codebase 结构
+### go-ethereum 的代码库结构
 
 为了更好的从整体工作流的角度来理解 Ethereum，根据主要的业务功能，我们可以把 `go-ethereum` 划分成如下几个模块。
 
@@ -91,7 +91,7 @@ trie/    Ethereum 中至关重要的数据结构 Merkle Patrica Trie(MPT) 的实
    |── trie.go         MPT 具体功能的函数实现。
  ```
 
-## Geth 节点是如何启动的
+## 如何启动Geth节点
 
 ### 前奏: Geth Console
 
@@ -221,7 +221,7 @@ type Backend interface {
 
 在 `geth()` 函数的最后，函数通过执行 `stack.Wait()`，使得主线程进入了阻塞状态，其他的功能模块的服务被分散到其他的子协程中进行维护。
 
-### Node
+### Node 节点
 
 正如我们前面提到的，Node 类型在 geth 的生命周期性中属于顶级实例，它负责作为与外部通信的高级抽象模块的管理员，比如管理 rpc server，http server，Web Socket，以及 P2P Server外 部接口。同时，Node 中维护了节点运行所需要的后端的实例和服务 (`lifecycles  []Lifecycle`)，例如我们上面提到的负责具体 Service 的`Ethereum` 类型。
 
@@ -253,7 +253,7 @@ type Node struct {
 }
 ```
 
-#### Node 的关闭
+#### 关闭节点
 
 在前面我们提到，整个程序的主线程因为调用了 `stack.Wait()` 而进入了阻塞状态。我们可以看到 Node 结构中声明了一个叫做 `stop` 的 channel。由于这个 Channel 一直没有被赋值，所以整个 geth 的主进程才进入了阻塞状态，持续并发的执行其他的业务协程。
 
@@ -305,7 +305,7 @@ func (n *Node) doClose(errs []error) error {
 }
 ```
 
-### Ethereum Backend
+### Ethereum 后端设计
 
 我们可以在 `eth/backend.go` 中找到 `Ethereum` 这个结构体的定义。这个结构体包含的成员变量以及接收的方法实现了一个 Ethereum full node 所需要的全部功能和数据结构。我们可以在下面的代码定义中看到，Ethereum结构体中包含 `TxPool`，`Blockchain`，`consensus.Engine`，`miner`等最核心的几个数据结构作为成员变量，我们会在后面的章节中详细的讲述这些核心数据结构的主要功能，以及它们的实现的方法。
 
@@ -397,9 +397,9 @@ type handler struct {
 }
 ```
 
-到此，我们就介绍了 `geth` 及其所需要的基本模块是如何启动的和关闭的。我们在接下来将视角转入到各个模块中，从更细粒度的角度深入探索 Ethereum 的具体实现。
+到此，我们就介绍了 `geth` 及其所需要的基本模块如何启动的和关闭。我们接下来将视角转入到各个模块中，用细粒度的角度深入探索 Ethereum 的具体实现。
 
-### Related Terms
+### Related Terms 关键词录
 
 - Geth
 - go-ethereum (geth)

@@ -39,7 +39,7 @@ type Header struct {
 }
 ```
 
-## Blockchain
+## Blockchain：区块链
 
 ### 基础数据结构
 

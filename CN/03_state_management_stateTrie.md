@@ -1,4 +1,4 @@
-# 状态管理 (State Management) ii: State Trie and Storage Trie
+# 状态管理 ii: State Trie and Storage Trie
 
 写在前面: 在最新的 `geth` 代码库中，`SecureTrie` 已经被重命名为了 `StateTrie`，相关的代码功能也进行了些许调整。因此，为了避免歧义，我们在这里提醒读者 **StateTrie 就是之前的 SecureTrie**。读者在阅读其他的文档时，如果遇到了 `SecureTrie`, 可以将其理解为 `StateTrie`。
 
@@ -25,9 +25,11 @@ type StateTrie struct {
 
 不管是 Secure Trie还是Trie，他们的创建的前提是: 更下层的 db 的实例已经创建成功了，否则就会报错。值得注意的是一个关键函数 Prove 的实现，并不在这两个Trie的定义文件中，而是位于`trie/proof.go`文件中。
 
-## Trie 的使用
+值得注意的是一个关键函数Prove的实现，并不在这两个Trie的定义文件中，而是位于`trie/proof.go`文件中。
 
-### Read Operation
+## Trie 运用
+
+### Read Operation：读写行动
 
 具体的读取 Trie 上节点的数据是通过 `tryGet()` 函数来实现的。
 
@@ -143,7 +145,7 @@ func (t *Trie) insert(n node, prefix, key []byte, value node) (bool, node, error
 }
 ```
 
-这里有一个关于go语言的知识。我们可以观察到insert函数的第一个参数是一个变量名为n的node类型的变量。有趣的是，在switch语句中我们看到了一个这样的写法.
+这里有一个关于go语言的知识：我们可以观察到insert函数的第一个参数是一个变量名为n的node类型的变量。有趣的是，在switch语句中我们看到了一个这样的写法：
 
 ```go
 switch n := n.(type)
@@ -152,7 +154,7 @@ switch n := n.(type)
 显然语句两端的*n*的含义并不相同。这种写法在go中是合法的。
 
 
-### Finalize And Commit and Commit to Disk
+### Finalize And Commit to Disk：存储到硬盘
 
 在更底层的 leveldb中，KV保存的是Trie中的节点，<hash, node.rlprawdata>。在Geth中，Trie并不是实时更新的，而是依赖于 Committer 和 Database 两个额外的辅助组件。
 

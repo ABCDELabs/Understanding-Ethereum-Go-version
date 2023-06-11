@@ -1,4 +1,4 @@
-# 状态管理 (State Management) i: StateDB
+# 状态管理一: StateDB
 
 ## 概述
 
@@ -199,4 +199,6 @@ type Trie interface {
 StateDB --> Memory_Trie_Database --> LevelDB
 ```
 
-StateDB 调用 `Commit` 的时候并没有同时触发 `TrieDB` 的 `Commit()`。在 `Block` 被插入到 Blockchain 的这个 Workflow 中，`stateDB` 的 `commit` 首先在 `writeBlockWithState()` 函数中被调用了。之后 `writeBlockWithState()` 函数会判断 `GC` 的状态来决定在本次调用中，是否需要向 `Disk Database` 写入数据。
+StateDB 调用 `Commit` 的时候并没有同时触发 `TrieDB` 的 Commit 。
+
+在Block被插入到 Blockchain 的这个Workflow中，stateDB的commit首先在`writeBlockWithState`函数中被调用了。之后`writeBlockWithState`函数会判断 `GC` 的状态来决定在本次调用中，是否需要向 `Disk Database` 写入数据。当新的Block被添加到Blockchain时，State 的数据并不一会立即被写入到 Disk Database 中。在`writeBlockWithState`函数中，函数会判断 `gc` 条件，只有满足一定的条件，才会在此刻调用 TrieDB 中的 `Cap` 或者 `Commit` 函数将数据写入Disk Database中。

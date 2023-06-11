@@ -1,4 +1,4 @@
-# 账户和合约 (Account and Contract)
+# Account and Contract：账户与合约
 
 ## 概述
 
@@ -21,10 +21,9 @@
 
 根据*合约中函数是否会修改合约中持久化的变量*，合约中的函数可以分为两种: *只读函数*和*写函数*。如果用户**只**希望查询某些合约中的持久化数据，而不对数据进行修改的话，那么用户只需要调用相关的只读函数。调用只读函数不需要通过构造一个 Transaction 来查询数据。用户可以通过直接调用本地节点或者第三方节点提供的 RPC 接口来直接调用对应的合约中的*只读函数*。如果用户需要对合约中的数据进行更新，那么他就要构造一个 Transaction 来调用合约中相对应的*写函数*。注意，每个 Transaction 每次调用一个合约中的一个*写函数*。因为，如果想在链上实现复杂的逻辑，需要将*写函数*接口化，在其中调用更多的逻辑。
 
-对于如何编写合约，以及 Ethereum 的执行层如何解析 Transaction 并调用对应的合约中函数的，我们会在后面的文章中详细的进行解析。
+关于如何编写合约，以及 Ethereum 的执行层如何解析 Transaction 并调用对应的合约中函数，我们会在后面的文章中详细的进行解析。
 
-
-## StateObject, EOA 和 Contract
+## StateObject, Account, Contract：状态、账户、合约
 
 ### 概述
 
@@ -57,8 +56,7 @@
   }
 ```
 
-
-### Address
+### Address：地址
 
 在 `stateObject` 这一结构体中，开头的两个成员变量为 `address` 以及 address 的哈希值 `addrHash`。`address`是common.Address类型，`addrHash` 是 common.Hash 类型，它们分别对应了一个**20字节**长的byte类型数组和一个32字节长的byte类型数组。关于这两种数据类型的定义如下所示。
 
@@ -78,7 +76,7 @@ type Hash [HashLength]byte
 
 在Ethereum中，每个 Account 都拥有独一无二的地址。Address 作为每个 Account 的身份信息，类似于现实生活中的身份证，它与用户信息时刻绑定而且不能被修改。
 
-### data and StateAccount
+### data and StateAccount：数据与状态账户
 
 继续向下探索，我们会遇到成员变量 `data`，它是一个 `types.StateAccount` 类型的变量。在上面的分析中我们提到，`stateObject`这种类型只对 Package State 这个内部使用。所以相应的，Package State 也为外部 Package API 提供了与Account 相关的数据类型 `State Account`。在上面的代码中我们就可以看到，`State Account` 对应了 `State Object` 中 `data Account` 成员变量。State Account 的具体数据结构的被定义在 `core/types/state_account.go` 文件中(~~在之前的版本中Account的代码位于core/account.go~~)，其定义如下所示。
 
@@ -100,11 +98,11 @@ type StateAccount struct {
 - Root 表示当前账户的下 Storage 层的 Merkle Patricia Trie的 Root。这里的存储层是为了管理合约中持久化变量准备的。对于 EOA账户这个部分为空值。
 - CodeHash 是该账户的 Contract 代码的哈希值。同样的，这个变量是用于保存合约账户中的代码的 hash ，EOA账户这个部分为空值。
 
-### db
+### db：数据库
 
 上述的几个成员变量基本覆盖了 Account 主生命周期相关的全部成员变量。那么我们继续向下看，会遇到`db`和`dbErr`这两个成员变量。db这个变量保存了一个 `StateDB` 类型的指针。这是为了方便调用 `StateDB` 相关的API对Account所对应的 `stateObject` 进行操作。StateDB 本质上是用于管理`stateObject` 信息的而抽象出来的内存数据库。所有的 Account 数据的更新，检索都会使用 StateDB 提供的 API。关于 StateDB 的具体实现，功能，以及如何与更底层物理存储层(leveldb)进行结合的，我们会在之后的文章中进行详细描述。
 
-### Cache
+### Cache：缓存
 
 对于剩下的成员变量，它们的主要用于内存缓存。trie 用于保存和管理合约账户中的持久化变量存储的数据，code 用于缓存合约中的代码段到内存中，它是一个 byte 类型的数组。剩下的四个 Storage 字段主要在执行 Transaction 的时候缓存合约修改的持久化数据，比如 dirtyStorage 就用于缓存在 Block 被 Finalize 之前，Transaction 所修改的合约中的持久化存储数据。对于外部账户，由于没有代码字段，所以对应 stateObject 对象中的code 字段，以及四个 Storage 类型的字段对应的变量的值都为空(originStorage, pendingStorage, dirtyStorage, fakeStorage)。
 
@@ -118,7 +116,7 @@ type StateAccount struct {
 
 我们说上述说法是基本正确，而不是完全正确。原因有两个。首先，用户的链上数据安全是基于当前 `Go-ethereum` 中使用的密码学工具足够保证：不存在第三方可以在**有限的时间**内在**不知道用户私钥的前提**下获取到用户的私钥信息来伪造签名交易。这个安全保证前提是当今Ethereum使用的密码学工具的强度足够大，没有计算机可以在有限的时间内 hack 出用户的私钥信息。在量子计算机出现之前，目前 Ethereum 和其他 Blockchain 使用的密码学工具的强度都是足够安全的。这也是为什么很多新的区块链项目在研究抗量子计算机密码体系的原因。第二点原因是，当今很多的所谓的 Crypto/Token 并不是链级别的代币，而是保存在合约中持久化变量中的数据，比如 ERC-20 Token 和 NFT对应的 ERC-721 的 Token。由于这部分的 Token 都是基于合约代码生成和维护的，所以这部分 Token 的安全依赖于合约本身的安全。如果合约本身的代码是有问题的，存在后门或者漏洞，比如存在给第三方任意提取其他账户下 Token 的漏洞。那么即使用户的私钥信息没有泄漏，合约中的Token仍然可以被第三方获取到。由于合约的代码段在链上是不可修改的，因此合约代码的安全性是极其重要的。目前有很多研究人员，技术团队在进行合约审计方面的工作，来保证上传的合约代码是安全的。随着Layer-2技术和一些跨链技术的发展，用户持有的 `Token` ，在很多情况下并不是我们上面提到的由私钥来保证安全的 Naive Token，而是 ERC-20 Token。这种 Token 只是合约中的简单数值记录。这种类型的资产的安全性是远低于低于 layer-1 上的 Native Token 的。用户在持有这类资产的时候需要小心。这里我们推荐阅读 Jay Freeman 所分析的关于一个热门 Layer-2 系统Optimism上 的由于非 Naive Token 造成的[任意提取漏洞](https://www.saurik.com/optimism.html)。
 
-### Account Generation
+### Account Generation：账户生成
 
 首先，EOA账户的创建分为本地创建和链上注册两个部分。当我们使用诸如 Metamask 等钱包工具创建账户的时候，在区块链上并没有同步注册账户信息。链上账户的创建和管理都是通过 `StateDB` 模块来操作的，因此我们将 `geth` 中账户管理部分的代码整合到 `StateDB` 模块章节来一起讲述。而合约账户，或者说智能合约的创建是需要通过 EOA 账户构造特定的交易生成的。关于这部分的细节我们也放在之后的章节中进行解析。
 
@@ -168,7 +166,7 @@ func newKey(rand io.Reader) (*Key, error) {
 - 最终账户的地址，是基于上述公钥(ecdsaSK.PublicKey)进行 **Keccak-256算法** 计算之后得到的哈希值的后20个字节，用0x开头表示(Keccak-256 是 SHA-3（Secure Hash Algorithm 3）标准下的一种哈希算法)。
     `addr := crypto.PubkeyToAddress(ecdsaSK.PublicKey)`
 
-#### Signature & Verification
+#### Signature & Verification：签名与验证
 
 这里我们简述一下，怎么利用 ECDSA 来进行数字签名和校验的。
 
@@ -184,7 +182,7 @@ func newKey(rand io.Reader) (*Key, error) {
     `crypto.VerifySignature(testPk, msg[:], msgSig[:len(msgSig)-1])`
 - 这套体系的安全性保证在于，即使知道了公钥 ecdsaPk/ecdsaSK.PublicKey也难以推测出 ecdsaSK以及生成他的 privateKey。
 
-#### ECDSA & spec256k1 曲线
+#### ECDSA & spec256k1：运算中的曲线
 
 最后，我们来简述一下 ECDSA 的原理。感兴趣的读者可以以此为切入点自行搜索。
 
@@ -196,12 +194,11 @@ func newKey(rand io.Reader) (*Key, error) {
 - Based Point P是在椭圆曲线上的群的生成元
 - x次computation on Based Point得到X点，x为私钥，X为公钥。x由Account Private Key得出。
 
-
-## 合约和合约存储 (Storage)
+## Contract：合约和合约存储
 
 - 这部分的示例代码位于: [[example/signature](example/signature)]中。
 
-### Contract Storage (合约存储)
+### Contract Storage：合约存储
 
 <!-- TODO: 这部分未来会整合到EVM章节中 -->
 
@@ -237,7 +234,7 @@ type Hash [HashLength]byte
 
 我们将通过下面的一些实例来展示，在 Ethereum 中，Contract 是如何保存持久化变量的，以及保证所有的参与者都能一致性读写的 Contract 中的数据的。
 
-### Contract Storage Example One
+### 合约存储案例一：Storing Numbers
 
 我们使用一个简单的合约来展示 Contract Storage 层的逻辑，合约代码如下所示。在本例中，我们使用了一个叫做 `Storage` 合约，其中定义了了三个持久化 uint256 类型的变量分别是 number, number1, 以及number2。同时，我们定义一个 `stores` 函数给这个三个变量进行赋值。合约代码如下所示。
 
@@ -308,7 +305,7 @@ func (t *SecureTrie) TryGet(key []byte) ([]byte, error) {
 }
 ```
 
-### Account Storage Example Two
+### 合约存储案例二: Sequence of Storage
 
 下面我们来看另外的一个例子。在这个例子中，我们调整了一下合约中变量的声明顺序，从(number，number1，number2)调整为(number 2, number 1, number)。合约代码如下所示。
 
@@ -368,7 +365,7 @@ contract Storage {
 
 这个例子可以说明，在 `go-ethereum` 中，变量对应的存储层的 Slot，是按照其在在合约中的声明顺序，从第一个 Slot（position：0）开始分配的。
 
-### Account Storage Example Three
+### 合约存储案例三: Partial Storage
 
 我们再考虑另一种情况：声明的三个变量，但只对其中的两个变量进行赋值。具体的来说，我们按照 number，number1，和number2 的顺序声明三个 `uint256` 变量。但是，在函数`stores`中只对 number1 和 number2 进行赋值操作。合约代码如下所示。
 
@@ -424,7 +421,7 @@ contract Storage {
 
 ![Remix Debugger](../figs/01/remix.png)
 
-### Account Storage Example Four
+### 合约存储案例四：Multiple Types
 
 在 Solidity 中，有一类特殊的变量类型 **Address**，通常用于表示账户的地址信息。例如在 ERC-20 合约中，用户拥有的 token 信息是被存储在一个(address->uint)的map结构中。在这个 map 中，key就是 Address 类型的，它表示了用户实际的 address 。目前 Address 的大小为 160bits(20bytes)，并不足以填满一整个 Slot。因此当 Address 作为 value 单独存储在的时候，它并不会排他的独占用一个 Slot。我们使用下面的例子来说明。
 
@@ -480,7 +477,7 @@ contract Storage {
 }
 ```
 
-### Account Storage Example Five
+### 合约存储案例五: Storing Maps
 
 对于变长数组和 Map 结构的变量存储分配则相对的复杂。虽然 Map 本身就是 `key-value` 的结构，但是在 Storage 层并不直接使用 map 中 key 的值或者 key 的值的 sha3 哈希值来作为 Storage 分配的 Slot 的索引值。目前，EVM 首先会使用map中元素的key的值和当前Map变量声明位置对应的 slot 的值进行拼接，再使用拼接后的值的 `keccak256` 哈希值作为 Slot 的位置索引(Position)。我们在下面的例子中展示了 Ethereum 是如何处理 map 这种变长的数据结构的。在下面的合约中，我们声明了一个定长的 uint256 类型的对象 number，和一个[string=>uint256]类型的 Map 对象。
 
