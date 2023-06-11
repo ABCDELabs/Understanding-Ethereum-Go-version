@@ -1,5 +1,7 @@
 # Mining
 
+这部分的代码目前已经在主代码库中被删除。
+
 ## Block Reward
 
 ## How to Seal Block

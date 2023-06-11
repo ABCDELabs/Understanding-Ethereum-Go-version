@@ -1,8 +1,8 @@
-# From Block to Blockchain
+# 区块和区块链 (Block & Blockchain)
 
-## Block in General
+## Block 
 
-### Date Structure
+### 基础数据结构
 
 ```go
 type Block struct {
@@ -41,7 +41,7 @@ type Header struct {
 
 ## Blockchain
 
-### Date Structure
+### 基础数据结构
 
 ```golang
 type BlockChain struct {
@@ -99,5 +99,3 @@ type BlockChain struct {
 }
 
 ```
-## 向Blockchain中插入Block
-`func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals, setHead bool) (int, error)`

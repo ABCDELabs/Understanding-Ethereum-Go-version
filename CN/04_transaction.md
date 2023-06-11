@@ -1,16 +1,16 @@
-# Transaction: 一个Transaction的生老病死
+# 交易 (Transaction)
 
 ## 概述
 
-我们知道，Ethereum的基本模型是基于交易的状态机模型(Transaction-based State Machine)。在[Account章节](./01_account.md)我们简述了一下Account/Contract的基本数据结构。本章我们就来探索一下，Ethereum中的一个基本数据结构Transaction。在本文中，我们提到的交易指的是在Ethereum Layer-1层面上构造的交易，以太坊生态中的Layer-2中的交易不在我们的讨论中。
+前面的章节中，我们简述了一下Account/Contract的基本数据结构。在本章我们就来探索一下，Ethereum 中的一个基本数据结构 Transaction。在本文中，我们提到的交易指的是在Ethereum Layer-1层面上构造的交易。
 
-首先，Transaction是Ethereum执行数据操作的媒介，它主要起到下面的几个作用:
+首先，Transaction 是 Ethereum 执行数据操作的媒介，它主要起到下面的几个作用:
 
-1. 在Layer-1网络上的Account之间进行Native Token的转账。
+1. 在Layer-1网络上的Account之间进行 Native Token 的转账。
 2. 创建新的Contract。
 3. 调用Contract中会修改目标Contract中持久化数据或者间接修改其他Account/Contract数据的函数。
 
-这里我们对Transaction的功能性的细节再进行一些额外的补充。首先，Transaction只能创建Contract账户，而不能用于创建外部账户(EOA)。第二，如果调用Contract中的只读函数，是不需要构造Transaction的。相对的，所有参与Account/Contract数据修改的操作都需要通过Transaction来进行。第三，广义上的Transaction只能由外部账户(EOA)构建。Contract是没有办法显式构造Layer-1层面的交易的。在某些合约函数的执行过程中，Contract在可以通过构造internal transaction来与其他的合约进行交互，但是这种Internal transaction与我们提到的Layer-1层面的交易有所不同，我们会在之后的章节介绍。
+这里我们对 Transaction 的功能性的细节再进行一些额外的补充。首先，Transaction 只能创建合约(Contract)账户，而不能用于创建外部账户(EOA)。第二，如果调用Contract中的只读函数，是不需要构造Transaction的。相对的，所有参与Account/Contract数据修改的操作都需要通过Transaction来进行。第三，广义上的Transaction只能由外部账户(EOA)构建。Contract是没有办法显式构造Layer-1层面的交易的。在某些合约函数的执行过程中，Contract在可以通过构造internal transaction来与其他的合约进行交互，但是这种Internal transaction与我们提到的Layer-1层面的交易有所不同，我们会在之后的章节介绍。
 
 ## LegacyTx & AccessListTX & DynamicFeeTx
 
@@ -58,6 +58,7 @@ type TxData interface {
 (PS:目前Ethereum的黄皮书只更新到了Berlin分叉的内容，还没有添加London分叉的更新, 2022.3.10)
 
 ### LegacyTx
+LegacyTx 是最原始的以太坊交易的定义。
 
 ```go
 type LegacyTx struct {
@@ -72,7 +73,7 @@ type LegacyTx struct {
 ```
 
 ### AccessListTX
-
+AccessListTx 在 LegacyTx 基础上多了 `ChainID` 和 `AccessList` 这两个变量。
 ```go
 type AccessListTx struct {
  ChainID    *big.Int        // destination chain ID
@@ -110,7 +111,7 @@ type DynamicFeeTx struct {
 }
 ```
 
-## Transaction的执行流程
+## Transaction 的执行
 
 Transaction的执行主要在发生在两个Workflow中:
 
@@ -119,7 +120,6 @@ Transaction的执行主要在发生在两个Workflow中:
 
 一条Transaction执行，可能会涉及到多个Account/Contract的值的变化，最终造成一个或多个Account的State的发生转移。在Byzantium分叉之前的Geth版本中，在每个Transaction执行之后，都会计算一个当前的State Trie Root，并写入到对应的Transaction Receipt中。这符合以太坊黄皮书中的原始设计。即交易是使得Ethereum状态机发生状态状态转移的最细粒度单位。读者们可能已经来开产生疑惑了，“每个Transaction都会重算一个State Trie Root”的方式岂不是会带来大量的计算(重算一次一个MPT Path上的所有Node)和读写开销(新生成的MPT Node是很有可能最终被持久化到LevelDB中的)？结论是显然的。因此在Byzantium分叉之后，在一个Block的验证周期中只会计算一次的State Root。我们仍然可以在`state_processor.go`找寻到早年代码的痕迹。最终，一个Block中所有Transaction执行的结果使得World State发生状态转移。下面我们就来根据geth代码库中的调用关系，从Miner的视角来探索一个Transaction的生命周期。
 
-### Native Token Transferring Transaction
 
 ### Transaction修改Contract的持久化存储的
 
@@ -181,7 +181,7 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 }
 ```
 
-`commitTransactions`函数的主体是一个for循环，每次获取结构体切片头部的txs.Peek()的transaction，并作为参数调用函数miner/worker.go的`commitTransaction()`。`commitTransaction()`函数如下所示。
+`commitTransactions` 函数的主体是一个 for 循环，每次获取结构体切片头部的txs.Peek()的transaction，并作为参数调用函数miner/worker.go的`commitTransaction()`。`commitTransaction()`函数如下所示。
 
 ```go
 func (w *worker) commitTransaction(tx *types.Transaction, coinbase common.Address) ([]*types.Log, error){
@@ -223,7 +223,7 @@ func applyTransaction(msg types.Message, config *params.ChainConfig, bc ChainCon
 }
 ```
 
-之后调用core/state_transition.go/ApplyMessage()函数。
+之后调用 core/state_transition.go/ApplyMessage() 函数。
 
 ```go
 func ApplyMessage(evm *vm.EVM, msg Message, gp *GasPool) (*ExecutionResult, error) {
@@ -231,7 +231,7 @@ func ApplyMessage(evm *vm.EVM, msg Message, gp *GasPool) (*ExecutionResult, erro
     }   
 ```
 
-之后调用core/state_transition.go/TransitionDb()函数。
+之后调用 core/state_transition.go/TransitionDb() 函数。
 
 ```go
 func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
@@ -241,7 +241,7 @@ func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
 }
 ```
 
-之后调用core/vm/evm.go/Call()函数。
+之后调用 core/vm/evm.go/Call() 函数。
 
 ```go
 func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
@@ -252,7 +252,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 }
 ```
 
-之后调用core/vm/interpreter.go/Run()函数。
+之后调用 core/vm/interpreter.go/Run() 函数。
 
 ```go
 // Run loops and evaluates the contract's code with the given input data and returns
@@ -313,17 +313,12 @@ func (s *StateDB) SetState(addr common.Address, key, value common.Hash) {
 
 对于一条调用合约函数的交易，其中必然会存在修改StateDB的操作。通过上述的函数调用关系，我们就完成了在一个新区块的形成过程中，Transaction如何修改StateDB的Workflow。
 
-```mermaid
-flowchart LR
-commitTransactions --> commitTransaction --> ApplyTransaction --> applyTransaction -->  ApplyMessage --> TransactionDB --> Call --> Run --> opSstore --> StateDB --> StateObject --> Key-Value-Trie
-```
-
 ![Transaction Execution Flow](../figs/02/tx_execu_flow.png)
 
 ![Transaction Execution stack Flow](../figs/04/tx_exec_calls.png)
 
 
-## [Validator] 验证节点是如何执行Transaction来更新World State
+## 验证节点是如何执行 Transaction 来更新 World State
 
 而对于不参与Mining的节点，他们执行Block中Transaction的入口是在core/blockchain.go中的InsertChain()函数。InsertChain函数通过调用内部函数insertChain，对调用中的core/state_processor.go中的Process()函数。Process函数的核心在于循环遍历Block中的Transaction，调用上述的applyTransaction函数。从这里开始更底层的调用关系就与Mining Workflow中的调用关系相同。
 
@@ -373,7 +368,7 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 }
 ```
 
-## Background of State-based Blockchain
+### Background of State-based Blockchain
 
 - State-based Blockchain 的数据主要由两部分的数据管理模块组成：World State 和 Blockchain。
 - State Object是系统中基于K-V结构的基础数据元素。在Ethereum中，State Object是Account。
@@ -382,12 +377,8 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 - Transaction是Blockchain System中与承载数据更新的载体。通过Transaction，State Object从当前状态切换到另一个状态。
 - World State的更新是以Block为单位的。
 
-1. <https://www.codenong.com/cs105936343/>
-2. <https://yangzhe.me/2019/08/12/ethereum-evm/>
 
-[EIP2718]: https://eips.ethereum.org/EIPS/eip-2718
-
-## Read Transaction from Database
+### Read Transaction from Database
 
 当我们想要通过Transaction的Hash查询一个Transaction具体的数据的时候，上层的API会调用`eth/api_backend.go`中的`GetTransaction()`函数，并最终调用了`core/rawdb/accessors_indexes.go`中的`ReadTransaction()`函数来查询。
 
@@ -398,7 +389,7 @@ func (b *EthAPIBackend) GetTransaction(ctx context.Context, txHash common.Hash) 
 }
 ```
 
-这里值得注意的是，在读取Transaction的时候，`ReadTransaction()`函数首先获取了保存该Transaction的函数block body，并循环遍历该Block Body中获取到对应的Transaction。这是因为，虽然Transaction是作为一个基本的数据结构(Transaction Hash可以保证Transaction的唯一性)，但是在写入数据库的时候就是被按照Block Body的形式被整个的打包写入到Database中的。具体的可以查看`core/rawdb/accesssor_chain.go`中的`WriteBlock()`和`WriteBody()`函数。
+这里值得注意的是，在读取 Transaction 的时候，`ReadTransaction()`函数首先获取了保存该 Transaction 的函数 Block body，并循环遍历该Block Body 中获取到对应的 Transaction。这是因为，虽然 Transaction 是作为一个基本的数据结构(Transaction Hash可以保证Transaction的唯一性)，但是在写入数据库的时候就是被按照 Block Body 的形式被整个的打包写入到 Database 中的。具体的代码逻辑可以查看`core/rawdb/accesssor_chain.go`中的`WriteBlock()`和`WriteBody()` 函数。
 
 ```go
 func ReadTransaction(db ethdb.Reader, hash common.Hash) (*types.Transaction, common.Hash, uint64, uint64) {
@@ -424,7 +415,3 @@ func ReadTransaction(db ethdb.Reader, hash common.Hash) (*types.Transaction, com
  return nil, common.Hash{}, 0, 0
 }
 ```
-
-## Terms
-
-- Externally Owned Account(EOA) 外部账户
