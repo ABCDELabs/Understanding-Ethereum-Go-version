@@ -221,7 +221,7 @@ type Hash [HashLength]byte
 
 从数据层面讲，外部账户(EOA)与合约账户(Contract)不同的点在于: 外部账户并没有维护自己的代码(codeHash)以及额外的 Storage 层。相比与外部账户，合约账户额外保存了一个存储层(Storage)用于存储合约代码中持久化的变量的数据。在上文中我们提到，StateObject 结构体中的声明的四个 Storage 类型的变量，就是作为 Contract Storage 层的内存缓存。
 
-在 Ethereum 中，每个合约都维护了自己的*独立*的存储空间，用于保存合约中的持久化变量，我们称为 Storage 层。Storage 层的基本组成单元称为槽 (Slot)。若干个 Slot 按照栈(Stack)的方式顺序集合在一起就构造成了 Storage 层。每个 Slot 的大小是 256 bits，也就是最多保存 `32 bytes` 的数据。作为基本的存储单元，Slot 管理的方式与内存或者HDD中的基本单元的管理方式类似，通过地址索引的方式被上层函数访问。Slot的地址索引的长度同样是32 bytes(256 bits)，寻址空间从 0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个Contract的Storage层最多可以保存$2^{256} - 1$个 Slot。也就说在理论状态下，一个 Contract 可以最多保存 $(2^{256} - 1)$ bytes的数据，这是个相当大的数字。
+在 Ethereum 中，每个合约都维护了自己的*独立*的存储空间，用于保存合约中的持久化变量，我们称为 Storage 层。Storage 层的基本组成单元称为槽 (Slot)。若干个 Slot 按照栈(Stack)的方式顺序集合在一起就构造成了 Storage 层。每个 Slot 的大小是 256 bits，也就是最多保存 `32 bytes` 的数据。作为基本的存储单元，Slot 管理的方式与内存或者HDD中的基本单元的管理方式类似，通过地址索引的方式被上层函数访问。Slot的地址索引的长度同样是32 bytes(256 bits)，寻址空间从 0x0000000000000000000000000000000000000000000000000000000000000000 到 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF。因此，每个Contract的Storage层最多可以保存$2^{256} - 1$个 Slot。也就说在理论状态下，一个 Contract 可以最多保存 $(2^{256} - 1)$ 32 bytes的数据，这是个相当大的数字。
 
 为了更好的管理 Storage 层的 Slot 数据，Contract 同样使用 MPT 作为索引来管理 Storage 层的Slot。这里值得注意的是，合约 Storage 层的数据并不会跟随交易一起被打包进入 Block 中。正如我们之前提到的，管理合约账户中 Storage 层 Storage Trie 的根数据被保存在 StateAccount 结构体中的 Root 变量中(它是一个32bytes长的byte数组)。当某个 Contract 的 Storage 层的数据发生变化时，会向上传导，并更新 World State Root 的值，从而影响到Chain链上数据。目前，Storage 层的数据读取和修改是在执行相关 Transaction 的时候，通过调用 EVM 中的两个专用的指令 *OpSload* 和 *OpSstore* 来执行的。关于这两个指令的具体实现原理，我们会在后续的 EVM 章节进行详细的解读。
 
