@@ -95,7 +95,7 @@ trie/    Ethereum 中至关重要的数据结构 Merkle Patrica Trie(MPT) 的实
 
 ### 前奏: Geth Console
 
-当我们想要部署一个 Ethereum 节点的时候，最直接的方式就是下载官方提供的发行版的 geth 客户端程序。`geth`是一个基于 CLI 的应用，启动 `geth` 和 调用 `geth` 的功能性 API 需要使用对应的指令来操作。`geth` 提供了一个相对友好的 console 来方便用户调用各种指令。当我第一次阅读 Ethereum 的文档的时候，我曾经有过这样的疑问，为什么`geth`是由 Go 语言编写的，但是在官方文档中的 Web3 的API却是基于 Javascript 的调用？
+当我们想要部署一个 Ethereum 执行层节点的时候，最直接的方式就是下载官方提供的发行版的 geth 客户端程序。`geth`是一个基于 CLI 的应用，启动 `geth` 和 调用 `geth` 的功能性 API 需要使用对应的指令来操作。`geth` 提供了一个相对友好的 console 来方便用户调用各种指令。当我第一次阅读 Ethereum 的文档的时候，我曾经有过这样的疑问，为什么`geth`是由 Go 语言编写的，但是在官方文档中的 Web3 的API却是基于 Javascript 的调用？
 
 这是因为 `geth` 内置了一个 Javascript 的解释器: *Goja* (interpreter)，来作为用户与 `geth` 交互的 CLI Console。我们可以在`console/console.go` 中找到它的定义。
 
