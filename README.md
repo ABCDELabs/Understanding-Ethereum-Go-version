@@ -18,7 +18,10 @@
 
 #### 时代的弄潮儿: Blockchain
 
+Blockchain was first introduced by Satoshi Nakamoto in the Bitcoin whitepaper as a distributed ledger technology supporting Bitcoin transactions, and over a decade has passed since then. In these years, with the skyrocketing prices of cryptocurrencies, the number of participants in the community has continuously increased, attracting a wealth of professionals from diverse backgrounds to incessantly inject new ideas into the topic of Blockchain. With the continuous influx of new thoughts, the boundaries of blockchain technology have been expanding, gradually evolving into a novel technological field that integrates knowledge from multiple disciplines including databases, distributed systems, cryptography, peer-to-peer networks, compilation principles, static software analysis, crowdsourcing, economics, monetary finance, sociology, and more. Fueled by an unending stream of new technologies and ideas, Blockchain has gradually shifted from a niche decentralized technology community to the mainstream social stage, remaining one of the hottest, most rapidly evolving, and most socially discussed technological topics to date. Influenced by Blockchain's native decentralized philosophy, the vast majority of Blockchain systems are open-source and continuously developed and maintained on GitHub. This presents us with an excellent way to learn Blockchain technology: combining documentation with source code to understand and learn the system's design philosophy and implementation principles.
+
 Blockchain 最早作为支撑 Bitcoin 结算的分布式账本技术，由中本聪在**比特币白皮书**提出，至今已经过了十几年。在这十几年中，随着加密货币价格的飞涨，社区的参与人数不断的增加，大量的来自不同背景专业人士围绕 Blockchain 这一话题源源不断的注入新的想法。随着新的思想持续的涌入，区块链技术的边界不断的拓展，逐渐成为了融合了*数据库*，*分布式系统*，*密码学*，*点对点网络*，*编译原理*，*静态软件分析*，*众包*，*经济学*，*货币金融学*，*社会学*等多个学科知识的一个全新技术领域。在源源不断的新技术和新思想的催化下，Blockchain 也逐渐从小众的去中心化技术社区逐渐走向了主流社会的舞台，至今仍是当下**最热度最高**，**技术迭代最快**，**最能引起社会讨论**的技术话题之一。在 Blockchain 原生的 decentralized 的思想的影响下，市面上绝大多数的 Blockchain 系统都是以开源的形式持续在 Github 上开发和维护。这就为我们提供了一种的极好的学习 Blockchain 技术的方式: 结合文档，基于源代码，理解和学习系统的设计思想和实现原理。
+
 
 #### 为什么要研究以太坊& Go-Ethereum 的原理
 
@@ -81,7 +84,7 @@ Blockchain 最早作为支撑 Bitcoin 结算的分布式账本技术，由中本
 - [11_Blockchain 的数据是如何持久化的: Leveldb in Practice]
 - [12_当I/O变成瓶颈: Caching in Practice]
 - [WIP] [13_深入 EVM: 设计与实现](CN/13_evm.md)
-- [14_Signer: 如何保证 Transaction 的合法性]
+- [WIP] [14_Signer: 如何保证 Transaction 的合法性]
 - [WIP] [15_节点的调用 RPC and IPC](CN/15_rpc.md)
 
 ### PART THREE - Beyond Ethereum: Techs in Blockchain
@@ -90,7 +93,7 @@ Blockchain 最早作为支撑 Bitcoin 结算的分布式账本技术，由中本
 - [WIP] [21_从Plasma到Rollup](CN/21_rollup.md)
 - [WIP] [22_Authenticated data structures Brief](CN/22_ads.md)
 - [WIP] [23_Bloom Filter](CN/23_bloom_filter.md)
-- [24_图灵机和停机问题]
+- [WIP] [24_图灵机和停机问题]
 - [WIP] [25_Log-structured merge-tree in Ethereum](CN/25_lsm_tree.md)
 - [WIP] [26_Concurrency in Ethereum Transaction](CN/26_txn_concurrency.md)
 - [27_Zero-knowledge Proof]
@@ -99,10 +102,10 @@ Blockchain 最早作为支撑 Bitcoin 结算的分布式账本技术，由中本
 
 - [WIP] [30_使用geth构建一个私有网络](CN/30_geth_private_network.md)
 - [WIP] [31_如何编写Solidity语言](CN/31_solidity_in_practice.md)
-- [32_Oracle in Practice]
-- [33_Query On Ethereum Data]
+- [WIP] [32_Oracle in Practice]
+- [WIP] [33_Query On Ethereum Data]
 - [WIP] [34_Metrics in Ethereum](CN/34_metrics.md)
-- [35_Merge](CN/44_merge.md)
+- [WIP] [35_Merge](CN/44_merge.md)
 - [WIP] [36_Scroll](CN/45_scroll.md)
 - [WIP] [37_Arbitrum](CN/46_arbitrum.md)
 
@@ -110,6 +113,7 @@ Blockchain 最早作为支撑 Bitcoin 结算的分布式账本技术，由中本
 
 - [40_FQA](#tips)
 - [41_Ethereum System Tunning]
+- [42_Ethereum Improvement Proposal]
 - [Deprecated] ~~[怎么用闲置的电脑进行挖矿 | mining]~~
 
 
