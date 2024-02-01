@@ -4,15 +4,15 @@
 
 EVM类似汇编器，负责把合约汇编成更底层的指令(instruction)。每条指令表示了一些基础或者原子行逻辑操作，例如opCreate用于在State Database上创建一个新的Contract，opBalance用于从State Database中获取某个State Object的balance。这些指令的的具体的代码实现位于core/vm/instructions.go 文件中。
 
-值得注意的是，这些指令仍然会调用go-ethereum中其他package所提供的API，而不是直接对更底层的数据进行操作。比如，opSstore与opSload指令用于从Storage层存储和读取数据。这两个指令直接调用了StateDB(core/state/statedb.go)与StateObject(core/state/state_object.go)提供的API。关于这些指令的详细介绍可以参考Ethereum Yellow Paper。
+值得注意的是，这些指令仍然会调用go-ethereum中其他package所提供的API，而不是直接对更底层的数据进行操作。比如，opSstore与opSload指令用于从Storage层存储和读取数据。这两个指令直接调用了StateDB(core/state/statedb.go)与StateObject(core/state/state_object.go)提供的API。关于这些指令的详细介绍可以参考Ethereum Yellow Paper，具体实践可以参考https://www.evm.codes/
 
-### opSload
+### opSload（将栈顶位置的数据作为KEY，返回当前合约相应位置的数据）
 
 opSload的代码如下所示。
 
 ```Golang
 func opSload(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
-    loc := scope.Stack.peek()
+    loc := scope.Stack.peek() //读取栈顶位置的值，这里使用.peek而不是.pop的原因是因为sload具有返回值，如果使用pop，还需要在后续再push返回的结果。
     hash := common.Hash(loc.Bytes32())
     // 从StateDB中读取到对应的合约中对应的存储Object的值
     val := interpreter.evm.StateDB.GetState(scope.Contract.Address(), hash)
@@ -21,13 +21,13 @@ func opSload(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]by
 }
 ```
 
-### opSstore
+### opSstore（将栈顶、次栈顶位置作为存储值、存储位置，传入到当前合约的DB当中）
 
 opSstore的代码如下所示。
 
 ```Golang
 func opSstore(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
-    loc := scope.Stack.pop()
+    loc := scope.Stack.pop() //sstore无返回值，直接使用.pop
     val := scope.Stack.pop()
     // 将Stack中的数据写入到StateDB中
     interpreter.evm.StateDB.SetState(scope.Contract.Address(),
